@@ -23,7 +23,7 @@ An iOS app that clips web pages to your Obsidian vault as clean Markdown notes â
 ### 1. Clone and Open
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/obsidian-clipper.git
+git clone https://github.com/aerocristobal/obsidian-clipper.git
 cd obsidian-clipper
 open ObsidianClipper.xcodeproj
 ```

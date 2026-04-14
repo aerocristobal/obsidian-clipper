@@ -41,7 +41,7 @@ struct AboutView: View {
             }
 
             Section {
-                Link(destination: URL(string: "https://github.com")!) {
+                Link(destination: URL(string: "https://github.com/aerocristobal/obsidian-clipper")!) {
                     Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
                 }
             }
