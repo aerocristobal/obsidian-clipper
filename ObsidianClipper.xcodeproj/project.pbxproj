@@ -1,0 +1,406 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000001 /* ObsidianClipperApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000001; };
+		A10000002 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000002; };
+		A10000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000003; };
+		A10000004 /* ClipperSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010; };
+		A10000005 /* FolderPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000011; };
+		A10000006 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000012; };
+
+		A10000020 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000020; };
+		A10000021 /* HTMLToMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000021; };
+		A10000022 /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000022; };
+		A10000023 /* FileSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000023; };
+		A10000024 /* ClipperSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010; };
+		A10000025 /* ShareExtensionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000025; };
+		A10000026 /* WebContentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000026; };
+		A10000027 /* ClipResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000027; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A30000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A40000001;
+			proxyType = 1;
+			remoteGlobalIDString = A50000002;
+			remoteInfo = ClipperExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A60000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		A20000001 /* ObsidianClipperApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObsidianClipperApp.swift; sourceTree = "<group>"; };
+		A20000002 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A20000003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20000010 /* ClipperSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipperSettings.swift; sourceTree = "<group>"; };
+		A20000011 /* FolderPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderPickerView.swift; sourceTree = "<group>"; };
+		A20000012 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		A20000020 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		A20000021 /* HTMLToMarkdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLToMarkdown.swift; sourceTree = "<group>"; };
+		A20000022 /* ImageProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessor.swift; sourceTree = "<group>"; };
+		A20000023 /* FileSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSaver.swift; sourceTree = "<group>"; };
+		A20000025 /* ShareExtensionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionView.swift; sourceTree = "<group>"; };
+		A20000026 /* WebContentExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentExtractor.swift; sourceTree = "<group>"; };
+		A20000027 /* ClipResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipResult.swift; sourceTree = "<group>"; };
+		A20000030 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+
+		A70000001 /* ObsidianClipper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObsidianClipper.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A70000002 /* ClipperExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipperExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		A80000001 = {
+			isa = PBXGroup;
+			children = (
+				A80000002 /* ObsidianClipper */,
+				A80000003 /* ClipperExtension */,
+				A80000004 /* Shared */,
+				A80000005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A80000002 /* ObsidianClipper */ = {
+			isa = PBXGroup;
+			children = (
+				A20000001 /* ObsidianClipperApp.swift */,
+				A20000002 /* SettingsView.swift */,
+				A20000011 /* FolderPickerView.swift */,
+				A20000012 /* AboutView.swift */,
+				A20000003 /* Assets.xcassets */,
+			);
+			path = ObsidianClipper;
+			sourceTree = "<group>";
+		};
+		A80000003 /* ClipperExtension */ = {
+			isa = PBXGroup;
+			children = (
+				A20000020 /* ShareViewController.swift */,
+				A20000025 /* ShareExtensionView.swift */,
+				A20000021 /* HTMLToMarkdown.swift */,
+				A20000022 /* ImageProcessor.swift */,
+				A20000023 /* FileSaver.swift */,
+				A20000026 /* WebContentExtractor.swift */,
+				A20000027 /* ClipResult.swift */,
+				A20000030 /* Info.plist */,
+			);
+			path = ClipperExtension;
+			sourceTree = "<group>";
+		};
+		A80000004 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				A20000010 /* ClipperSettings.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A80000005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A70000001 /* ObsidianClipper.app */,
+				A70000002 /* ClipperExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000001 /* ObsidianClipper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A90000001;
+			buildPhases = (
+				AB0000001 /* Sources */,
+				AB0000002 /* Resources */,
+				A60000001 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AC0000001 /* PBXTargetDependency */,
+			);
+			name = ObsidianClipper;
+			productName = ObsidianClipper;
+			productReference = A70000001;
+			productType = "com.apple.product-type.application";
+		};
+		A50000002 /* ClipperExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A90000002;
+			buildPhases = (
+				AB0000003 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ClipperExtension;
+			productName = ClipperExtension;
+			productReference = A70000002;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A40000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					A50000001 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					A50000002 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = A90000003;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A80000001;
+			productRefGroup = A80000005;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A50000001 /* ObsidianClipper */,
+				A50000002 /* ClipperExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AB0000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000003 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AB0000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000001 /* ObsidianClipperApp.swift in Sources */,
+				A10000002 /* SettingsView.swift in Sources */,
+				A10000004 /* ClipperSettings.swift in Sources */,
+				A10000005 /* FolderPickerView.swift in Sources */,
+				A10000006 /* AboutView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB0000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000020 /* ShareViewController.swift in Sources */,
+				A10000021 /* HTMLToMarkdown.swift in Sources */,
+				A10000022 /* ImageProcessor.swift in Sources */,
+				A10000023 /* FileSaver.swift in Sources */,
+				A10000024 /* ClipperSettings.swift in Sources */,
+				A10000025 /* ShareExtensionView.swift in Sources */,
+				A10000026 /* WebContentExtractor.swift in Sources */,
+				A10000027 /* ClipResult.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AC0000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A50000002;
+			targetProxy = A30000001;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		AD0000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		AD0000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AD0000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.obsidian.clipper;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AD0000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.obsidian.clipper;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		AD0000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClipperExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Clip to Obsidian";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.obsidian.clipper.extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AD0000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ClipperExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Clip to Obsidian";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.obsidian.clipper.extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A90000001 /* Build configuration list for PBXNativeTarget "ObsidianClipper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD0000003 /* Debug */,
+				AD0000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000002 /* Build configuration list for PBXNativeTarget "ClipperExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD0000005 /* Debug */,
+				AD0000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000003 /* Build configuration list for PBXProject "ObsidianClipper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD0000001 /* Debug */,
+				AD0000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = A40000001;
+}
