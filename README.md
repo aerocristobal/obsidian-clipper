@@ -5,12 +5,27 @@ An iOS app that clips web pages to your Obsidian vault as clean Markdown notes �
 ## Features
 
 - **Share Extension** — available from Safari and any iOS app with a Share button
-- **HTML → Markdown** — converts web content using Apple's native `NSAttributedString` HTML importer
+- **Safari JavaScript Preprocessing** — uses `Action.js` to capture the full page DOM directly from Safari, preserving authenticated content and avoiding re-fetching
+- **HTML to Markdown** — comprehensive converter supporting:
+  - Bold, italic, bold-italic, strikethrough
+  - Headings (h1 through h4, smart font-size detection)
+  - Ordered and unordered lists (via NSTextList detection)
+  - Blockquotes (via paragraph indent detection)
+  - Code blocks and inline code (monospace font detection)
+  - Tables (tab-separated content detection and formatting)
+  - Links with full URL preservation
 - **Image Extraction** — downloads images from the page and saves them in an `images/` subfolder
+  - Supports `srcset` (picks the largest image)
+  - Supports lazy-load attributes: `data-src`, `data-lazy-src`, `data-original`
+  - Parses `<picture>` / `<source>` elements
+  - Automatic URL deduplication
+  - 15-second download timeout per image
 - **OCR** — uses Apple's Vision framework (`VNRecognizeTextRequest`) to extract text from images
 - **YAML Frontmatter** — optional metadata block with title, source URL, and clip date
 - **Configurable Vault** — pick your vault folder and target subfolder from the settings screen
+- **First-Launch Onboarding** — guided setup when no vault is configured, with vault status indicator
 - **No Plugins Required** — writes `.md` files directly to your vault folder via iCloud Drive / Files
+- **Strict Concurrency** — `@MainActor`-isolated settings, `Sendable` types, clean actor boundaries
 
 ## Requirements
 
@@ -32,22 +47,22 @@ open ObsidianClipper.xcodeproj
 
 Both the main app and the share extension need a shared App Group to access the same settings:
 
-1. Select the **ObsidianClipper** target → Signing & Capabilities → + Capability → **App Groups**
+1. Select the **ObsidianClipper** target -> Signing & Capabilities -> + Capability -> **App Groups**
 2. Add: `group.com.obsidian.clipper`
-3. Select the **ClipperExtension** target → repeat steps 1-2 with the same group ID
+3. Select the **ClipperExtension** target -> repeat steps 1-2 with the same group ID
 4. Update the bundle identifiers to match your development team
 
 ### 3. Build & Run
 
 1. Select your device or simulator
 2. Build the **ObsidianClipper** scheme (this builds both targets)
-3. On first launch, configure your vault name and select the vault folder
+3. On first launch, the onboarding banner guides you to select your vault folder
 
 ### 4. Enable the Share Extension
 
 The extension should appear automatically. If it doesn't:
-1. Open Safari → visit any page → tap Share
-2. Scroll right in the Share Sheet → tap "More"
+1. Open Safari -> visit any page -> tap Share
+2. Scroll right in the Share Sheet -> tap "More"
 3. Enable "Clip to Obsidian"
 
 ## Architecture
@@ -56,34 +71,77 @@ The extension should appear automatically. If it doesn't:
 obsidian-clipper/
 ├── ObsidianClipper/              # Main app target
 │   ├── ObsidianClipperApp.swift  # App entry point
-│   ├── SettingsView.swift        # Configuration UI
+│   ├── SettingsView.swift        # Configuration UI + onboarding
 │   ├── FolderPickerView.swift    # UIDocumentPicker wrapper
 │   ├── AboutView.swift           # About screen
 │   └── Assets.xcassets/          # App icon, accent color
 │
 ├── ClipperExtension/             # Share Extension target
-│   ├── ShareViewController.swift # Extension entry point & orchestrator
+│   ├── ShareViewController.swift # Extension entry point + @Observable view model
 │   ├── ShareExtensionView.swift  # Progress/result SwiftUI view
 │   ├── WebContentExtractor.swift # Extract URL/HTML/text from Share Sheet
-│   ├── HTMLToMarkdown.swift      # HTML → Markdown converter
-│   ├── ImageProcessor.swift      # Image download + Vision OCR
+│   ├── HTMLToMarkdown.swift      # HTML → Markdown converter (lists, code, tables, etc.)
+│   ├── ImageProcessor.swift      # Image download + Vision OCR (with timeouts)
 │   ├── FileSaver.swift           # Write .md + images to vault folder
 │   ├── ClipResult.swift          # Data model for a clipped article
-│   └── Info.plist                # Extension configuration
+│   ├── Action.js                 # Safari JavaScript preprocessing
+│   └── Info.plist                # Extension configuration + ATS exception
 │
-└── Shared/
-    └── ClipperSettings.swift     # App Group UserDefaults (shared)
+├── Shared/
+│   └── ClipperSettings.swift     # @MainActor App Group UserDefaults (shared)
+│
+└── ObsidianClipperTests/         # Unit tests
+    ├── HTMLToMarkdownTests.swift  # Converter + image extraction tests
+    ├── FileSaverTests.swift       # Filename sanitization tests
+    └── ClipResultTests.swift      # Markdown generation tests
 ```
 
 ### Clipping Pipeline
 
 ```
-Share Sheet → WebContentExtractor → HTMLToMarkdown
-                                  → ImageProcessor (download + OCR)
-                                  → ClipResult
-                                  → FileSaver → vault/Inbox/article.md
-                                              → vault/Inbox/images/image-1.png
+Safari → Action.js (extracts DOM) → Share Sheet
+    → WebContentExtractor (URL/HTML/text, charset detection)
+    → HTMLToMarkdown (lists, code, blockquotes, tables, headings)
+    → ImageProcessor (download + OCR, srcset/lazy-load support)
+    → ClipResult (Markdown assembly with image references)
+    → FileSaver → vault/Inbox/article.md
+                → vault/Inbox/images/image-1.png
 ```
+
+### Safari JavaScript Preprocessing
+
+The `Action.js` file runs in Safari's context before the share extension loads. It extracts:
+- `document.title` — the page title
+- `window.location.href` — the current URL
+- `document.documentElement.outerHTML` — the full page DOM
+
+This means the extension receives the exact page content the user sees, including:
+- Content behind login walls (the user's session is active)
+- Dynamically loaded content (JavaScript has already executed)
+- The correct URL (after any redirects)
+
+Without `Action.js`, the extension would need to re-fetch the page via `URLSession`, losing authenticated content and potentially getting different content (mobile redirects, paywalls, etc.).
+
+## Markdown Conversion
+
+The HTML-to-Markdown converter uses Apple's `NSAttributedString` HTML importer to parse the page, then walks the attributed string to emit Markdown syntax. It handles:
+
+| Element | Detection Method | Markdown Output |
+|---------|-----------------|-----------------|
+| Bold | `UIFont` bold trait | `**text**` |
+| Italic | `UIFont` italic trait | `_text_` |
+| Bold+Italic | Both traits | `***text***` |
+| Strikethrough | `.strikethroughStyle` attribute | `~~text~~` |
+| Links | `.link` attribute | `[text](url)` |
+| H1-H4 | Font size thresholds (32/26/22/18pt) | `# ` through `#### ` |
+| Ordered lists | `NSTextList` with decimal format | `1. item` |
+| Unordered lists | `NSTextList` with other formats | `- item` |
+| Blockquotes | `NSParagraphStyle` headIndent >= 30 | `> text` |
+| Code blocks | Monospace font, multi-line | ` ```code``` ` |
+| Inline code | Monospace font, single-line | `` `code` `` |
+| Tables | Tab-separated content (2+ rows) | Markdown table syntax |
+
+Headings automatically suppress bold markers to avoid redundant `## **Title**` output.
 
 ## Output Format
 
@@ -93,8 +151,8 @@ Each clipped article produces:
 Inbox/
 ├── Article Title.md
 └── images/
-    ├── image-1.png
-    ├── image-2.jpg
+    ├── abc-1.png
+    ├── abc-2.jpg
     └── ...
 ```
 
@@ -112,15 +170,18 @@ type: article
 
 > [Source](https://example.com/article) — Clipped 2026-04-13
 
-Article content in clean Markdown...
+Article content in clean Markdown with proper lists, code blocks,
+blockquotes, and headings...
 
-![](images/image-1.png)
+## Images
+
+![image-1](images/abc-1.png)
 
 ---
 
 ## Extracted Text (OCR)
 
-### image-1.png
+### abc-1.png
 
 > Text recognized from the image via Apple Vision...
 ```
@@ -142,20 +203,39 @@ Settings are accessible from the main app:
 
 ### Extension doesn't appear in Share Sheet
 - Make sure both targets build successfully
-- On device: Settings → General → Profiles → trust your dev certificate
+- On device: Settings -> General -> Profiles -> trust your dev certificate
 - Restart the device if the extension still doesn't appear
 
 ### "No vault folder configured" error
 - Open the main Obsidian Clipper app
-- Tap "Select Vault Folder" and navigate to your vault in iCloud Drive
+- The onboarding banner will guide you to select your vault folder
+- Check the green/red status indicator next to the vault location
 
 ### Images not downloading
 - Some sites block image downloads from non-browser user agents
 - Very large pages are limited to 20 images to avoid memory pressure in the extension
+- Images have a 15-second download timeout; slow servers may be skipped
 
 ### OCR returns no text
 - OCR works best on images with clear, printed text
 - Photographs and diagrams may not yield useful text
+
+### Content is garbled or has wrong characters
+- The extension detects character encoding from the HTTP Content-Type header
+- Supported encodings: UTF-8, ISO-8859-1/Latin-1, Windows-1252, ASCII, ISO-8859-2, UTF-16
+- If a page uses an unsupported encoding, it falls back to UTF-8
+
+### Extension captures different content than what you see
+- Make sure you're sharing from Safari — the Action.js preprocessing captures the live DOM
+- Sharing from other apps may only provide a URL, requiring a re-fetch
+
+## Testing
+
+The project includes a unit test target (`ObsidianClipperTests`) with tests for:
+- `HTMLToMarkdown.convert()` — bold, italic, links, lists, blockquotes, code, headings, tables
+- `HTMLToMarkdown.extractImageURLs()` — absolute/relative URLs, srcset, data-src, picture elements, dedup
+- `FileSaver.sanitizeFilename()` — special characters, long names, empty names, unicode
+- `ClipResult.toMarkdown()` — frontmatter generation, image references, OCR sections
 
 ## License
 
