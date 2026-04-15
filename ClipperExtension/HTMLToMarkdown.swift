@@ -335,27 +335,137 @@ enum HTMLToMarkdown {
 
     // MARK: - Image URL extraction from raw HTML
 
-    /// Extract all image source URLs from HTML.
+    /// Extract all image source URLs from HTML, including srcset, lazy-load attributes,
+    /// and <picture>/<source> elements.
     static func extractImageURLs(from html: String, baseURL: URL?) -> [URL] {
-        let pattern = #"<img[^>]+src\s*=\s*["']([^"']+)["']"#
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
-            return []
+        var seen = Set<String>()
+        var urls: [URL] = []
+
+        func addURL(_ src: String) {
+            let trimmed = src.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return }
+
+            let resolved: URL?
+            if let absolute = URL(string: trimmed), absolute.scheme != nil {
+                resolved = absolute
+            } else if let base = baseURL {
+                resolved = URL(string: trimmed, relativeTo: base)
+            } else {
+                resolved = nil
+            }
+
+            if let url = resolved, !seen.contains(url.absoluteString) {
+                seen.insert(url.absoluteString)
+                urls.append(url)
+            }
         }
 
         let nsHTML = html as NSString
-        let matches = regex.matches(in: html, range: NSRange(location: 0, length: nsHTML.length))
+        let fullRange = NSRange(location: 0, length: nsHTML.length)
 
-        return matches.compactMap { match -> URL? in
-            guard match.numberOfRanges > 1 else { return nil }
-            let srcRange = match.range(at: 1)
-            let src = nsHTML.substring(with: srcRange)
+        // 1. Extract from <img> tags: src, data-src, data-lazy-src, data-original, srcset
+        let imgPattern = #"<img\s[^>]*>"#
+        if let imgRegex = try? NSRegularExpression(pattern: imgPattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) {
+            let imgMatches = imgRegex.matches(in: html, range: fullRange)
 
-            if let absolute = URL(string: src), absolute.scheme != nil {
-                return absolute
-            } else if let base = baseURL {
-                return URL(string: src, relativeTo: base)
+            for match in imgMatches {
+                let imgTag = nsHTML.substring(with: match.range)
+
+                // Standard src
+                if let src = extractAttribute("src", from: imgTag) {
+                    addURL(src)
+                }
+
+                // Lazy-load attributes
+                for attr in ["data-src", "data-lazy-src", "data-original"] {
+                    if let src = extractAttribute(attr, from: imgTag) {
+                        addURL(src)
+                    }
+                }
+
+                // srcset: pick the largest image
+                if let srcset = extractAttribute("srcset", from: imgTag) {
+                    if let best = pickLargestFromSrcset(srcset) {
+                        addURL(best)
+                    }
+                }
             }
+        }
+
+        // 2. Extract from <source> elements (inside <picture>)
+        let sourcePattern = #"<source\s[^>]*>"#
+        if let sourceRegex = try? NSRegularExpression(pattern: sourcePattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) {
+            let sourceMatches = sourceRegex.matches(in: html, range: fullRange)
+
+            for match in sourceMatches {
+                let sourceTag = nsHTML.substring(with: match.range)
+
+                if let srcset = extractAttribute("srcset", from: sourceTag) {
+                    if let best = pickLargestFromSrcset(srcset) {
+                        addURL(best)
+                    }
+                }
+
+                if let src = extractAttribute("src", from: sourceTag) {
+                    addURL(src)
+                }
+            }
+        }
+
+        return urls
+    }
+
+    /// Extract a named attribute value from an HTML tag string.
+    private static func extractAttribute(_ name: String, from tag: String) -> String? {
+        // Match: name="value" or name='value' or name=value
+        let pattern = name + #"\s*=\s*(?:"([^"]*)"|'([^']*)'|(\S+))"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
             return nil
         }
+        let nsTag = tag as NSString
+        guard let match = regex.firstMatch(in: tag, range: NSRange(location: 0, length: nsTag.length)) else {
+            return nil
+        }
+
+        // Return whichever capture group matched
+        for i in 1...3 {
+            if match.range(at: i).location != NSNotFound {
+                return nsTag.substring(with: match.range(at: i))
+            }
+        }
+        return nil
+    }
+
+    /// Parse a srcset attribute and return the URL with the largest width descriptor.
+    /// Supports formats like "url 320w, url 640w" and "url 1x, url 2x".
+    private static func pickLargestFromSrcset(_ srcset: String) -> String? {
+        let candidates = srcset.components(separatedBy: ",")
+        var bestURL: String?
+        var bestSize: Double = 0
+
+        for candidate in candidates {
+            let parts = candidate.trimmingCharacters(in: .whitespaces)
+                .components(separatedBy: .whitespaces)
+                .filter { !$0.isEmpty }
+
+            guard let urlPart = parts.first else { continue }
+
+            var size: Double = 1
+            if parts.count > 1 {
+                let descriptor = parts[1].lowercased()
+                if descriptor.hasSuffix("w"), let w = Double(descriptor.dropLast()) {
+                    size = w
+                } else if descriptor.hasSuffix("x"), let x = Double(descriptor.dropLast()) {
+                    size = x * 1000 // Weight x descriptors below w descriptors
+                }
+            }
+
+            if size > bestSize {
+                bestSize = size
+                bestURL = urlPart
+            }
+        }
+
+        return bestURL
     }
 }
