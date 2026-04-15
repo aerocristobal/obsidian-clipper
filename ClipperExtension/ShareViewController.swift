@@ -9,6 +9,7 @@ class ShareViewController: UIViewController {
 
     private var clipState: ShareExtensionView.ClipState = .loading("Extracting article…")
     private var hostingController: UIHostingController<ShareExtensionView>?
+    private var didComplete = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -145,10 +146,14 @@ class ShareViewController: UIViewController {
     // MARK: - Completion
 
     private func done() {
+        guard !didComplete else { return }
+        didComplete = true
         extensionContext?.completeRequest(returningItems: nil)
     }
 
     private func cancel() {
+        guard !didComplete else { return }
+        didComplete = true
         extensionContext?.cancelRequest(withError: ClipError.cancelled)
     }
 
