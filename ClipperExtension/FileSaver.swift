@@ -4,6 +4,20 @@ import Foundation
 /// using security-scoped bookmarks for file access.
 enum FileSaver {
 
+    /// Sendable configuration extracted from ClipperSettings for use across actor boundaries.
+    struct SaveConfig: Sendable {
+        let targetFolder: String
+        let includeFrontmatter: Bool
+        let vaultBookmark: Data?
+
+        @MainActor
+        init(from settings: ClipperSettings) {
+            self.targetFolder = settings.targetFolder
+            self.includeFrontmatter = settings.includeFrontmatter
+            self.vaultBookmark = settings.vaultBookmark
+        }
+    }
+
     enum SaveError: LocalizedError {
         case noVaultConfigured
         case bookmarkResolutionFailed
@@ -27,12 +41,15 @@ enum FileSaver {
     /// Save a ClipResult to the configured Obsidian vault.
     /// Returns the URL of the saved markdown file.
     @discardableResult
-    static func save(_ result: ClipResult, settings: ClipperSettings) throws -> URL {
+    static func save(_ result: ClipResult, config: SaveConfig) throws -> URL {
         // Resolve the vault folder from the bookmark
-        guard settings.vaultBookmark != nil else {
+        guard config.vaultBookmark != nil else {
             throw SaveError.noVaultConfigured
         }
-        guard let resolved = settings.resolveVaultURL() else {
+
+        // resolveVaultURL is nonisolated — safe to call from any context
+        let settings = ClipperSettings.resolveVaultBookmark(config.vaultBookmark)
+        guard let resolved = settings else {
             throw SaveError.bookmarkResolutionFailed
         }
         let vaultURL = resolved.url
@@ -43,15 +60,10 @@ enum FileSaver {
         }
         defer { vaultURL.stopAccessingSecurityScopedResource() }
 
-        // Refresh a stale bookmark while we hold scoped access.
-        if resolved.isStale {
-            settings.refreshBookmark(for: vaultURL)
-        }
-
         let fm = FileManager.default
 
         // Build the target folder path
-        let targetFolder = settings.targetFolder.isEmpty ? "" : settings.targetFolder
+        let targetFolder = config.targetFolder.isEmpty ? "" : config.targetFolder
         let targetDir: URL
         if targetFolder.isEmpty {
             targetDir = vaultURL
@@ -89,7 +101,7 @@ enum FileSaver {
 
         // Generate markdown with local image references
         let markdown = result.toMarkdown(
-            includeFrontmatter: settings.includeFrontmatter,
+            includeFrontmatter: config.includeFrontmatter,
             imageReferences: imageReferences
         )
 
@@ -121,7 +133,7 @@ enum FileSaver {
     }
 
     /// Remove characters that are invalid in filenames.
-    private static func sanitizeFilename(_ name: String) -> String {
+    static func sanitizeFilename(_ name: String) -> String {
         let invalid = CharacterSet(charactersIn: "/:*?\"<>|\\")
         var sanitized = name.components(separatedBy: invalid).joined(separator: "-")
         // Collapse multiple dashes

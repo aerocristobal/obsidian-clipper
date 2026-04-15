@@ -78,6 +78,7 @@ class ShareViewController: UIViewController {
 
     private func performClipping() async throws -> String {
         let settings = ClipperSettings()
+        let saveConfig = FileSaver.SaveConfig(from: settings)
 
         // 1. Extract web content from the share extension input
         viewModel.state = .loading("Extracting article…")
@@ -138,7 +139,7 @@ class ShareViewController: UIViewController {
         // 5. Save to the vault
         viewModel.state = .loading("Saving to vault…")
 
-        try FileSaver.save(clipResult, settings: settings)
+        try FileSaver.save(clipResult, config: saveConfig)
 
         return rawContent.title
     }

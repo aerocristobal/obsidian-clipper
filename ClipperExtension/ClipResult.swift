@@ -14,7 +14,7 @@ struct ExtractedImage: Sendable {
 }
 
 /// The result of clipping a web page.
-struct ClipResult {
+struct ClipResult: Sendable {
     /// The page title.
     let title: String
     /// The original page URL.

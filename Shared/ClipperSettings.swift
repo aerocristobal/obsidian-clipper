@@ -2,6 +2,10 @@ import Foundation
 
 /// Shared settings accessible by both the main app and the share extension.
 /// Uses an App Group (suite name) so both targets read/write the same UserDefaults.
+///
+/// Isolated to `@MainActor` for strict Sendable compliance — all property
+/// access happens on the main thread, matching SwiftUI's expectation.
+@MainActor
 final class ClipperSettings: ObservableObject {
 
     static let suiteName = "group.com.obsidian.clipper"
@@ -50,7 +54,7 @@ final class ClipperSettings: ObservableObject {
         self.includeFrontmatter = defaults.object(forKey: Keys.includeFrontmatter) as? Bool ?? true
     }
 
-    struct ResolvedVault {
+    struct ResolvedVault: Sendable {
         let url: URL
         let isStale: Bool
     }
@@ -60,8 +64,15 @@ final class ClipperSettings: ObservableObject {
     /// their own `startAccessingSecurityScopedResource` / stop pair around
     /// any file I/O. If `isStale` is true, the caller should refresh the
     /// bookmark via `refreshBookmark(for:)` *while holding* scoped access.
-    func resolveVaultURL() -> ResolvedVault? {
-        guard let bookmark = vaultBookmark else { return nil }
+    nonisolated func resolveVaultURL() -> ResolvedVault? {
+        let defaults = UserDefaults(suiteName: ClipperSettings.suiteName) ?? .standard
+        guard let bookmark = defaults.data(forKey: Keys.vaultBookmark) else { return nil }
+        return Self.resolveVaultBookmark(bookmark)
+    }
+
+    /// Resolve a vault bookmark from raw bookmark data. This is nonisolated and Sendable-safe.
+    nonisolated static func resolveVaultBookmark(_ bookmark: Data?) -> ResolvedVault? {
+        guard let bookmark else { return nil }
         var isStale = false
         guard let url = try? URL(
             resolvingBookmarkData: bookmark,
