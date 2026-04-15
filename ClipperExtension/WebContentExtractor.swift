@@ -97,7 +97,7 @@ enum WebContentExtractor {
         )
     }
 
-    /// Fetch HTML from a URL.
+    /// Fetch HTML from a URL, detecting character encoding from the Content-Type header.
     private static func fetchHTML(from url: URL) async -> String? {
         var request = URLRequest(url: url, timeoutInterval: 15)
         request.setValue(
@@ -107,11 +107,52 @@ enum WebContentExtractor {
 
         guard let (data, response) = try? await URLSession.shared.data(for: request),
               let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode),
-              let html = String(data: data, encoding: .utf8) else {
+              (200...299).contains(httpResponse.statusCode) else {
             return nil
         }
-        return html
+
+        let encoding = Self.detectEncoding(from: httpResponse)
+        return String(data: data, encoding: encoding) ?? String(data: data, encoding: .utf8)
+    }
+
+    /// Detect string encoding from HTTP Content-Type header charset.
+    private static func detectEncoding(from response: HTTPURLResponse) -> String.Encoding {
+        guard let contentType = response.value(forHTTPHeaderField: "Content-Type") else {
+            return .utf8
+        }
+
+        let lower = contentType.lowercased()
+
+        // Extract charset value from Content-Type header
+        if let charsetRange = lower.range(of: "charset=") {
+            let charsetStart = charsetRange.upperBound
+            var charsetValue = String(lower[charsetStart...])
+            // Strip any trailing parameters
+            if let semicolonIndex = charsetValue.firstIndex(of: ";") {
+                charsetValue = String(charsetValue[..<semicolonIndex])
+            }
+            charsetValue = charsetValue.trimmingCharacters(in: .whitespaces)
+                .replacingOccurrences(of: "\"", with: "")
+
+            switch charsetValue {
+            case "utf-8":
+                return .utf8
+            case "iso-8859-1", "latin1", "latin-1":
+                return .isoLatin1
+            case "windows-1252", "cp1252":
+                return .windowsCP1252
+            case "ascii", "us-ascii":
+                return .ascii
+            case "iso-8859-2", "latin2", "latin-2":
+                return .isoLatin2
+            case "utf-16":
+                return .utf16
+            default:
+                return .utf8
+            }
+        }
+
+        return .utf8
     }
 
     /// Extract the <title> content from HTML.

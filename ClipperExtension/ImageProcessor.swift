@@ -12,6 +12,14 @@ actor ImageProcessor {
     /// Longest edge (in pixels) before downscaling prior to OCR.
     private static let maxOCRDimension: CGFloat = 2048
 
+    /// URLSession configured with a 15-second resource timeout for image downloads.
+    private static let session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForResource = 15
+        config.timeoutIntervalForRequest = 10
+        return URLSession(configuration: config)
+    }()
+
     /// Download images from the given URLs and optionally run OCR on each.
     /// `prefix` becomes part of each saved filename to avoid collisions across clips.
     func process(urls: [URL], enableOCR: Bool, prefix: String) async -> [ExtractedImage] {
@@ -44,7 +52,7 @@ actor ImageProcessor {
 
     private func downloadAndProcess(url: URL, index: Int, prefix: String, enableOCR: Bool) async -> ExtractedImage? {
         // Download the image data
-        guard let (data, response) = try? await URLSession.shared.data(from: url) else {
+        guard let (data, response) = try? await Self.session.data(from: url) else {
             return nil
         }
 
