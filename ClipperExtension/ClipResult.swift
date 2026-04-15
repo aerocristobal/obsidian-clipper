@@ -27,7 +27,8 @@ struct ClipResult {
     let clippedDate: Date
 
     /// Assemble the final Markdown file content, including optional YAML frontmatter.
-    func toMarkdown(includeFrontmatter: Bool, imagesFolder: String = "images") -> String {
+    /// `imageReferences` maps source URL strings to local relative paths (e.g. "images/abc-1.png").
+    func toMarkdown(includeFrontmatter: Bool, imageReferences: [String: String] = [:]) -> String {
         var parts: [String] = []
 
         if includeFrontmatter {
@@ -54,6 +55,16 @@ struct ClipResult {
         }
 
         parts.append(markdownBody)
+
+        // Append image references as properly formatted Markdown images
+        if !imageReferences.isEmpty {
+            parts.append("\n## Images\n")
+            for (index, image) in images.enumerated() {
+                if let localPath = imageReferences[image.sourceURL.absoluteString] {
+                    parts.append("![image-\(index + 1)](\(localPath))\n")
+                }
+            }
+        }
 
         // Append OCR text blocks for images that had recognized text
         let ocrImages = images.filter { $0.ocrText != nil && !$0.ocrText!.isEmpty }

@@ -87,18 +87,11 @@ enum FileSaver {
             }
         }
 
-        // Generate markdown with local image references substituted
-        var markdown = result.toMarkdown(
-            includeFrontmatter: settings.includeFrontmatter
+        // Generate markdown with local image references
+        let markdown = result.toMarkdown(
+            includeFrontmatter: settings.includeFrontmatter,
+            imageReferences: imageReferences
         )
-
-        // Replace remote image URLs with local paths in the markdown
-        for (remoteURL, localPath) in imageReferences {
-            markdown = markdown.replacingOccurrences(
-                of: remoteURL,
-                with: localPath
-            )
-        }
 
         // Write the markdown file
         let mdFilename = "\(safeTitle).md"
