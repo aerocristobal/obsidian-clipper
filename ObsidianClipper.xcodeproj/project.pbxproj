@@ -23,10 +23,20 @@
 		A10000027 /* ClipResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000027 /* ClipResult.swift */; };
 		A10000050 /* ClipperExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A70000002 /* ClipperExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A10000060 /* Action.js in Resources */ = {isa = PBXBuildFile; fileRef = A20000060 /* Action.js */; };
+		A10000070 /* HTMLToMarkdownTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000070 /* HTMLToMarkdownTests.swift */; };
+		A10000071 /* FileSaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000071 /* FileSaverTests.swift */; };
+		A10000072 /* ClipResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000072 /* ClipResultTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		A30000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A40000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A50000002;
+			remoteInfo = ClipperExtension;
+		};
+		A30000002 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A40000001 /* Project object */;
 			proxyType = 1;
@@ -67,8 +77,12 @@
 		A20000040 /* ObsidianClipper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ObsidianClipper.entitlements; sourceTree = "<group>"; };
 		A20000041 /* ClipperExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipperExtension.entitlements; sourceTree = "<group>"; };
 		A20000060 /* Action.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Action.js; sourceTree = "<group>"; };
+		A20000070 /* HTMLToMarkdownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLToMarkdownTests.swift; sourceTree = "<group>"; };
+		A20000071 /* FileSaverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSaverTests.swift; sourceTree = "<group>"; };
+		A20000072 /* ClipResultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipResultTests.swift; sourceTree = "<group>"; };
 		A70000001 /* ObsidianClipper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObsidianClipper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A70000002 /* ClipperExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipperExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A70000003 /* ObsidianClipperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ObsidianClipperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -78,6 +92,7 @@
 				A80000002 /* ObsidianClipper */,
 				A80000003 /* ClipperExtension */,
 				A80000004 /* Shared */,
+				A80000006 /* ObsidianClipperTests */,
 				A80000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -125,8 +140,19 @@
 			children = (
 				A70000001 /* ObsidianClipper.app */,
 				A70000002 /* ClipperExtension.appex */,
+				A70000003 /* ObsidianClipperTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A80000006 /* ObsidianClipperTests */ = {
+			isa = PBXGroup;
+			children = (
+				A20000070 /* HTMLToMarkdownTests.swift */,
+				A20000071 /* FileSaverTests.swift */,
+				A20000072 /* ClipResultTests.swift */,
+			);
+			path = ObsidianClipperTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -166,6 +192,22 @@
 			productReference = A70000002 /* ClipperExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		A50000003 /* ObsidianClipperTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A90000004 /* Build configuration list for PBXNativeTarget "ObsidianClipperTests" */;
+			buildPhases = (
+				AB0000005 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AC0000002 /* PBXTargetDependency */,
+			);
+			name = ObsidianClipperTests;
+			productName = ObsidianClipperTests;
+			productReference = A70000003 /* ObsidianClipperTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -181,6 +223,10 @@
 					};
 					A50000002 = {
 						CreatedOnToolsVersion = 15.4;
+					};
+					A50000003 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = A50000002;
 					};
 				};
 			};
@@ -199,6 +245,7 @@
 			targets = (
 				A50000001 /* ObsidianClipper */,
 				A50000002 /* ClipperExtension */,
+				A50000003 /* ObsidianClipperTests */,
 			);
 		};
 /* End PBXProject section */
@@ -250,6 +297,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AB0000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000070 /* HTMLToMarkdownTests.swift in Sources */,
+				A10000071 /* FileSaverTests.swift in Sources */,
+				A10000072 /* ClipResultTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -257,6 +314,11 @@
 			isa = PBXTargetDependency;
 			target = A50000002 /* ClipperExtension */;
 			targetProxy = A30000001 /* PBXContainerItemProxy */;
+		};
+		AC0000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A50000002 /* ClipperExtension */;
+			targetProxy = A30000002 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -395,6 +457,38 @@
 			};
 			name = Release;
 		};
+		AD0000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z387TXCHZ9;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.obsidian.clipper.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipperExtension.appex/ClipperExtension";
+			};
+			name = Debug;
+		};
+		AD0000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z387TXCHZ9;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.obsidian.clipper.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipperExtension.appex/ClipperExtension";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -421,6 +515,15 @@
 			buildConfigurations = (
 				AD0000001 /* Debug */,
 				AD0000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000004 /* Build configuration list for PBXNativeTarget "ObsidianClipperTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD0000007 /* Debug */,
+				AD0000008 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
