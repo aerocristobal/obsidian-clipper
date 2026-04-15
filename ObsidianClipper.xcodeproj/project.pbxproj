@@ -22,6 +22,7 @@
 		A10000026 /* WebContentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000026 /* WebContentExtractor.swift */; };
 		A10000027 /* ClipResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000027 /* ClipResult.swift */; };
 		A10000050 /* ClipperExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A70000002 /* ClipperExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A10000060 /* Action.js in Resources */ = {isa = PBXBuildFile; fileRef = A20000060 /* Action.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +66,7 @@
 		A20000030 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20000040 /* ObsidianClipper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ObsidianClipper.entitlements; sourceTree = "<group>"; };
 		A20000041 /* ClipperExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipperExtension.entitlements; sourceTree = "<group>"; };
+		A20000060 /* Action.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Action.js; sourceTree = "<group>"; };
 		A70000001 /* ObsidianClipper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObsidianClipper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A70000002 /* ClipperExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipperExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -105,6 +107,7 @@
 				A20000027 /* ClipResult.swift */,
 				A20000030 /* Info.plist */,
 				A20000041 /* ClipperExtension.entitlements */,
+				A20000060 /* Action.js */,
 			);
 			path = ClipperExtension;
 			sourceTree = "<group>";
@@ -152,6 +155,7 @@
 			buildConfigurationList = A90000002 /* Build configuration list for PBXNativeTarget "ClipperExtension" */;
 			buildPhases = (
 				AB0000003 /* Sources */,
+				AB0000004 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -205,6 +209,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000003 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB0000004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000060 /* Action.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
