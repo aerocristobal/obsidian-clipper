@@ -6,6 +6,9 @@ import UIKit
 enum HTMLToMarkdown {
 
     /// Main entry point: takes raw HTML and returns Markdown text.
+    /// Must run on the main actor — Apple's `NSAttributedString` HTML importer
+    /// instantiates WebKit/UIFont on the main thread.
+    @MainActor
     static func convert(_ html: String) -> String {
         guard let data = html.data(using: .utf8) else { return html }
 

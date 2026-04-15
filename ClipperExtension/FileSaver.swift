@@ -29,25 +29,24 @@ enum FileSaver {
     @discardableResult
     static func save(_ result: ClipResult, settings: ClipperSettings) throws -> URL {
         // Resolve the vault folder from the bookmark
-        guard let bookmark = settings.vaultBookmark else {
+        guard settings.vaultBookmark != nil else {
             throw SaveError.noVaultConfigured
         }
-
-        var isStale = false
-        guard let vaultURL = try? URL(
-            resolvingBookmarkData: bookmark,
-            options: [],
-            relativeTo: nil,
-            bookmarkDataIsStale: &isStale
-        ) else {
+        guard let resolved = settings.resolveVaultURL() else {
             throw SaveError.bookmarkResolutionFailed
         }
+        let vaultURL = resolved.url
 
-        // Start security-scoped access
+        // Start security-scoped access — must wrap ALL file I/O below.
         guard vaultURL.startAccessingSecurityScopedResource() else {
             throw SaveError.accessDenied
         }
         defer { vaultURL.stopAccessingSecurityScopedResource() }
+
+        // Refresh a stale bookmark while we hold scoped access.
+        if resolved.isStale {
+            settings.refreshBookmark(for: vaultURL)
+        }
 
         let fm = FileManager.default
 

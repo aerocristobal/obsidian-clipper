@@ -7,27 +7,26 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A10000001 /* ObsidianClipperApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000001; };
-		A10000002 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000002; };
-		A10000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000003; };
-		A10000004 /* ClipperSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010; };
-		A10000005 /* FolderPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000011; };
-		A10000006 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000012; };
-
-		A10000020 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000020; };
-		A10000021 /* HTMLToMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000021; };
-		A10000022 /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000022; };
-		A10000023 /* FileSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000023; };
-		A10000024 /* ClipperSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010; };
-		A10000025 /* ShareExtensionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000025; };
-		A10000026 /* WebContentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000026; };
-		A10000027 /* ClipResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000027; };
+		A10000001 /* ObsidianClipperApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000001 /* ObsidianClipperApp.swift */; };
+		A10000002 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000002 /* SettingsView.swift */; };
+		A10000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000003 /* Assets.xcassets */; };
+		A10000004 /* ClipperSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010 /* ClipperSettings.swift */; };
+		A10000005 /* FolderPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000011 /* FolderPickerView.swift */; };
+		A10000006 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000012 /* AboutView.swift */; };
+		A10000020 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000020 /* ShareViewController.swift */; };
+		A10000021 /* HTMLToMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000021 /* HTMLToMarkdown.swift */; };
+		A10000022 /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000022 /* ImageProcessor.swift */; };
+		A10000023 /* FileSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000023 /* FileSaver.swift */; };
+		A10000024 /* ClipperSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010 /* ClipperSettings.swift */; };
+		A10000025 /* ShareExtensionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000025 /* ShareExtensionView.swift */; };
+		A10000026 /* WebContentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000026 /* WebContentExtractor.swift */; };
+		A10000027 /* ClipResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000027 /* ClipResult.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		A30000001 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = A40000001;
+			containerPortal = A40000001 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = A50000002;
 			remoteInfo = ClipperExtension;
@@ -62,7 +61,8 @@
 		A20000026 /* WebContentExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentExtractor.swift; sourceTree = "<group>"; };
 		A20000027 /* ClipResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipResult.swift; sourceTree = "<group>"; };
 		A20000030 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-
+		A20000040 /* ObsidianClipper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ObsidianClipper.entitlements; sourceTree = "<group>"; };
+		A20000041 /* ClipperExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipperExtension.entitlements; sourceTree = "<group>"; };
 		A70000001 /* ObsidianClipper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObsidianClipper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A70000002 /* ClipperExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipperExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -86,6 +86,7 @@
 				A20000011 /* FolderPickerView.swift */,
 				A20000012 /* AboutView.swift */,
 				A20000003 /* Assets.xcassets */,
+				A20000040 /* ObsidianClipper.entitlements */,
 			);
 			path = ObsidianClipper;
 			sourceTree = "<group>";
@@ -101,6 +102,7 @@
 				A20000026 /* WebContentExtractor.swift */,
 				A20000027 /* ClipResult.swift */,
 				A20000030 /* Info.plist */,
+				A20000041 /* ClipperExtension.entitlements */,
 			);
 			path = ClipperExtension;
 			sourceTree = "<group>";
@@ -127,7 +129,7 @@
 /* Begin PBXNativeTarget section */
 		A50000001 /* ObsidianClipper */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A90000001;
+			buildConfigurationList = A90000001 /* Build configuration list for PBXNativeTarget "ObsidianClipper" */;
 			buildPhases = (
 				AB0000001 /* Sources */,
 				AB0000002 /* Resources */,
@@ -140,12 +142,12 @@
 			);
 			name = ObsidianClipper;
 			productName = ObsidianClipper;
-			productReference = A70000001;
+			productReference = A70000001 /* ObsidianClipper.app */;
 			productType = "com.apple.product-type.application";
 		};
 		A50000002 /* ClipperExtension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A90000002;
+			buildConfigurationList = A90000002 /* Build configuration list for PBXNativeTarget "ClipperExtension" */;
 			buildPhases = (
 				AB0000003 /* Sources */,
 			);
@@ -155,7 +157,7 @@
 			);
 			name = ClipperExtension;
 			productName = ClipperExtension;
-			productReference = A70000002;
+			productReference = A70000002 /* ClipperExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -176,7 +178,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A90000003;
+			buildConfigurationList = A90000003 /* Build configuration list for PBXProject "ObsidianClipper" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -185,7 +187,7 @@
 				Base,
 			);
 			mainGroup = A80000001;
-			productRefGroup = A80000005;
+			productRefGroup = A80000005 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -239,8 +241,8 @@
 /* Begin PBXTargetDependency section */
 		AC0000001 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A50000002;
-			targetProxy = A30000001;
+			target = A50000002 /* ClipperExtension */;
+			targetProxy = A30000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -300,8 +302,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ObsidianClipper/ObsidianClipper.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z387TXCHZ9;
+				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -320,8 +325,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ObsidianClipper/ObsidianClipper.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z387TXCHZ9;
+				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -338,8 +346,10 @@
 		AD0000005 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ClipperExtension/ClipperExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z387TXCHZ9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ClipperExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Clip to Obsidian";
@@ -355,8 +365,10 @@
 		AD0000006 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ClipperExtension/ClipperExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z387TXCHZ9;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ClipperExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Clip to Obsidian";
@@ -400,7 +412,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
 	};
-	rootObject = A40000001;
+	rootObject = A40000001 /* Project object */;
 }

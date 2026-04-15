@@ -7,7 +7,7 @@ struct AboutView: View {
                 VStack(spacing: 8) {
                     Image(systemName: "scissors")
                         .font(.system(size: 48))
-                        .foregroundStyle(.accent)
+                        .foregroundStyle(Color.accentColor)
                     Text("Obsidian Clipper")
                         .font(.title2.bold())
                     Text("v1.0")

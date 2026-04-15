@@ -106,8 +106,8 @@ struct SettingsView: View {
     }
 
     private func refreshResolvedPath() {
-        if let url = settings.resolveVaultURL() {
-            resolvedPath = url.lastPathComponent
+        if let resolved = settings.resolveVaultURL() {
+            resolvedPath = resolved.url.lastPathComponent
         } else {
             resolvedPath = "Not set"
         }
@@ -120,7 +120,7 @@ struct SettingsView: View {
                 .font(.caption.weight(.bold))
                 .foregroundStyle(.white)
                 .frame(width: 24, height: 24)
-                .background(Circle().fill(.accent))
+                .background(Circle().fill(Color.accentColor))
             Text(text)
                 .font(.subheadline)
         }

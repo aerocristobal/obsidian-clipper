@@ -1,5 +1,6 @@
 import UIKit
 import SwiftUI
+import CryptoKit
 
 /// The Share Extension entry point. Receives content from Safari (or any app)
 /// via the Share Sheet, orchestrates the clipping pipeline, and presents a
@@ -89,7 +90,7 @@ class ShareViewController: UIViewController {
 
         let markdownBody: String
         if let html = rawContent.html {
-            markdownBody = HTMLToMarkdown.convert(html)
+            markdownBody = await MainActor.run { HTMLToMarkdown.convert(html) }
         } else if let plain = rawContent.plainText {
             markdownBody = plain
         } else {
@@ -119,8 +120,9 @@ class ShareViewController: UIViewController {
             // Limit to first 20 images to avoid huge downloads
             let limitedURLs = Array(filteredURLs.prefix(20))
 
+            let prefix = Self.shortHash(title: rawContent.title, url: rawContent.url)
             let processor = ImageProcessor()
-            images = await processor.process(urls: limitedURLs, enableOCR: settings.enableOCR)
+            images = await processor.process(urls: limitedURLs, enableOCR: settings.enableOCR, prefix: prefix)
         }
 
         // 4. Build the ClipResult
@@ -148,6 +150,14 @@ class ShareViewController: UIViewController {
 
     private func cancel() {
         extensionContext?.cancelRequest(withError: ClipError.cancelled)
+    }
+
+    /// Short hex hash identifying a single clip, used as an image filename prefix
+    /// so two clips with the same inferred indices do not overwrite each other.
+    private static func shortHash(title: String, url: URL?) -> String {
+        let seed = "\(title)|\(url?.absoluteString ?? "")|\(Date().timeIntervalSince1970)"
+        let digest = SHA256.hash(data: Data(seed.utf8))
+        return digest.prefix(4).map { String(format: "%02x", $0) }.joined()
     }
 }
 

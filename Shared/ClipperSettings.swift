@@ -50,9 +50,17 @@ final class ClipperSettings: ObservableObject {
         self.includeFrontmatter = defaults.object(forKey: Keys.includeFrontmatter) as? Bool ?? true
     }
 
+    struct ResolvedVault {
+        let url: URL
+        let isStale: Bool
+    }
+
     /// Resolve the vault folder URL from the persisted bookmark.
-    /// Returns `nil` if no bookmark is saved or the bookmark is stale.
-    func resolveVaultURL() -> URL? {
+    /// The returned URL is NOT yet under security scope — callers must wrap
+    /// their own `startAccessingSecurityScopedResource` / stop pair around
+    /// any file I/O. If `isStale` is true, the caller should refresh the
+    /// bookmark via `refreshBookmark(for:)` *while holding* scoped access.
+    func resolveVaultURL() -> ResolvedVault? {
         guard let bookmark = vaultBookmark else { return nil }
         var isStale = false
         guard let url = try? URL(
@@ -61,14 +69,14 @@ final class ClipperSettings: ObservableObject {
             relativeTo: nil,
             bookmarkDataIsStale: &isStale
         ) else { return nil }
+        return ResolvedVault(url: url, isStale: isStale)
+    }
 
-        if isStale {
-            // Re-persist a fresh bookmark
-            if let fresh = try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil) {
-                vaultBookmark = fresh
-            }
+    /// Re-persist a bookmark for a URL the caller already holds scoped access to.
+    func refreshBookmark(for url: URL) {
+        if let fresh = try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil) {
+            vaultBookmark = fresh
         }
-        return url
     }
 
     /// Persist a folder URL as a security-scoped bookmark.
