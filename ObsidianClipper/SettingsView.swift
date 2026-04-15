@@ -5,11 +5,42 @@ struct SettingsView: View {
     @EnvironmentObject private var settings: ClipperSettings
     @State private var showFolderPicker = false
     @State private var resolvedPath: String = "Not set"
+    @State private var vaultIsAccessible = false
+
+    private var needsOnboarding: Bool {
+        settings.vaultBookmark == nil
+    }
 
     var body: some View {
         NavigationStack {
             Form {
-                // MARK: – Vault Configuration
+                // MARK: - Onboarding Banner
+                if needsOnboarding {
+                    Section {
+                        VStack(spacing: 12) {
+                            Image(systemName: "folder.badge.questionmark")
+                                .font(.system(size: 40))
+                                .foregroundStyle(.orange)
+                            Text("Get Started")
+                                .font(.headline)
+                            Text("Select your Obsidian vault folder to start clipping web pages. Tap the button below to choose a folder from iCloud Drive or local storage.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                            Button {
+                                showFolderPicker = true
+                            } label: {
+                                Label("Select Vault Folder", systemImage: "folder.badge.plus")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                }
+
+                // MARK: - Vault Configuration
                 Section {
                     HStack {
                         Label("Vault Name", systemImage: "book.closed")
@@ -39,6 +70,9 @@ struct SettingsView: View {
                         Text("Vault Location")
                             .foregroundStyle(.secondary)
                         Spacer()
+                        Image(systemName: vaultIsAccessible ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundStyle(vaultIsAccessible ? .green : .red)
+                            .imageScale(.small)
                         Text(resolvedPath)
                             .foregroundStyle(.secondary)
                             .font(.caption)
@@ -51,7 +85,7 @@ struct SettingsView: View {
                     Text("Select the root folder of your Obsidian vault in iCloud Drive or On My iPhone. The target folder is created inside the vault if it doesn't exist.")
                 }
 
-                // MARK: – Clipping Options
+                // MARK: - Clipping Options
                 Section {
                     Toggle(isOn: $settings.includeFrontmatter) {
                         Label("YAML Frontmatter", systemImage: "doc.text")
@@ -70,7 +104,7 @@ struct SettingsView: View {
                     Text("When enabled, images found in the page are downloaded to an images/ subfolder. OCR extracts text from images and includes it in the note as a blockquote.")
                 }
 
-                // MARK: – How to Use
+                // MARK: - How to Use
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
                         step(number: 1, text: "Open any webpage in Safari (or any app with Share)")
@@ -83,7 +117,7 @@ struct SettingsView: View {
                     Text("How to Use")
                 }
 
-                // MARK: – About
+                // MARK: - About
                 Section {
                     NavigationLink {
                         AboutView()
@@ -106,11 +140,20 @@ struct SettingsView: View {
     }
 
     private func refreshResolvedPath() {
-        if let resolved = settings.resolveVaultURL() {
-            resolvedPath = resolved.url.lastPathComponent
-        } else {
+        guard let resolved = settings.resolveVaultURL() else {
             resolvedPath = "Not set"
+            vaultIsAccessible = false
+            return
         }
+        let url = resolved.url
+        // Check if the vault folder is actually accessible
+        let accessible = url.startAccessingSecurityScopedResource()
+        let exists = FileManager.default.fileExists(atPath: url.path)
+        if accessible {
+            url.stopAccessingSecurityScopedResource()
+        }
+        vaultIsAccessible = accessible && exists && !resolved.isStale
+        resolvedPath = url.lastPathComponent
     }
 
     @ViewBuilder
