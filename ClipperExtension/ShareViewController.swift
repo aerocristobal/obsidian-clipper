@@ -2,13 +2,31 @@ import UIKit
 import SwiftUI
 import CryptoKit
 
+// MARK: - View Model
+
+/// Observable view model for the share extension UI.
+/// SwiftUI automatically tracks property changes via the Observation framework (iOS 17+).
+@Observable
+@MainActor
+final class ShareViewModel {
+
+    enum ClipState: Equatable {
+        case loading(String)
+        case success(String)
+        case error(String)
+    }
+
+    var state: ClipState = .loading("Extracting article…")
+}
+
+// MARK: - ShareViewController
+
 /// The Share Extension entry point. Receives content from Safari (or any app)
 /// via the Share Sheet, orchestrates the clipping pipeline, and presents a
 /// SwiftUI progress/result UI.
 class ShareViewController: UIViewController {
 
-    private var clipState: ShareExtensionView.ClipState = .loading("Extracting article…")
-    private var hostingController: UIHostingController<ShareExtensionView>?
+    private let viewModel = ShareViewModel()
     private var didComplete = false
 
     override func viewDidLoad() {
@@ -21,13 +39,12 @@ class ShareViewController: UIViewController {
 
     private func setupUI() {
         let extensionView = ShareExtensionView(
-            state: clipState,
+            viewModel: viewModel,
             onDone: { [weak self] in self?.done() },
             onCancel: { [weak self] in self?.cancel() }
         )
 
         let host = UIHostingController(rootView: extensionView)
-        hostingController = host
 
         addChild(host)
         view.addSubview(host.view)
@@ -41,16 +58,6 @@ class ShareViewController: UIViewController {
         host.didMove(toParent: self)
     }
 
-    private func updateState(_ state: ShareExtensionView.ClipState) {
-        self.clipState = state
-        let extensionView = ShareExtensionView(
-            state: state,
-            onDone: { [weak self] in self?.done() },
-            onCancel: { [weak self] in self?.cancel() }
-        )
-        hostingController?.rootView = extensionView
-    }
-
     // MARK: - Clipping Pipeline
 
     private func startClipping() {
@@ -58,19 +65,13 @@ class ShareViewController: UIViewController {
             do {
                 let result = try await performClipping()
 
-                await MainActor.run {
-                    updateState(.success(result))
-                }
+                viewModel.state = .success(result)
 
                 // Auto-dismiss after a short delay
                 try? await Task.sleep(for: .seconds(1.5))
-                await MainActor.run {
-                    done()
-                }
+                done()
             } catch {
-                await MainActor.run {
-                    updateState(.error(error.localizedDescription))
-                }
+                viewModel.state = .error(error.localizedDescription)
             }
         }
     }
@@ -79,7 +80,7 @@ class ShareViewController: UIViewController {
         let settings = ClipperSettings()
 
         // 1. Extract web content from the share extension input
-        await MainActor.run { updateState(.loading("Extracting article…")) }
+        viewModel.state = .loading("Extracting article…")
 
         guard let context = extensionContext,
               let rawContent = await WebContentExtractor.extract(from: context) else {
@@ -87,11 +88,11 @@ class ShareViewController: UIViewController {
         }
 
         // 2. Convert HTML to Markdown
-        await MainActor.run { updateState(.loading("Converting to Markdown…")) }
+        viewModel.state = .loading("Converting to Markdown…")
 
         let markdownBody: String
         if let html = rawContent.html {
-            markdownBody = await MainActor.run { HTMLToMarkdown.convert(html) }
+            markdownBody = HTMLToMarkdown.convert(html)
         } else if let plain = rawContent.plainText {
             markdownBody = plain
         } else {
@@ -102,14 +103,13 @@ class ShareViewController: UIViewController {
         var images: [ExtractedImage] = []
 
         if settings.saveImages, let html = rawContent.html {
-            await MainActor.run { updateState(.loading("Processing images…")) }
+            viewModel.state = .loading("Processing images…")
 
             let imageURLs = HTMLToMarkdown.extractImageURLs(from: html, baseURL: rawContent.url)
 
             // Filter: skip tiny tracking pixels, data URIs, SVGs
             let filteredURLs = imageURLs.filter { url in
                 let path = url.absoluteString.lowercased()
-                // Skip obvious tracking pixels and icons
                 if path.contains("pixel") || path.contains("tracking") || path.contains("beacon") {
                     return false
                 }
@@ -136,7 +136,7 @@ class ShareViewController: UIViewController {
         )
 
         // 5. Save to the vault
-        await MainActor.run { updateState(.loading("Saving to vault…")) }
+        viewModel.state = .loading("Saving to vault…")
 
         try FileSaver.save(clipResult, settings: settings)
 
