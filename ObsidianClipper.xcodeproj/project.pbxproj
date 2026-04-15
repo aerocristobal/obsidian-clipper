@@ -21,6 +21,7 @@
 		A10000025 /* ShareExtensionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000025 /* ShareExtensionView.swift */; };
 		A10000026 /* WebContentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000026 /* WebContentExtractor.swift */; };
 		A10000027 /* ClipResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000027 /* ClipResult.swift */; };
+		A10000050 /* ClipperExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A70000002 /* ClipperExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +41,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				A10000050 /* ClipperExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
