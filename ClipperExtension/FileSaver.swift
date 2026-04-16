@@ -117,7 +117,15 @@ enum FileSaver {
             for image in result.images {
                 let imageURL = imagesDir.appendingPathComponent(image.filename)
                 do {
-                    try image.data.write(to: imageURL)
+                    // Move the scratch temp file into place. Falls back to
+                    // copy+delete for cross-volume cases (e.g. if scratch lives
+                    // on a different mount than the vault).
+                    do {
+                        try fm.moveItem(at: image.tempFileURL, to: imageURL)
+                    } catch {
+                        try fm.copyItem(at: image.tempFileURL, to: imageURL)
+                        try? fm.removeItem(at: image.tempFileURL)
+                    }
                     imageReferences[image.sourceURL.absoluteString] = "images/\(image.filename)"
                 } catch {
                     // Non-fatal: skip this image

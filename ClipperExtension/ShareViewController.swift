@@ -34,6 +34,9 @@ final class ShareViewController: UIViewController {
     private let didCompleteLock = NSLock()
     /// Handle to the clipping Task so we can cancel it when the user taps Cancel.
     private var clippingTask: Task<Void, Never>?
+    /// Held so the cancel path can tear down the scratch directory used for
+    /// streamed image temp files. Retained until success cleanup or cancel.
+    private var imageProcessor: ImageProcessor?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -162,6 +165,7 @@ final class ShareViewController: UIViewController {
         if isImageOnly {
             viewModel.state = .loading("Running OCR…")
             let processor = ImageProcessor()
+            self.imageProcessor = processor
             images = await processor.processSharedImages(
                 rawContent.sharedImages,
                 enableOCR: settings.enableOCR,
@@ -173,6 +177,7 @@ final class ShareViewController: UIViewController {
             let limitedURLs = Array(markerMap.values.prefix(20))
 
             let processor = ImageProcessor()
+            self.imageProcessor = processor
             images = await processor.process(urls: limitedURLs, enableOCR: settings.enableOCR, prefix: prefix)
 
             var urlToPath: [String: String] = [:]
@@ -206,6 +211,10 @@ final class ShareViewController: UIViewController {
 
         try FileSaver.save(clipResult, config: saveConfig)
 
+        // Clean up scratch temp files once the vault move is complete.
+        await imageProcessor?.cleanup()
+        imageProcessor = nil
+
         return rawContent.title
     }
 
@@ -220,6 +229,13 @@ final class ShareViewController: UIViewController {
         guard trySetComplete() else { return }
         clippingTask?.cancel()
         clippingTask = nil
+        // Fire-and-forget scratch directory cleanup; fine for the extension to
+        // tear down while this runs since the actor method is short and the
+        // temp files live under NSTemporaryDirectory() either way.
+        if let processor = imageProcessor {
+            imageProcessor = nil
+            Task { await processor.cleanup() }
+        }
         extensionContext?.cancelRequest(withError: ClipError.cancelled)
     }
 

@@ -186,6 +186,55 @@ final class ImageProcessorTests: XCTestCase {
         XCTAssertEqual(second.count, 3)
     }
 
+    // MARK: - Streaming / scratch directory lifecycle
+
+    func testSharedImageWritesBytesToTempFile() async {
+        let processor = ImageProcessor()
+        let blob = makeDummyPNG(sizeBytes: 4 * 1024)
+        let results = await processor.processSharedImages([blob], enableOCR: false, prefix: "stream")
+
+        XCTAssertEqual(results.count, 1)
+        guard let image = results.first else { return }
+
+        // The temp file must exist and contain exactly the bytes we handed in.
+        XCTAssertTrue(FileManager.default.fileExists(atPath: image.tempFileURL.path),
+                      "Scratch temp file should exist after processing")
+        let onDisk = try? Data(contentsOf: image.tempFileURL)
+        XCTAssertEqual(onDisk, blob, "Temp file bytes should match the input Data exactly")
+
+        await processor.cleanup()
+    }
+
+    func testScratchFilesCleanedUpOnCancel() async {
+        let processor = ImageProcessor()
+        let scratchDir = await processor.scratchDirectory
+        XCTAssertTrue(FileManager.default.fileExists(atPath: scratchDir.path),
+                      "Scratch directory should be created by init()")
+
+        // Run one processing pass so there is at least one temp file to clean up.
+        let blob = makeDummyPNG(sizeBytes: 2 * 1024)
+        _ = await processor.processSharedImages([blob, blob], enableOCR: false, prefix: "cancel")
+
+        // Confirm scratch is non-empty.
+        let contentsBefore = (try? FileManager.default.contentsOfDirectory(atPath: scratchDir.path)) ?? []
+        XCTAssertFalse(contentsBefore.isEmpty, "Scratch should contain at least one temp file before cleanup")
+
+        // Simulate the cancel path tearing the processor down.
+        await processor.cleanup()
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: scratchDir.path),
+                       "cleanup() must remove the scratch directory entirely")
+    }
+
+    func testCleanupIsIdempotent() async {
+        let processor = ImageProcessor()
+        let scratchDir = await processor.scratchDirectory
+        await processor.cleanup()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: scratchDir.path))
+        // A second cleanup on an already-removed directory must not throw.
+        await processor.cleanup()
+    }
+
     // MARK: - Test helpers
 
     /// Build a decodable PNG whose encoded size is approximately `sizeBytes`. The

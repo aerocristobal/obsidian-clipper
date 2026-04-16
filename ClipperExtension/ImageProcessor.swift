@@ -27,6 +27,23 @@ actor ImageProcessor {
     /// Running total of accepted image bytes for this clip.
     private var totalBytesDownloaded: Int = 0
 
+    /// Scratch directory where downloaded / shared image temp files live.
+    /// One directory per `ImageProcessor` instance. `cleanup()` removes it wholesale.
+    let scratchDirectory: URL
+
+    init() {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("clipper-\(UUID().uuidString)", isDirectory: true)
+        self.scratchDirectory = dir
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    }
+
+    /// Remove the scratch directory and any temp files within it.
+    /// Safe to call multiple times; missing directory is not an error.
+    func cleanup() {
+        try? FileManager.default.removeItem(at: scratchDirectory)
+    }
+
     /// URLSession configured with a 15-second resource timeout for image downloads.
     private static let session: URLSession = {
         let config = URLSessionConfiguration.default
@@ -124,17 +141,33 @@ actor ImageProcessor {
         guard shouldAcceptImageSize(data.count) else { return nil }
         totalBytesDownloaded += data.count
 
-        // Validate the data is a decodable image and optionally get a downscaled
+        // Determine filename based on header bytes, then stream the data to disk
+        // BEFORE running OCR so the original `Data` blob can be freed from the
+        // per-task autoreleasepool rather than lingering inside `ExtractedImage`.
+        let ext = Self.imageExtension(from: data)
+        let filename = "\(prefix)-\(index + 1).\(ext)"
+        let destURL = scratchDirectory.appendingPathComponent(filename)
+
+        do {
+            try data.write(to: destURL)
+        } catch {
+            return nil
+        }
+
+        // Validate the file is a decodable image and optionally get a downscaled
         // CGImage for OCR. Use autoreleasepool so UIImage intermediates are freed.
         var isValid = false
         let cgForOCR: CGImage? = autoreleasepool {
-            guard let uiImage = UIImage(data: data) else { return nil }
+            guard let uiImage = UIImage(contentsOfFile: destURL.path) else { return nil }
             isValid = true
             guard enableOCR else { return nil }
             return Self.downscaledCGImage(from: uiImage)
         }
 
-        guard isValid else { return nil }
+        guard isValid else {
+            try? FileManager.default.removeItem(at: destURL)
+            return nil
+        }
 
         let ocrText: String?
         if let cg = cgForOCR {
@@ -143,13 +176,11 @@ actor ImageProcessor {
             ocrText = nil
         }
 
-        let ext = Self.imageExtension(from: data)
-        let filename = "\(prefix)-\(index + 1).\(ext)"
         let sourceURL = URL(string: "shared-image://\(filename)")!
 
         return ExtractedImage(
             sourceURL: sourceURL,
-            data: data,
+            tempFileURL: destURL,
             filename: filename,
             ocrText: ocrText
         )
@@ -184,36 +215,68 @@ actor ImageProcessor {
         // Only fetch over http(s). Blocks file://, javascript:, ftp:, data:, etc.
         guard Self.isFetchableScheme(url) else { return nil }
 
-        // Download the image data
-        guard let (data, response) = try? await Self.session.data(from: url) else {
+        // Stream the download straight to a system temp file. This keeps the image
+        // bytes out of RAM — only the filesystem URL + URLResponse are held here.
+        guard let (downloadedURL, response) = try? await Self.session.download(from: url) else {
             return nil
         }
 
-        guard !Task.isCancelled else { return nil }
-
-        // Enforce cumulative size cap. A single oversized image is skipped but does
-        // not consume budget, so smaller images later in the list still get through.
-        guard shouldAcceptImageSize(data.count) else { return nil }
-        totalBytesDownloaded += data.count
-
-        // Verify it's actually an image. Accept either an image/* MIME type or
-        // data that UIImage can decode. Use autoreleasepool for the UIImage probe.
-        let mimeType = (response as? HTTPURLResponse)?.mimeType
-        let isImageMime = mimeType?.hasPrefix("image/") ?? false
-        if !isImageMime {
-            let valid = autoreleasepool { UIImage(data: data) != nil }
-            guard valid else { return nil }
+        guard !Task.isCancelled else {
+            try? FileManager.default.removeItem(at: downloadedURL)
+            return nil
         }
 
         // Determine file extension and filename (prefixed to avoid collisions).
-        let ext = fileExtension(for: url, mimeType: (response as? HTTPURLResponse)?.mimeType)
+        let mimeType = (response as? HTTPURLResponse)?.mimeType ?? response.mimeType
+        let ext = fileExtension(for: url, mimeType: mimeType)
         let filename = "\(prefix)-\(index + 1).\(ext)"
+
+        // Move the system temp file into our scratch directory so we control its
+        // lifetime (and can clean it up on cancel). Use move-or-copy to survive
+        // cross-volume moves, though in practice both dirs live on the same volume.
+        let fm = FileManager.default
+        let destURL = scratchDirectory.appendingPathComponent(filename)
+        // Remove any stale file at the destination (paranoia; should never exist).
+        try? fm.removeItem(at: destURL)
+        do {
+            try fm.moveItem(at: downloadedURL, to: destURL)
+        } catch {
+            // Fall back to copy then remove; treat total failure as a skip.
+            do {
+                try fm.copyItem(at: downloadedURL, to: destURL)
+                try? fm.removeItem(at: downloadedURL)
+            } catch {
+                try? fm.removeItem(at: downloadedURL)
+                return nil
+            }
+        }
+
+        // Read the on-disk size for the cumulative cap check. If the cap is
+        // exceeded, delete the file and return nil so smaller later images can
+        // still get through.
+        let fileSize = (try? fm.attributesOfItem(atPath: destURL.path)[.size] as? Int) ?? 0
+        guard shouldAcceptImageSize(fileSize) else {
+            try? fm.removeItem(at: destURL)
+            return nil
+        }
+        totalBytesDownloaded += fileSize
+
+        // Verify it's actually an image. Prefer the URLResponse MIME type; if
+        // absent, probe with UIImage(contentsOfFile:) inside autoreleasepool.
+        let isImageMime = mimeType?.hasPrefix("image/") ?? false
+        if !isImageMime {
+            let valid = autoreleasepool { UIImage(contentsOfFile: destURL.path) != nil }
+            guard valid else {
+                try? fm.removeItem(at: destURL)
+                return nil
+            }
+        }
 
         // Run OCR if enabled. Downscale inside autoreleasepool to release UIImage promptly.
         let ocrText: String?
         if enableOCR {
             let cgForOCR: CGImage? = autoreleasepool {
-                guard let uiImage = UIImage(data: data) else { return nil }
+                guard let uiImage = UIImage(contentsOfFile: destURL.path) else { return nil }
                 return Self.downscaledCGImage(from: uiImage)
             }
             if let cg = cgForOCR {
@@ -227,7 +290,7 @@ actor ImageProcessor {
 
         return ExtractedImage(
             sourceURL: url,
-            data: data,
+            tempFileURL: destURL,
             filename: filename,
             ocrText: ocrText
         )

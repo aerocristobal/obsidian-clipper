@@ -79,7 +79,7 @@ final class ClipResultTests: XCTestCase {
         let images = [
             ExtractedImage(
                 sourceURL: URL(string: "https://example.com/photo.png")!,
-                data: Data(),
+                tempFileURL: URL(fileURLWithPath: "/tmp/placeholder-abc-1.png"),
                 filename: "abc-1.png",
                 ocrText: nil
             )
@@ -97,7 +97,7 @@ final class ClipResultTests: XCTestCase {
         let images = [
             ExtractedImage(
                 sourceURL: URL(string: "https://example.com/photo.png")!,
-                data: Data(),
+                tempFileURL: URL(fileURLWithPath: "/tmp/placeholder-abc-1.png"),
                 filename: "abc-1.png",
                 ocrText: nil
             )
@@ -121,7 +121,7 @@ final class ClipResultTests: XCTestCase {
         let images = [
             ExtractedImage(
                 sourceURL: URL(string: "https://example.com/photo.png")!,
-                data: Data(),
+                tempFileURL: URL(fileURLWithPath: "/tmp/placeholder-abc-1.png"),
                 filename: "abc-1.png",
                 ocrText: "Recognized text from image"
             )
@@ -137,7 +137,7 @@ final class ClipResultTests: XCTestCase {
         let images = [
             ExtractedImage(
                 sourceURL: URL(string: "https://example.com/photo.png")!,
-                data: Data(),
+                tempFileURL: URL(fileURLWithPath: "/tmp/placeholder-abc-1.png"),
                 filename: "abc-1.png",
                 ocrText: nil
             )
@@ -178,7 +178,7 @@ final class ClipResultTests: XCTestCase {
         let images = [
             ExtractedImage(
                 sourceURL: URL(string: "https://example.com/photo.png")!,
-                data: Data(),
+                tempFileURL: URL(fileURLWithPath: "/tmp/placeholder-abc-1.png"),
                 filename: "abc-1.png",
                 ocrText: "Line one\nLine two"
             )

@@ -5,8 +5,10 @@ import UIKit
 struct ExtractedImage: Sendable {
     /// The original URL of the image.
     let sourceURL: URL
-    /// The downloaded image data.
-    let data: Data
+    /// Absolute path to a temp file containing the image bytes.
+    /// `FileSaver` moves this file into place; the file is owned by the
+    /// `ImageProcessor`'s scratch directory and is cleaned up on cancel.
+    let tempFileURL: URL
     /// A sanitized filename (e.g. "image-1.png").
     let filename: String
     /// OCR-recognized text, if any.
