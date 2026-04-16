@@ -88,19 +88,38 @@ class ShareViewController: UIViewController {
             throw ClipError.noContent
         }
 
-        // 2. Convert HTML to Markdown
-        viewModel.state = .loading("Converting to Markdown…")
+        // 2. Run Readability extraction to isolate article content
+        viewModel.state = .loading("Extracting article…")
 
+        var articleTitle = rawContent.title
         let markdownBody: String
+
         if let html = rawContent.html {
-            markdownBody = HTMLToMarkdown.convert(html)
+            let readabilityResult = ReadabilityExtractor.extract(html: html, url: rawContent.url)
+
+            // Use extracted article HTML for Markdown if it has enough content
+            let articleHTML: String
+            if let result = readabilityResult,
+               result.articleHTML.filter({ !$0.isWhitespace }).count >= 100 {
+                articleHTML = result.articleHTML
+                // Use the Readability-extracted title if available
+                if let extractedTitle = result.title, !extractedTitle.isEmpty {
+                    articleTitle = extractedTitle
+                }
+            } else {
+                // Fall back to full HTML
+                articleHTML = html
+            }
+
+            viewModel.state = .loading("Converting to Markdown…")
+            markdownBody = HTMLToMarkdown.convert(articleHTML)
         } else if let plain = rawContent.plainText {
             markdownBody = plain
         } else {
             markdownBody = ""
         }
 
-        // 3. Extract and process images
+        // 3. Extract and process images (use FULL HTML for image extraction)
         var images: [ExtractedImage] = []
 
         if settings.saveImages, let html = rawContent.html {
@@ -129,7 +148,7 @@ class ShareViewController: UIViewController {
 
         // 4. Build the ClipResult
         let clipResult = ClipResult(
-            title: rawContent.title,
+            title: articleTitle,
             sourceURL: rawContent.url,
             markdownBody: markdownBody,
             images: images,
