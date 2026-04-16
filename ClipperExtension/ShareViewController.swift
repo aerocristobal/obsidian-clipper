@@ -24,7 +24,7 @@ final class ShareViewModel {
 /// The Share Extension entry point. Receives content from Safari (or any app)
 /// via the Share Sheet, orchestrates the clipping pipeline, and presents a
 /// SwiftUI progress/result UI.
-class ShareViewController: UIViewController {
+final class ShareViewController: UIViewController {
 
     private let viewModel = ShareViewModel()
     /// Guards against double-completion of the extension context.

@@ -31,9 +31,14 @@ struct ClipResult: Sendable {
     func toMarkdown(includeFrontmatter: Bool, imageReferences: [String: String] = [:]) -> String {
         var parts: [String] = []
 
+        // Normalize whitespace in the title so control characters (newlines, tabs)
+        // cannot break the H1 heading or source line, and cannot inject YAML keys
+        // once escaped into the frontmatter.
+        let displayTitle = Self.normalizeTitleWhitespace(title)
+
         if includeFrontmatter {
             var fm = "---\n"
-            fm += "title: \"\(title.replacingOccurrences(of: "\"", with: "\\\""))\"\n"
+            fm += "title: \"\(Self.sanitizeYAMLValue(displayTitle))\"\n"
             if let url = sourceURL {
                 fm += "source: \"\(url.absoluteString)\"\n"
             }
@@ -45,7 +50,7 @@ struct ClipResult: Sendable {
             parts.append(fm)
         }
 
-        parts.append("# \(title)\n")
+        parts.append("# \(displayTitle)\n")
 
         if let url = sourceURL {
             let dateFormatter = DateFormatter()
@@ -86,5 +91,37 @@ struct ClipResult: Sendable {
         }
 
         return parts.joined(separator: "\n")
+    }
+
+    /// Collapse runs of whitespace (including newlines and tabs) into single spaces
+    /// so the title renders cleanly in headings and cannot break a single-line YAML value.
+    private static func normalizeTitleWhitespace(_ value: String) -> String {
+        var result = ""
+        result.reserveCapacity(value.count)
+        var lastWasSpace = false
+        for char in value {
+            if char.isWhitespace {
+                if !lastWasSpace {
+                    result.append(" ")
+                    lastWasSpace = true
+                }
+            } else {
+                result.append(char)
+                lastWasSpace = false
+            }
+        }
+        return result.trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Sanitize a string for use as a YAML double-quoted value.
+    /// Escapes backslashes, double quotes, and replaces newlines/control chars.
+    private static func sanitizeYAMLValue(_ value: String) -> String {
+        var result = value
+        result = result.replacingOccurrences(of: "\\", with: "\\\\")
+        result = result.replacingOccurrences(of: "\"", with: "\\\"")
+        result = result.replacingOccurrences(of: "\n", with: "\\n")
+        result = result.replacingOccurrences(of: "\r", with: "\\r")
+        result = result.replacingOccurrences(of: "\t", with: "\\t")
+        return result
     }
 }

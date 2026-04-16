@@ -5,6 +5,14 @@ import UIKit
 /// Handles URLs, HTML text, plain text, and images shared from Safari and other apps.
 enum WebContentExtractor {
 
+    /// URLSession configured with timeouts matching ImageProcessor for consistency.
+    private static let session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForResource = 15
+        config.timeoutIntervalForRequest = 10
+        return URLSession(configuration: config)
+    }()
+
     struct RawContent {
         let title: String
         let url: URL?
@@ -75,7 +83,7 @@ enum WebContentExtractor {
 
                 // 5. Try to get images shared directly (Photos, Screenshots, etc.)
                 if provider.hasItemConformingToTypeIdentifier("public.image") {
-                    if let imageData = try? await loadImageData(from: provider) {
+                    if let imageData = await loadImageData(from: provider) {
                         sharedImages.append(imageData)
                     }
                 }
@@ -122,7 +130,7 @@ enum WebContentExtractor {
     }
 
     /// Detect a URL in plain text. Many apps (Twitter, Reddit, Messages) share URLs as plain text.
-    private static func detectURL(in text: String) -> URL? {
+    static func detectURL(in text: String) -> URL? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         // Quick check: if the entire text is a URL
         if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
@@ -169,7 +177,7 @@ enum WebContentExtractor {
             forHTTPHeaderField: "User-Agent"
         )
 
-        guard let (data, response) = try? await URLSession.shared.data(for: request),
+        guard let (data, response) = try? await session.data(for: request),
               let httpResponse = response as? HTTPURLResponse,
               (200...299).contains(httpResponse.statusCode) else {
             return nil
@@ -180,7 +188,7 @@ enum WebContentExtractor {
     }
 
     /// Detect string encoding from HTTP Content-Type header charset.
-    private static func detectEncoding(from response: HTTPURLResponse) -> String.Encoding {
+    static func detectEncoding(from response: HTTPURLResponse) -> String.Encoding {
         guard let contentType = response.value(forHTTPHeaderField: "Content-Type") else {
             return .utf8
         }
@@ -220,7 +228,7 @@ enum WebContentExtractor {
     }
 
     /// Extract the <title> content from HTML.
-    private static func extractTitle(from html: String) -> String? {
+    static func extractTitle(from html: String) -> String? {
         let pattern = #"<title[^>]*>(.*?)</title>"#
         guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]),
               let match = regex.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)),

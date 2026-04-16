@@ -592,40 +592,43 @@ private func decodeEntities(_ text: String) -> String {
     return result
 }
 
+private let entityMap: [String: Character] = [
+    "&amp;": "&",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&quot;": "\"",
+    "&apos;": "'",
+    "&nbsp;": "\u{00A0}",
+    "&ndash;": "\u{2013}",
+    "&mdash;": "\u{2014}",
+    "&lsquo;": "\u{2018}",
+    "&rsquo;": "\u{2019}",
+    "&ldquo;": "\u{201C}",
+    "&rdquo;": "\u{201D}",
+    "&bull;": "\u{2022}",
+    "&hellip;": "\u{2026}",
+    "&copy;": "\u{00A9}",
+    "&reg;": "\u{00AE}",
+    "&trade;": "\u{2122}",
+]
+
 private func decodeEntity(_ entity: String) -> Character? {
-    switch entity {
-    case "&amp;": return "&"
-    case "&lt;": return "<"
-    case "&gt;": return ">"
-    case "&quot;": return "\""
-    case "&apos;": return "'"
-    case "&nbsp;": return "\u{00A0}"
-    case "&ndash;": return "\u{2013}"
-    case "&mdash;": return "\u{2014}"
-    case "&lsquo;": return "\u{2018}"
-    case "&rsquo;": return "\u{2019}"
-    case "&ldquo;": return "\u{201C}"
-    case "&rdquo;": return "\u{201D}"
-    case "&bull;": return "\u{2022}"
-    case "&hellip;": return "\u{2026}"
-    case "&copy;": return "\u{00A9}"
-    case "&reg;": return "\u{00AE}"
-    case "&trade;": return "\u{2122}"
-    default:
-        // Numeric entities: &#123; or &#x1F;
-        if entity.hasPrefix("&#x") || entity.hasPrefix("&#X") {
-            let hex = String(entity.dropFirst(3).dropLast())
-            if let code = UInt32(hex, radix: 16), let scalar = Unicode.Scalar(code) {
-                return Character(scalar)
-            }
-        } else if entity.hasPrefix("&#") {
-            let dec = String(entity.dropFirst(2).dropLast())
-            if let code = UInt32(dec), let scalar = Unicode.Scalar(code) {
-                return Character(scalar)
-            }
-        }
-        return nil
+    if let char = entityMap[entity] {
+        return char
     }
+    // Numeric entities: &#123; or &#x1F;
+    if entity.hasPrefix("&#x") || entity.hasPrefix("&#X") {
+        let hex = String(entity.dropFirst(3).dropLast())
+        if let code = UInt32(hex, radix: 16), let scalar = Unicode.Scalar(code) {
+            return Character(scalar)
+        }
+    } else if entity.hasPrefix("&#") {
+        let dec = String(entity.dropFirst(2).dropLast())
+        if let code = UInt32(dec), let scalar = Unicode.Scalar(code) {
+            return Character(scalar)
+        }
+    }
+    return nil
 }
 
 // MARK: - Metadata Extraction

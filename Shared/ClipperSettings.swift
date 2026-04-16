@@ -8,7 +8,7 @@ import Foundation
 @MainActor
 final class ClipperSettings: ObservableObject {
 
-    static let suiteName = "group.com.obsidian.clipper"
+    nonisolated static let suiteName = "group.com.obsidian.clipper"
 
     private let defaults: UserDefaults
 

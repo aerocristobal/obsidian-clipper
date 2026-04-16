@@ -147,6 +147,33 @@ final class ClipResultTests: XCTestCase {
         XCTAssertFalse(md.contains("## Extracted Text (OCR)"), "Should not include OCR section when no text")
     }
 
+    func testToMarkdownSanitizesNewlinesInTitle() {
+        let result = makeResult(title: "Title\nmalicious: true")
+        let md = result.toMarkdown(includeFrontmatter: true)
+        // Newlines must be collapsed so no YAML key can be injected, and the H1
+        // heading cannot be split across lines.
+        XCTAssertTrue(md.contains("title: \"Title malicious: true\""), "Newlines should collapse to space, got: \(md)")
+        // The frontmatter block must contain exactly one title key.
+        let frontmatterLines = md.components(separatedBy: "---\n")[1].components(separatedBy: "\n")
+        let titleLines = frontmatterLines.filter { $0.hasPrefix("title:") }
+        XCTAssertEqual(titleLines.count, 1, "Frontmatter must contain exactly one title key, got: \(frontmatterLines)")
+        // The H1 must be a single line — no injected content after the heading.
+        XCTAssertTrue(md.contains("# Title malicious: true"), "H1 should be single-line, got: \(md)")
+    }
+
+    func testToMarkdownSanitizesBackslashesInTitle() {
+        let result = makeResult(title: "Path\\To\\File")
+        let md = result.toMarkdown(includeFrontmatter: true)
+        XCTAssertTrue(md.contains("title: \"Path\\\\To\\\\File\""), "Backslashes should be escaped, got: \(md)")
+    }
+
+    func testToMarkdownSanitizesTabsInTitle() {
+        let result = makeResult(title: "Title\twith\ttabs")
+        let md = result.toMarkdown(includeFrontmatter: true)
+        XCTAssertFalse(md.contains("\t"), "Tabs should be normalized away, got: \(md)")
+        XCTAssertTrue(md.contains("title: \"Title with tabs\""), "Tabs should collapse to spaces, got: \(md)")
+    }
+
     func testToMarkdownOCRTextAsBlockquote() {
         let images = [
             ExtractedImage(

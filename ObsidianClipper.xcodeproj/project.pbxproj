@@ -28,6 +28,15 @@
 		A10000072 /* ClipResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000072 /* ClipResultTests.swift */; };
 		A10000028 /* ReadabilityExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000028 /* ReadabilityExtractor.swift */; };
 		A10000073 /* ReadabilityExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000073 /* ReadabilityExtractorTests.swift */; };
+		A10000074 /* ImageProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000074 /* ImageProcessorTests.swift */; };
+		A10000075 /* WebContentExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000075 /* WebContentExtractorTests.swift */; };
+		A10000080 /* HTMLToMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000021 /* HTMLToMarkdown.swift */; };
+		A10000081 /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000022 /* ImageProcessor.swift */; };
+		A10000082 /* FileSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000023 /* FileSaver.swift */; };
+		A10000083 /* ClipperSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010 /* ClipperSettings.swift */; };
+		A10000084 /* WebContentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000026 /* WebContentExtractor.swift */; };
+		A10000085 /* ClipResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000027 /* ClipResult.swift */; };
+		A10000086 /* ReadabilityExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000028 /* ReadabilityExtractor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,6 +93,8 @@
 		A20000072 /* ClipResultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipResultTests.swift; sourceTree = "<group>"; };
 		A20000028 /* ReadabilityExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadabilityExtractor.swift; sourceTree = "<group>"; };
 		A20000073 /* ReadabilityExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadabilityExtractorTests.swift; sourceTree = "<group>"; };
+		A20000074 /* ImageProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessorTests.swift; sourceTree = "<group>"; };
+		A20000075 /* WebContentExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentExtractorTests.swift; sourceTree = "<group>"; };
 		A70000001 /* ObsidianClipper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObsidianClipper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A70000002 /* ClipperExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipperExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A70000003 /* ObsidianClipperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ObsidianClipperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -157,6 +168,8 @@
 				A20000071 /* FileSaverTests.swift */,
 				A20000072 /* ClipResultTests.swift */,
 				A20000073 /* ReadabilityExtractorTests.swift */,
+				A20000074 /* ImageProcessorTests.swift */,
+				A20000075 /* WebContentExtractorTests.swift */,
 			);
 			path = ObsidianClipperTests;
 			sourceTree = "<group>";
@@ -232,7 +245,7 @@
 					};
 					A50000003 = {
 						CreatedOnToolsVersion = 15.4;
-						TestTargetID = A50000002;
+						TestTargetID = A50000001;
 					};
 				};
 			};
@@ -312,6 +325,15 @@
 				A10000071 /* FileSaverTests.swift in Sources */,
 				A10000072 /* ClipResultTests.swift in Sources */,
 				A10000073 /* ReadabilityExtractorTests.swift in Sources */,
+				A10000074 /* ImageProcessorTests.swift in Sources */,
+				A10000075 /* WebContentExtractorTests.swift in Sources */,
+				A10000080 /* HTMLToMarkdown.swift in Sources */,
+				A10000081 /* ImageProcessor.swift in Sources */,
+				A10000082 /* FileSaver.swift in Sources */,
+				A10000083 /* ClipperSettings.swift in Sources */,
+				A10000084 /* WebContentExtractor.swift in Sources */,
+				A10000085 /* ClipResult.swift in Sources */,
+				A10000086 /* ReadabilityExtractor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -477,7 +499,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipperExtension.appex/ClipperExtension";
 			};
 			name = Debug;
 		};
@@ -493,7 +514,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipperExtension.appex/ClipperExtension";
 			};
 			name = Release;
 		};

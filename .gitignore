@@ -32,3 +32,7 @@ Pods/
 .DS_Store
 *.swp
 *~.nib
+
+# Claude Code / motes
+.memory/
+.claude/

@@ -16,6 +16,13 @@ enum FileSaver {
             self.includeFrontmatter = settings.includeFrontmatter
             self.vaultBookmark = settings.vaultBookmark
         }
+
+        /// Direct initializer for testing and non-MainActor contexts.
+        init(targetFolder: String, includeFrontmatter: Bool, vaultBookmark: Data?) {
+            self.targetFolder = targetFolder
+            self.includeFrontmatter = includeFrontmatter
+            self.vaultBookmark = vaultBookmark
+        }
     }
 
     enum SaveError: LocalizedError {
@@ -133,6 +140,13 @@ enum FileSaver {
         return finalURL
     }
 
+    /// Windows reserved filenames that are not valid on NTFS/FAT.
+    private static let windowsReservedNames: Set<String> = [
+        "CON", "PRN", "AUX", "NUL",
+        "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+        "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+    ]
+
     /// Remove characters that are invalid in filenames.
     static func sanitizeFilename(_ name: String) -> String {
         let invalid = CharacterSet(charactersIn: "/:*?\"<>|\\")
@@ -142,10 +156,26 @@ enum FileSaver {
         // Trim dashes and whitespace
         sanitized = sanitized.trimmingCharacters(in: .whitespacesAndNewlines)
         sanitized = sanitized.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        // Strip leading dots (prevents hidden files on macOS/Linux)
+        while sanitized.hasPrefix(".") {
+            sanitized = String(sanitized.dropFirst())
+        }
+        // Strip trailing dots (invalid on Windows)
+        while sanitized.hasSuffix(".") {
+            sanitized = String(sanitized.dropLast())
+        }
         // Limit length
         if sanitized.count > 200 {
             sanitized = String(sanitized.prefix(200))
         }
-        return sanitized.isEmpty ? "Untitled" : sanitized
+        // Handle empty result
+        if sanitized.isEmpty {
+            return "Untitled"
+        }
+        // Handle Windows reserved names (case-insensitive)
+        if windowsReservedNames.contains(sanitized.uppercased()) {
+            sanitized = sanitized + "_"
+        }
+        return sanitized
     }
 }

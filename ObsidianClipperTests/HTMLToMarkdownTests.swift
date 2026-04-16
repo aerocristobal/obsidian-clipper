@@ -272,6 +272,42 @@ final class HTMLToMarkdownTests: XCTestCase {
         XCTAssertTrue(md.contains("| A | 1 |"), "Expected table row, got: \(md)")
     }
 
+    // MARK: - Link Sanitization
+
+    func testJavascriptLinkStripped() {
+        let html = #"<p><a href="javascript:alert(1)">Click me</a></p>"#
+        let md = HTMLToMarkdown.convert(html)
+        XCTAssertTrue(md.contains("Click me"), "Link text should be preserved")
+        XCTAssertFalse(md.contains("javascript:"), "javascript: URL should be stripped, got: \(md)")
+        XCTAssertFalse(md.contains("]("), "Should not be a Markdown link, got: \(md)")
+    }
+
+    func testDataLinkStripped() {
+        let html = #"<p><a href="data:text/html,<script>alert(1)</script>">Click</a></p>"#
+        let md = HTMLToMarkdown.convert(html)
+        XCTAssertTrue(md.contains("Click"), "Link text should be preserved")
+        XCTAssertFalse(md.contains("data:"), "data: URL should be stripped")
+    }
+
+    func testVbscriptLinkStripped() {
+        let html = #"<p><a href="vbscript:MsgBox('hi')">Click</a></p>"#
+        let md = HTMLToMarkdown.convert(html)
+        XCTAssertFalse(md.contains("vbscript:"), "vbscript: URL should be stripped")
+    }
+
+    func testNormalLinkPreserved() {
+        let html = #"<p><a href="https://example.com">Example</a></p>"#
+        let md = HTMLToMarkdown.convert(html)
+        XCTAssertTrue(md.contains("[Example](https://example.com)"), "Normal link should be preserved, got: \(md)")
+    }
+
+    func testLinkWithParenthesesEncoded() {
+        let html = #"<p><a href="https://example.com/page_(test)">Link</a></p>"#
+        let md = HTMLToMarkdown.convert(html)
+        XCTAssertTrue(md.contains("%28") && md.contains("%29"), "Parentheses should be encoded, got: \(md)")
+        XCTAssertTrue(md.contains("[Link]"), "Link text should be preserved")
+    }
+
     // MARK: - Full Article Body Extraction (regression tests for header-only bug)
 
     func testConvertPreservesFullArticleBody() {

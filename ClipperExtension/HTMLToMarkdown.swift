@@ -190,8 +190,11 @@ enum HTMLToMarkdown {
                 let text = node.textContent.trimmingCharacters(in: .whitespacesAndNewlines)
                 if href.isEmpty || text.isEmpty {
                     renderChildren(node, to: &ctx)
+                } else if Self.isDangerousScheme(href) {
+                    // Strip dangerous links, keep text only
+                    ctx.result += text
                 } else {
-                    ctx.result += "[\(text)](\(href))"
+                    ctx.result += "[\(text)](\(Self.sanitizeLinkHref(href)))"
                 }
 
             case "img":
@@ -330,15 +333,34 @@ enum HTMLToMarkdown {
         }
     }
 
-    /// Collapse runs of whitespace into a single space, trim leading/trailing.
+    /// Check if a URL has a dangerous scheme (javascript:, data:, vbscript:).
+    private static func isDangerousScheme(_ href: String) -> Bool {
+        let lower = href.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return lower.hasPrefix("javascript:") || lower.hasPrefix("data:") || lower.hasPrefix("vbscript:")
+    }
+
+    /// Escape parentheses in link URLs to prevent broken Markdown.
+    private static func sanitizeLinkHref(_ href: String) -> String {
+        href.replacingOccurrences(of: "(", with: "%28")
+            .replacingOccurrences(of: ")", with: "%29")
+    }
+
+    /// Collapse runs of whitespace into a single space.
     private static func collapseWhitespace(_ text: String) -> String {
-        // Preserve [[IMG:N]] markers exactly
-        var result = text
-        result = result.replacingOccurrences(
-            of: "\\s+",
-            with: " ",
-            options: .regularExpression
-        )
+        var result = ""
+        result.reserveCapacity(text.count)
+        var lastWasWhitespace = false
+        for char in text {
+            if char.isWhitespace {
+                if !lastWasWhitespace {
+                    result.append(" ")
+                    lastWasWhitespace = true
+                }
+            } else {
+                result.append(char)
+                lastWasWhitespace = false
+            }
+        }
         return result
     }
 
@@ -535,13 +557,24 @@ enum HTMLToMarkdown {
         return urls
     }
 
+    /// Cache for compiled attribute-extraction regexes, keyed by attribute name.
+    private static var attributeRegexCache: [String: NSRegularExpression] = [:]
+
     /// Extract a named attribute value from an HTML tag string.
     private static func extractAttribute(_ name: String, from tag: String) -> String? {
         // Match: name="value" or name='value' or name=value
-        let pattern = name + #"\s*=\s*(?:"([^"]*)"|'([^']*)'|(\S+))"#
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
-            return nil
+        let regex: NSRegularExpression
+        if let cached = attributeRegexCache[name] {
+            regex = cached
+        } else {
+            let pattern = name + #"\s*=\s*(?:"([^"]*)"|'([^']*)'|(\S+))"#
+            guard let compiled = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+                return nil
+            }
+            attributeRegexCache[name] = compiled
+            regex = compiled
         }
+
         let nsTag = tag as NSString
         guard let match = regex.firstMatch(in: tag, range: NSRange(location: 0, length: nsTag.length)) else {
             return nil

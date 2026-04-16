@@ -120,7 +120,7 @@ actor ImageProcessor {
     }
 
     /// Determine image format from data header bytes.
-    private static func imageExtension(from data: Data) -> String {
+    static func imageExtension(from data: Data) -> String {
         guard data.count >= 4 else { return "png" }
         let bytes = [UInt8](data.prefix(4))
         // PNG: 89 50 4E 47
@@ -231,15 +231,11 @@ actor ImageProcessor {
             request.usesLanguageCorrection = true
 
             let handler = VNImageRequestHandler(cgImage: image, options: [:])
-            do {
-                try handler.perform([request])
-            } catch {
-                continuation.resume(returning: nil)
-            }
+            try? handler.perform([request])
         }
     }
 
-    private func fileExtension(for url: URL, mimeType: String?) -> String {
+    func fileExtension(for url: URL, mimeType: String?) -> String {
         // Try MIME type first
         if let mime = mimeType {
             switch mime {
