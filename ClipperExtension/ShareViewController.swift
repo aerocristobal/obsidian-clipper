@@ -27,7 +27,13 @@ final class ShareViewModel {
 class ShareViewController: UIViewController {
 
     private let viewModel = ShareViewModel()
+    /// Guards against double-completion of the extension context.
+    /// Accessed from both the main-actor Task and UI callbacks, so
+    /// we protect it with an os_unfair_lock for thread safety.
     private var didComplete = false
+    private let didCompleteLock = NSLock()
+    /// Handle to the clipping Task so we can cancel it when the user taps Cancel.
+    private var clippingTask: Task<Void, Never>?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,17 +67,21 @@ class ShareViewController: UIViewController {
     // MARK: - Clipping Pipeline
 
     private func startClipping() {
-        Task {
+        clippingTask = Task { [weak self] in
             do {
-                let result = try await performClipping()
+                guard let self else { return }
+                let result = try await self.performClipping()
 
-                viewModel.state = .success(result)
+                guard !Task.isCancelled else { return }
+                self.viewModel.state = .success(result)
 
                 // Auto-dismiss after a short delay
                 try? await Task.sleep(for: .seconds(1.5))
-                done()
+                guard !Task.isCancelled else { return }
+                self.done()
             } catch {
-                viewModel.state = .error(error.localizedDescription)
+                guard !Task.isCancelled else { return }
+                self?.viewModel.state = .error(error.localizedDescription)
             }
         }
     }
@@ -88,6 +98,8 @@ class ShareViewController: UIViewController {
             throw ClipError.noContent
         }
 
+        try Task.checkCancellation()
+
         let isImageOnly = rawContent.html == nil && rawContent.url == nil && !rawContent.sharedImages.isEmpty
 
         // 2. Inject image markers into HTML, run Readability, convert to Markdown
@@ -100,31 +112,35 @@ class ShareViewController: UIViewController {
             viewModel.state = .loading("Processing images…")
             markdownBody = ""
         } else if let html = rawContent.html {
-            // Replace <img> tags with [[IMG:N]] markers before any processing.
-            // Markers survive Readability extraction and NSAttributedString conversion.
-            let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: rawContent.url)
-            markerMap = markerResult.markerMap
-            let markedHTML = markerResult.html
+            // Use a `do` block so the large intermediate HTML strings
+            // (markedHTML, articleHTML) are released before image processing.
+            do {
+                // Replace <img> tags with [[IMG:N]] markers before any processing.
+                let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: rawContent.url)
+                markerMap = markerResult.markerMap
+                let markedHTML = markerResult.html
 
-            viewModel.state = .loading("Extracting article…")
-            let readabilityResult = ReadabilityExtractor.extract(html: markedHTML, url: rawContent.url)
+                try Task.checkCancellation()
 
-            // Use extracted article HTML for Markdown if it has enough content
-            let articleHTML: String
-            if let result = readabilityResult,
-               result.articleHTML.filter({ !$0.isWhitespace }).count >= 100 {
-                articleHTML = result.articleHTML
-                // Use the Readability-extracted title if available
-                if let extractedTitle = result.title, !extractedTitle.isEmpty {
-                    articleTitle = extractedTitle
+                viewModel.state = .loading("Extracting article…")
+                let readabilityResult = ReadabilityExtractor.extract(html: markedHTML, url: rawContent.url)
+
+                let articleHTML: String
+                if let result = readabilityResult,
+                   result.articleHTML.filter({ !$0.isWhitespace }).count >= 100 {
+                    articleHTML = result.articleHTML
+                    if let extractedTitle = result.title, !extractedTitle.isEmpty {
+                        articleTitle = extractedTitle
+                    }
+                } else {
+                    articleHTML = markedHTML
                 }
-            } else {
-                // Fall back to full marked HTML
-                articleHTML = markedHTML
-            }
 
-            viewModel.state = .loading("Converting to Markdown…")
-            markdownBody = HTMLToMarkdown.convert(articleHTML)
+                try Task.checkCancellation()
+
+                viewModel.state = .loading("Converting to Markdown…")
+                markdownBody = HTMLToMarkdown.convert(articleHTML)
+            }
         } else if let plain = rawContent.plainText {
             viewModel.state = .loading("Saving text…")
             markdownBody = plain
@@ -132,12 +148,13 @@ class ShareViewController: UIViewController {
             markdownBody = ""
         }
 
+        try Task.checkCancellation()
+
         // 3. Process images
         var images: [ExtractedImage] = []
         let prefix = Self.shortHash(title: rawContent.title, url: rawContent.url)
 
         if isImageOnly {
-            // Directly shared images — run OCR on each
             viewModel.state = .loading("Running OCR…")
             let processor = ImageProcessor()
             images = await processor.processSharedImages(
@@ -146,16 +163,11 @@ class ShareViewController: UIViewController {
                 prefix: prefix
             )
         } else if settings.saveImages, let html = rawContent.html {
-            // Web page images — download from marker map URLs (already filtered/deduped)
-            // plus any additional URLs found via extractImageURLs that weren't in <img> tags
             viewModel.state = .loading("Processing images…")
 
-            // Collect URLs from marker map
             var imageURLs = Array(markerMap.values)
             let markerURLStrings = Set(imageURLs.map { $0.absoluteString })
 
-            // Also extract URLs from the original HTML for images that may not have
-            // been in <img> tags (e.g., CSS backgrounds, <source> elements)
             let additionalURLs = HTMLToMarkdown.extractImageURLs(from: html, baseURL: rawContent.url)
                 .filter { !markerURLStrings.contains($0.absoluteString) }
                 .filter { url in
@@ -169,19 +181,16 @@ class ShareViewController: UIViewController {
                 }
             imageURLs.append(contentsOf: additionalURLs)
 
-            // Limit to first 20 images to avoid huge downloads
             let limitedURLs = Array(imageURLs.prefix(20))
 
             let processor = ImageProcessor()
             images = await processor.process(urls: limitedURLs, enableOCR: settings.enableOCR, prefix: prefix)
 
-            // Build URL → local path mapping and replace markers in markdown
             var urlToPath: [String: String] = [:]
             for image in images {
                 urlToPath[image.sourceURL.absoluteString] = "images/\(image.filename)"
             }
 
-            // Replace [[IMG:N]] markers with inline image references
             var markerToPath: [Int: String] = [:]
             for (index, url) in markerMap {
                 if let path = urlToPath[url.absoluteString] {
@@ -191,6 +200,8 @@ class ShareViewController: UIViewController {
             let inlineResult = HTMLToMarkdown.replaceMarkersWithImages(markdownBody, markerToPath: markerToPath)
             markdownBody = inlineResult.markdown
         }
+
+        try Task.checkCancellation()
 
         // 4. Build the ClipResult
         let clipResult = ClipResult(
@@ -212,15 +223,25 @@ class ShareViewController: UIViewController {
     // MARK: - Completion
 
     private func done() {
-        guard !didComplete else { return }
-        didComplete = true
+        guard trySetComplete() else { return }
         extensionContext?.completeRequest(returningItems: nil)
     }
 
     private func cancel() {
-        guard !didComplete else { return }
-        didComplete = true
+        guard trySetComplete() else { return }
+        clippingTask?.cancel()
+        clippingTask = nil
         extensionContext?.cancelRequest(withError: ClipError.cancelled)
+    }
+
+    /// Atomically checks and sets `didComplete`. Returns `true` if this call
+    /// was the first to set it (i.e., the caller should proceed with completion).
+    private func trySetComplete() -> Bool {
+        didCompleteLock.lock()
+        defer { didCompleteLock.unlock() }
+        guard !didComplete else { return false }
+        didComplete = true
+        return true
     }
 
     /// Short hex hash identifying a single clip, used as an image filename prefix

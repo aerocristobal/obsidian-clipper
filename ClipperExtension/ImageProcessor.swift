@@ -37,6 +37,7 @@ actor ImageProcessor {
             // Drain results and refill as slots free up.
             var results: [ExtractedImage] = []
             while let result = await group.next() {
+                if Task.isCancelled { break }
                 if let image = result {
                     results.append(image)
                 }
@@ -52,21 +53,32 @@ actor ImageProcessor {
 
     /// Process images shared directly (e.g. from Photos, Screenshots) — no download needed.
     /// Runs OCR if enabled and returns ExtractedImage results.
+    /// Uses the same concurrency cap as `process()` to stay within the extension memory budget.
     func processSharedImages(_ imageDataList: [Data], enableOCR: Bool, prefix: String) async -> [ExtractedImage] {
         // Limit to 10 shared images to stay within the 50MB extension budget
         let limited = Array(imageDataList.prefix(10))
 
         return await withTaskGroup(of: ExtractedImage?.self) { group in
-            for (index, data) in limited.enumerated() {
+            var iterator = limited.enumerated().makeIterator()
+
+            // Seed the group up to the concurrency cap.
+            for _ in 0..<Self.maxConcurrent {
+                guard let (index, data) = iterator.next() else { break }
                 group.addTask {
                     await self.processSharedImage(data: data, index: index, prefix: prefix, enableOCR: enableOCR)
                 }
             }
 
+            // Drain results and refill as slots free up.
             var results: [ExtractedImage] = []
-            for await result in group {
+            while let result = await group.next() {
                 if let image = result {
                     results.append(image)
+                }
+                if let (index, data) = iterator.next() {
+                    group.addTask {
+                        await self.processSharedImage(data: data, index: index, prefix: prefix, enableOCR: enableOCR)
+                    }
                 }
             }
             return results.sorted { $0.filename < $1.filename }
@@ -74,30 +86,37 @@ actor ImageProcessor {
     }
 
     private func processSharedImage(data: Data, index: Int, prefix: String, enableOCR: Bool) async -> ExtractedImage? {
-        guard UIImage(data: data) != nil else { return nil }
+        guard !Task.isCancelled else { return nil }
 
-        // Determine format from data header bytes
+        // Validate the data is a decodable image and optionally get a downscaled
+        // CGImage for OCR. Use autoreleasepool so UIImage intermediates are freed.
+        var isValid = false
+        let cgForOCR: CGImage? = autoreleasepool {
+            guard let uiImage = UIImage(data: data) else { return nil }
+            isValid = true
+            guard enableOCR else { return nil }
+            return Self.downscaledCGImage(from: uiImage)
+        }
+
+        guard isValid else { return nil }
+
+        let ocrText: String?
+        if let cg = cgForOCR {
+            ocrText = await recognizeText(in: cg)
+        } else {
+            ocrText = nil
+        }
+
         let ext = Self.imageExtension(from: data)
         let filename = "\(prefix)-\(index + 1).\(ext)"
-
-        // Use a synthetic source URL so the image can be referenced in Markdown
         let sourceURL = URL(string: "shared-image://\(filename)")!
 
-        var extracted = ExtractedImage(
+        return ExtractedImage(
             sourceURL: sourceURL,
             data: data,
             filename: filename,
-            ocrText: nil
+            ocrText: ocrText
         )
-
-        if enableOCR, let uiImage = UIImage(data: data) {
-            let ocrImage = Self.downscaledCGImage(from: uiImage)
-            if let cg = ocrImage {
-                extracted.ocrText = await recognizeText(in: cg)
-            }
-        }
-
-        return extracted
     }
 
     /// Determine image format from data header bytes.
@@ -124,39 +143,50 @@ actor ImageProcessor {
     }
 
     private func downloadAndProcess(url: URL, index: Int, prefix: String, enableOCR: Bool) async -> ExtractedImage? {
+        guard !Task.isCancelled else { return nil }
+
         // Download the image data
         guard let (data, response) = try? await Self.session.data(from: url) else {
             return nil
         }
 
+        guard !Task.isCancelled else { return nil }
+
         // Verify it's actually an image. Accept either an image/* MIME type or
-        // data that UIImage can decode.
+        // data that UIImage can decode. Use autoreleasepool for the UIImage probe.
         let mimeType = (response as? HTTPURLResponse)?.mimeType
         let isImageMime = mimeType?.hasPrefix("image/") ?? false
-        if !isImageMime && UIImage(data: data) == nil {
-            return nil
+        if !isImageMime {
+            let valid = autoreleasepool { UIImage(data: data) != nil }
+            guard valid else { return nil }
         }
 
         // Determine file extension and filename (prefixed to avoid collisions).
         let ext = fileExtension(for: url, mimeType: (response as? HTTPURLResponse)?.mimeType)
         let filename = "\(prefix)-\(index + 1).\(ext)"
 
-        var extracted = ExtractedImage(
+        // Run OCR if enabled. Downscale inside autoreleasepool to release UIImage promptly.
+        let ocrText: String?
+        if enableOCR {
+            let cgForOCR: CGImage? = autoreleasepool {
+                guard let uiImage = UIImage(data: data) else { return nil }
+                return Self.downscaledCGImage(from: uiImage)
+            }
+            if let cg = cgForOCR {
+                ocrText = await recognizeText(in: cg)
+            } else {
+                ocrText = nil
+            }
+        } else {
+            ocrText = nil
+        }
+
+        return ExtractedImage(
             sourceURL: url,
             data: data,
             filename: filename,
-            ocrText: nil
+            ocrText: ocrText
         )
-
-        // Run OCR if enabled. Downscale first to keep Vision allocations in check.
-        if enableOCR, let uiImage = UIImage(data: data) {
-            let ocrImage = Self.downscaledCGImage(from: uiImage)
-            if let cg = ocrImage {
-                extracted.ocrText = await recognizeText(in: cg)
-            }
-        }
-
-        return extracted
     }
 
     /// Downscale a `UIImage` so its longest edge is at most `maxOCRDimension`,

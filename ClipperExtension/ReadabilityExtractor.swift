@@ -29,44 +29,58 @@ enum ReadabilityExtractor {
     /// - Returns: A `ReadabilityResult` with the cleaned article HTML, or `nil`
     ///   if extraction fails.
     static func extract(html: String, url: URL?) -> ReadabilityResult? {
-        var parser = HTMLParser(html: html)
-        guard let document = parser.parse() else { return nil }
+        // Parse, score, and serialize inside a `do` block so the entire DOM tree
+        // (which can be very large for complex pages) is released as soon as we
+        // have the serialized strings, before the caller continues processing.
+        let articleHTML: String
+        let title: String?
+        let excerpt: String?
+        let siteName: String?
 
-        // Extract metadata before preprocessing mutates the tree
-        let metadata = extractMetadata(from: document)
+        do {
+            var parser = HTMLParser(html: html)
+            guard let document = parser.parse() else { return nil }
 
-        // Preprocess: remove junk elements
-        preprocess(&document.children)
+            // Extract metadata before preprocessing mutates the tree
+            let metadata = extractMetadata(from: document)
 
-        // Score candidates
-        var candidates: [CandidateScore] = []
-        scoreCandidates(node: document, candidates: &candidates)
+            // Preprocess: remove junk elements
+            preprocess(&document.children)
 
-        guard let winner = candidates.max(by: { $0.score < $1.score }),
-              winner.score > 0 else {
-            return nil
+            // Score candidates
+            var candidates: [CandidateScore] = []
+            scoreCandidates(node: document, candidates: &candidates)
+
+            guard let winner = candidates.max(by: { $0.score < $1.score }),
+                  winner.score > 0 else {
+                return nil
+            }
+
+            // Post-process: clean up the winning subtree
+            postProcess(winner.element)
+
+            // Serialize the winner back to HTML
+            articleHTML = winner.element.serialize()
+
+            // Extract title: prefer og:title, then <h1> within article, then <title> tag
+            title = metadata.ogTitle
+                ?? findFirstHeading(in: winner.element)
+                ?? metadata.title
+
+            // Extract excerpt: first paragraph text or meta description
+            excerpt = metadata.description
+                ?? findFirstParagraphText(in: winner.element)
+
+            siteName = metadata.siteName
+
+            // `document`, `candidates`, and the entire DOM tree are released here.
         }
-
-        // Post-process: clean up the winning subtree
-        postProcess(winner.element)
-
-        // Serialize the winner back to HTML
-        let articleHTML = winner.element.serialize()
-
-        // Extract title: prefer og:title, then <h1> within article, then <title> tag
-        let title = metadata.ogTitle
-            ?? findFirstHeading(in: winner.element)
-            ?? metadata.title
-
-        // Extract excerpt: first paragraph text or meta description
-        let excerpt = metadata.description
-            ?? findFirstParagraphText(in: winner.element)
 
         return ReadabilityResult(
             articleHTML: articleHTML,
             title: title,
             excerpt: excerpt,
-            siteName: metadata.siteName
+            siteName: siteName
         )
     }
 }
