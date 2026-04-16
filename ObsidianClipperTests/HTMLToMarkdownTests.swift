@@ -563,4 +563,61 @@ final class HTMLToMarkdownTests: XCTestCase {
         XCTAssertTrue(finalResult.markdown.contains("![photo2](images/photo2.jpg)"), "Should have inline image 2")
         XCTAssertFalse(finalResult.markdown.contains("[[IMG:"), "No markers should remain")
     }
+
+    // MARK: - Regression: inline links inside paragraphs must not be stripped
+
+    /// Regression test for the bug where `ReadabilityExtractor.postProcess` removed
+    /// inline `<a>` tags inside paragraphs because they had link density 1.0 and
+    /// short text. This chewed holes in sentences mid-paragraph.
+    func testInlineLinksInsideParagraphsArePreserved() {
+        let html = """
+        <html><body>
+        <article>
+            <p>The first paragraph mentions <a href="https://a.example">Topic A</a> and also
+            talks about <a href="https://b.example">Topic B</a> in the context of ongoing
+            research. This paragraph has enough length to score well and pass all content
+            thresholds while still containing multiple inline links.</p>
+            <p>A second paragraph <a href="https://c.example">adds more</a> context with
+            another <a href="https://d.example">relevant reference</a>. Natural prose with
+            commas and punctuation to signal this is article content.</p>
+        </article>
+        </body></html>
+        """
+        let marked = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil).html
+        let r = ReadabilityExtractor.extract(html: marked, url: nil)
+        XCTAssertNotNil(r)
+        guard let r = r else { return }
+        let md = HTMLToMarkdown.convert(node: r.articleNode)
+
+        XCTAssertTrue(md.contains("Topic A"), "Inline link 'Topic A' was stripped: \(md)")
+        XCTAssertTrue(md.contains("Topic B"), "Inline link 'Topic B' was stripped: \(md)")
+        XCTAssertTrue(md.contains("adds more"), "Inline link 'adds more' was stripped: \(md)")
+        XCTAssertTrue(md.contains("relevant reference"), "Inline link 'relevant reference' was stripped: \(md)")
+    }
+
+    /// Regression test for the substring false-positive: `"lead-in-text-callout"`
+    /// must not be removed just because it contains the letters of the negative
+    /// pattern `"ad"`.
+    func testInlineSpanWithAdSubstringIsPreserved() {
+        let html = """
+        <html><body>
+        <article>
+            <p><span class="lead-in-text-callout">Opening callout</span> continues with
+            regular prose that establishes the article's main topic. The paragraph has
+            enough length and commas to score well in the Readability algorithm.</p>
+            <p>Follow-up paragraph adds more detail with natural language patterns and
+            sufficient content for the scorer to identify this as article body.</p>
+            <p>Final paragraph wraps up the piece with concluding thoughts and a forward
+            looking statement about the subject matter.</p>
+        </article>
+        </body></html>
+        """
+        let r = ReadabilityExtractor.extract(html: html, url: nil)
+        XCTAssertNotNil(r)
+        guard let r = r else { return }
+        let md = HTMLToMarkdown.convert(node: r.articleNode)
+
+        XCTAssertTrue(md.contains("Opening callout"),
+                      "`lead-in-text-callout` span should not be removed by 'ad' false match: \(md)")
+    }
 }

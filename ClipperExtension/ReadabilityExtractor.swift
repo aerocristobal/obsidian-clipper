@@ -1049,11 +1049,41 @@ private extension ReadabilityExtractor {
 
 private extension ReadabilityExtractor {
 
+    /// Inline phrasing tags whose content is paragraph text, not a removable block.
+    /// Post-processing must never strip these — doing so chews holes in sentences
+    /// (e.g. an `<a>` inside a `<p>` has link density 1.0 but is part of the prose).
+    static let inlineTags: Set<String> = [
+        "a", "span", "em", "strong", "b", "i", "u", "s", "del", "strike",
+        "code", "mark", "sub", "sup", "cite", "abbr", "time", "var",
+        "small", "big", "q", "kbd", "samp", "ruby", "rt", "rp", "wbr",
+        "font", "bdi", "bdo", "dfn", "ins"
+    ]
+
+    /// Inline-content containers whose descendants are prose, not sub-blocks.
+    /// Recursing post-processing into these risks shredding the paragraph text
+    /// (e.g. stripping inline links out of a paragraph).
+    static let inlineContentContainers: Set<String> = [
+        "p", "h1", "h2", "h3", "h4", "h5", "h6",
+        "li", "dt", "dd", "figcaption", "blockquote", "pre", "code", "summary"
+    ]
+
     static func postProcess(_ element: HTMLNode) {
-        // Remove high-link-density children
+        // Never strip inline-content containers' descendants — their children
+        // are prose, not removable blocks.
+        if let tag = element.tag, inlineContentContainers.contains(tag) {
+            removeEmptyChildren(element)
+            return
+        }
+
+        // Remove high-link-density children — but only *block-level* children.
+        // Inline tags (<a>, <span>, <em>, ...) live inside paragraphs and must
+        // not be removed here; they're part of the prose.
         let before = element.children.count
         element.children.removeAll { child in
-            guard child.tag != nil else { return false }
+            guard let tag = child.tag else { return false }
+
+            // Skip inline tags entirely — they belong to the enclosing paragraph.
+            if inlineTags.contains(tag) { return false }
 
             let density = computeLinkDensity(child)
             let text = child.textContent.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1062,14 +1092,16 @@ private extension ReadabilityExtractor {
             if density > 0.5 && text.count < 200 { return true }
 
             // Remove known non-content tags that might still be inside
-            let tag = child.tag ?? ""
             if ["aside", "nav", "footer", "header"].contains(tag) { return true }
 
-            // Remove by class/id
+            // Remove by class/id, matching on word boundaries so that short
+            // patterns like "ad" don't false-match "lead-in-text-callout" etc.
             let idClass = ((child.attribute("id") ?? "") + " " +
                            (child.attribute("class") ?? "")).lowercased()
             for pattern in negativePatterns {
-                if idClass.contains(pattern) && text.count < 300 { return true }
+                if containsWholeWord(idClass, pattern: pattern) && text.count < 300 {
+                    return true
+                }
             }
 
             return false
@@ -1086,8 +1118,13 @@ private extension ReadabilityExtractor {
             }
         }
 
-        // Remove empty elements
-        let beforeEmpty = element.children.count
+        removeEmptyChildren(element)
+    }
+
+    /// Drop element children that collapsed to empty after post-processing —
+    /// e.g. a wrapper div whose only child was a removed widget.
+    static func removeEmptyChildren(_ element: HTMLNode) {
+        let before = element.children.count
         element.children.removeAll { child in
             guard let tag = child.tag else { return false }
             if HTMLParser.selfClosingTags.contains(tag) { return false }
@@ -1095,9 +1132,45 @@ private extension ReadabilityExtractor {
             return child.children.isEmpty &&
                    child.textContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
-        if element.children.count != beforeEmpty {
+        if element.children.count != before {
             element.invalidateTextContentCache()
         }
+    }
+
+    /// Case-insensitive "whole word" check against id/class text. A word is a
+    /// run of `[a-z0-9]`; separators are anything else (whitespace, `-`, `_`,
+    /// `:`, etc.). This avoids the classic false-positive where `"ad"` matches
+    /// every class that happens to contain the letters `a` and `d` in order
+    /// (like `lead`, `shadow`, `headline`, `gradient`).
+    static func containsWholeWord(_ haystack: String, pattern: String) -> Bool {
+        guard !pattern.isEmpty else { return false }
+        let h = Array(haystack.unicodeScalars)
+        let p = Array(pattern.unicodeScalars)
+        if h.count < p.count { return false }
+        var i = 0
+        while i <= h.count - p.count {
+            // Match p at position i, with word boundaries on both sides.
+            var match = true
+            for j in 0..<p.count where h[i &+ j] != p[j] {
+                match = false
+                break
+            }
+            if match {
+                let leftOK = (i == 0) || !isWordChar(h[i &- 1])
+                let rightEnd = i &+ p.count
+                let rightOK = (rightEnd == h.count) || !isWordChar(h[rightEnd])
+                if leftOK && rightOK { return true }
+            }
+            i &+= 1
+        }
+        return false
+    }
+
+    static func isWordChar(_ scalar: Unicode.Scalar) -> Bool {
+        let v = scalar.value
+        return (v >= 0x30 && v <= 0x39) /* 0-9 */
+            || (v >= 0x61 && v <= 0x7A) /* a-z (haystack is lowercased) */
+            || (v >= 0x41 && v <= 0x5A) /* A-Z (defensive) */
     }
 }
 
