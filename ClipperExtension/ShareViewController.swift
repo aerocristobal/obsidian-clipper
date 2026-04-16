@@ -112,8 +112,8 @@ final class ShareViewController: UIViewController {
             viewModel.state = .loading("Processing images…")
             markdownBody = ""
         } else if let html = rawContent.html {
-            // Use a `do` block so the large intermediate HTML strings
-            // (markedHTML, articleHTML) are released before image processing.
+            // Use a `do` block so the large intermediate HTML string
+            // (markedHTML) is released before image processing.
             do {
                 // Replace <img> tags with [[IMG:N]] markers before any processing.
                 let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: rawContent.url)
@@ -125,25 +125,23 @@ final class ShareViewController: UIViewController {
                 viewModel.state = .loading("Extracting article…")
                 let readabilityResult = ReadabilityExtractor.extract(html: markedHTML, url: rawContent.url)
 
-                let articleHTML: String
                 if let result = readabilityResult {
-                    // Convert to markdown and check if it has meaningful content.
-                    // The 100-char threshold catches cases where Readability picked
-                    // a too-narrow container (e.g. just the header/title area).
-                    let candidateMarkdown = HTMLToMarkdown.convert(result.articleHTML)
+                    // Convert to markdown directly from the DOM subtree — avoids a
+                    // redundant re-parse of the serialized article HTML. Check if
+                    // it has meaningful content; the 100-char threshold catches
+                    // cases where Readability picked a too-narrow container
+                    // (e.g. just the header/title area).
+                    let candidateMarkdown = HTMLToMarkdown.convert(node: result.articleNode)
                     if candidateMarkdown.filter({ !$0.isWhitespace }).count >= 100 {
-                        articleHTML = result.articleHTML
                         markdownBody = candidateMarkdown
                         if let extractedTitle = result.title, !extractedTitle.isEmpty {
                             articleTitle = extractedTitle
                         }
                     } else {
-                        articleHTML = markedHTML
-                        markdownBody = HTMLToMarkdown.convert(articleHTML)
+                        markdownBody = HTMLToMarkdown.convert(markedHTML)
                     }
                 } else {
-                    articleHTML = markedHTML
-                    markdownBody = HTMLToMarkdown.convert(articleHTML)
+                    markdownBody = HTMLToMarkdown.convert(markedHTML)
                 }
 
                 try Task.checkCancellation()

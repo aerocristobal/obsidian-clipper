@@ -40,14 +40,14 @@ final class ReadabilityExtractorTests: XCTestCase {
         guard let result = result else { return }
 
         // Should contain the article paragraphs
-        XCTAssertTrue(result.articleHTML.contains("first paragraph"), "Should contain article text")
-        XCTAssertTrue(result.articleHTML.contains("second paragraph"), "Should contain second paragraph")
-        XCTAssertTrue(result.articleHTML.contains("third paragraph"), "Should contain third paragraph")
+        XCTAssertTrue(result.articleNode.serialize().contains("first paragraph"), "Should contain article text")
+        XCTAssertTrue(result.articleNode.serialize().contains("second paragraph"), "Should contain second paragraph")
+        XCTAssertTrue(result.articleNode.serialize().contains("third paragraph"), "Should contain third paragraph")
 
         // Should NOT contain navigation or footer
-        XCTAssertFalse(result.articleHTML.contains("Trending"), "Should not contain sidebar")
-        XCTAssertFalse(result.articleHTML.contains("Privacy Policy"), "Should not contain footer")
-        XCTAssertFalse(result.articleHTML.contains("Home"), "Should not contain nav links")
+        XCTAssertFalse(result.articleNode.serialize().contains("Trending"), "Should not contain sidebar")
+        XCTAssertFalse(result.articleNode.serialize().contains("Privacy Policy"), "Should not contain footer")
+        XCTAssertFalse(result.articleNode.serialize().contains("Home"), "Should not contain nav links")
     }
 
     // MARK: - Graceful Fallback on No Clear Article
@@ -66,7 +66,7 @@ final class ReadabilityExtractorTests: XCTestCase {
         // The pipeline will fall back to full HTML in this case
         if let result = result {
             // If it does return something, it should not crash
-            XCTAssertFalse(result.articleHTML.isEmpty, "If returned, should have some content")
+            XCTAssertFalse(result.articleNode.serialize().isEmpty, "If returned, should have some content")
         }
     }
 
@@ -146,9 +146,9 @@ final class ReadabilityExtractorTests: XCTestCase {
         let result = ReadabilityExtractor.extract(html: html, url: nil)
         XCTAssertNotNil(result)
         // The article should win over the navigation div
-        XCTAssertTrue(result?.articleHTML.contains("long article paragraph") == true,
+        XCTAssertTrue(result?.articleNode.serialize().contains("long article paragraph") == true,
                       "Article content should be selected over high-link-density navigation")
-        XCTAssertFalse(result?.articleHTML.contains("Link One") == true,
+        XCTAssertFalse(result?.articleNode.serialize().contains("Link One") == true,
                        "Navigation links should not be in the extracted content")
     }
 
@@ -172,7 +172,7 @@ final class ReadabilityExtractorTests: XCTestCase {
         let result = ReadabilityExtractor.extract(html: html, url: nil)
         XCTAssertNotNil(result)
 
-        guard let html = result?.articleHTML else { return }
+        guard let html = result?.articleNode.serialize() else { return }
 
         XCTAssertFalse(html.contains("alert"), "Script content should be stripped")
         XCTAssertFalse(html.contains("color: red"), "Style content should be stripped")
@@ -201,8 +201,8 @@ final class ReadabilityExtractorTests: XCTestCase {
 
         let result = ReadabilityExtractor.extract(html: html, url: nil)
         XCTAssertNotNil(result)
-        XCTAssertTrue(result?.articleHTML.contains("main article body") == true,
-                      "Content-positive class should win: \(result?.articleHTML ?? "nil")")
+        XCTAssertTrue(result?.articleNode.serialize().contains("main article body") == true,
+                      "Content-positive class should win: \(result?.articleNode.serialize() ?? "nil")")
     }
 
     func testNegativeClassNamesPenalizeScore() {
@@ -224,7 +224,7 @@ final class ReadabilityExtractorTests: XCTestCase {
 
         let result = ReadabilityExtractor.extract(html: html, url: nil)
         XCTAssertNotNil(result)
-        XCTAssertTrue(result?.articleHTML.contains("Real article text") == true,
+        XCTAssertTrue(result?.articleNode.serialize().contains("Real article text") == true,
                       "Post body should win over comment section")
     }
 
@@ -281,9 +281,9 @@ final class ReadabilityExtractorTests: XCTestCase {
 
         let result = ReadabilityExtractor.extract(html: html, url: nil)
         XCTAssertNotNil(result)
-        XCTAssertFalse(result?.articleHTML.contains("Hidden popup") == true)
-        XCTAssertFalse(result?.articleHTML.contains("Screen reader hidden") == true)
-        XCTAssertTrue(result?.articleHTML.contains("Visible article content") == true)
+        XCTAssertFalse(result?.articleNode.serialize().contains("Hidden popup") == true)
+        XCTAssertFalse(result?.articleNode.serialize().contains("Screen reader hidden") == true)
+        XCTAssertTrue(result?.articleNode.serialize().contains("Visible article content") == true)
     }
 
     // MARK: - HTML Entity Handling
@@ -303,7 +303,7 @@ final class ReadabilityExtractorTests: XCTestCase {
         let result = ReadabilityExtractor.extract(html: html, url: nil)
         XCTAssertNotNil(result)
 
-        guard let articleHTML = result?.articleHTML else { return }
+        guard let articleHTML = result?.articleNode.serialize() else { return }
 
         XCTAssertTrue(articleHTML.contains("&"), "Should decode &amp;")
         XCTAssertTrue(articleHTML.contains("<angle brackets>"), "Should decode &lt; and &gt;")
@@ -373,8 +373,8 @@ final class ReadabilityExtractorTests: XCTestCase {
         let result = ReadabilityExtractor.extract(html: html, url: nil)
         XCTAssertNotNil(result)
         // Should handle self-closing tags without breaking the parse tree
-        XCTAssertTrue(result?.articleHTML.contains("Text before image") == true)
-        XCTAssertTrue(result?.articleHTML.contains("Text after image") == true)
+        XCTAssertTrue(result?.articleNode.serialize().contains("Text before image") == true)
+        XCTAssertTrue(result?.articleNode.serialize().contains("Text after image") == true)
     }
 
     // MARK: - Article Tag Bonus
@@ -395,7 +395,7 @@ final class ReadabilityExtractorTests: XCTestCase {
 
         let result = ReadabilityExtractor.extract(html: html, url: nil)
         XCTAssertNotNil(result)
-        XCTAssertTrue(result?.articleHTML.contains("article tag bonus") == true,
+        XCTAssertTrue(result?.articleNode.serialize().contains("article tag bonus") == true,
                       "Article tag should get score bonus and win")
     }
 
@@ -427,13 +427,13 @@ final class ReadabilityExtractorTests: XCTestCase {
 
         guard let result = result else { return }
 
-        XCTAssertTrue(result.articleHTML.contains("[[IMG:0]]"),
-                      "First image marker should survive extraction, got: \(result.articleHTML)")
-        XCTAssertTrue(result.articleHTML.contains("[[IMG:1]]"),
-                      "Second image marker should survive extraction, got: \(result.articleHTML)")
-        XCTAssertTrue(result.articleHTML.contains("detailed article"),
+        XCTAssertTrue(result.articleNode.serialize().contains("[[IMG:0]]"),
+                      "First image marker should survive extraction, got: \(result.articleNode.serialize())")
+        XCTAssertTrue(result.articleNode.serialize().contains("[[IMG:1]]"),
+                      "Second image marker should survive extraction, got: \(result.articleNode.serialize())")
+        XCTAssertTrue(result.articleNode.serialize().contains("detailed article"),
                       "First paragraph should be present")
-        XCTAssertTrue(result.articleHTML.contains("final paragraph"),
+        XCTAssertTrue(result.articleNode.serialize().contains("final paragraph"),
                       "Last paragraph should be present")
     }
 
@@ -524,23 +524,23 @@ final class ReadabilityExtractorTests: XCTestCase {
         guard let result = result else { return }
 
         // ALL four body paragraphs must be present — not just the header
-        XCTAssertTrue(result.articleHTML.contains("first paragraph"),
+        XCTAssertTrue(result.articleNode.serialize().contains("first paragraph"),
                       "Should contain first paragraph")
-        XCTAssertTrue(result.articleHTML.contains("second paragraph"),
+        XCTAssertTrue(result.articleNode.serialize().contains("second paragraph"),
                       "Should contain second paragraph")
-        XCTAssertTrue(result.articleHTML.contains("third paragraph"),
+        XCTAssertTrue(result.articleNode.serialize().contains("third paragraph"),
                       "Should contain third paragraph")
-        XCTAssertTrue(result.articleHTML.contains("fourth paragraph"),
+        XCTAssertTrue(result.articleNode.serialize().contains("fourth paragraph"),
                       "Should contain fourth paragraph")
 
         // Should NOT contain sidebar or navigation
-        XCTAssertFalse(result.articleHTML.contains("Related Stories"),
+        XCTAssertFalse(result.articleNode.serialize().contains("Related Stories"),
                        "Should not contain sidebar")
-        XCTAssertFalse(result.articleHTML.contains("Politics"),
+        XCTAssertFalse(result.articleNode.serialize().contains("Politics"),
                        "Should not contain navigation")
 
         // The 100-char check should pass easily with this much content
-        let nonWhitespace = result.articleHTML.filter { !$0.isWhitespace }.count
+        let nonWhitespace = result.articleNode.serialize().filter { !$0.isWhitespace }.count
         XCTAssertGreaterThan(nonWhitespace, 100,
                             "Article should have well over 100 non-whitespace chars")
     }

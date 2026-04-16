@@ -5,7 +5,7 @@ import Foundation
 /// The result of Readability extraction, containing the cleaned article content
 /// and metadata extracted from the page.
 struct ReadabilityResult: Sendable {
-    let articleHTML: String
+    let articleNode: HTMLNode
     let title: String?
     let excerpt: String?
     let siteName: String?
@@ -29,55 +29,46 @@ enum ReadabilityExtractor {
     /// - Returns: A `ReadabilityResult` with the cleaned article HTML, or `nil`
     ///   if extraction fails.
     static func extract(html: String, url: URL?) -> ReadabilityResult? {
-        // Parse, score, and serialize inside a `do` block so the entire DOM tree
-        // (which can be very large for complex pages) is released as soon as we
-        // have the serialized strings, before the caller continues processing.
-        let articleHTML: String
-        let title: String?
-        let excerpt: String?
-        let siteName: String?
+        var parser = HTMLParser(html: html)
+        guard let document = parser.parse() else { return nil }
 
-        do {
-            var parser = HTMLParser(html: html)
-            guard let document = parser.parse() else { return nil }
+        // Extract metadata before preprocessing mutates the tree
+        let metadata = extractMetadata(from: document)
 
-            // Extract metadata before preprocessing mutates the tree
-            let metadata = extractMetadata(from: document)
+        // Preprocess: remove junk elements
+        preprocess(&document.children)
 
-            // Preprocess: remove junk elements
-            preprocess(&document.children)
+        // Score candidates
+        var candidates: [CandidateScore] = []
+        scoreCandidates(node: document, candidates: &candidates)
 
-            // Score candidates
-            var candidates: [CandidateScore] = []
-            scoreCandidates(node: document, candidates: &candidates)
-
-            guard let winner = candidates.max(by: { $0.score < $1.score }),
-                  winner.score > 0 else {
-                return nil
-            }
-
-            // Post-process: clean up the winning subtree
-            postProcess(winner.element)
-
-            // Serialize the winner back to HTML
-            articleHTML = winner.element.serialize()
-
-            // Extract title: prefer og:title, then <h1> within article, then <title> tag
-            title = metadata.ogTitle
-                ?? findFirstHeading(in: winner.element)
-                ?? metadata.title
-
-            // Extract excerpt: first paragraph text or meta description
-            excerpt = metadata.description
-                ?? findFirstParagraphText(in: winner.element)
-
-            siteName = metadata.siteName
-
-            // `document`, `candidates`, and the entire DOM tree are released here.
+        guard let winner = candidates.max(by: { $0.score < $1.score }),
+              winner.score > 0 else {
+            return nil
         }
 
+        // Post-process: clean up the winning subtree
+        postProcess(winner.element)
+
+        // Extract title: prefer og:title, then <h1> within article, then <title> tag
+        let title = metadata.ogTitle
+            ?? findFirstHeading(in: winner.element)
+            ?? metadata.title
+
+        // Extract excerpt: first paragraph text or meta description
+        let excerpt = metadata.description
+            ?? findFirstParagraphText(in: winner.element)
+
+        let siteName = metadata.siteName
+
+        // Detach the winner from its parent so the rest of the document tree
+        // can be ARC-released once `document` goes out of scope. `parent` is a
+        // weak reference, so we just null it out here; the winner's subtree
+        // is the only thing the caller needs.
+        winner.element.parent = nil
+
         return ReadabilityResult(
-            articleHTML: articleHTML,
+            articleNode: winner.element,
             title: title,
             excerpt: excerpt,
             siteName: siteName

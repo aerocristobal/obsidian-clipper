@@ -376,6 +376,64 @@ final class HTMLToMarkdownTests: XCTestCase {
         XCTAssertTrue(md.contains("# Article Title"), "Should contain heading, got: \(md)")
     }
 
+    // MARK: - Node-based convert overload
+
+    func testConvertNodeProducesSameOutputAsStringOverload() {
+        let html = """
+        <article>
+            <h1>Article Title</h1>
+            <p>This is the first paragraph of the article with enough content to be meaningful.
+            It discusses important topics about technology and its impact on modern society.</p>
+            <p>The second paragraph continues with more detailed information about the subject,
+            expanding on the themes introduced in the first paragraph with examples and analysis.</p>
+        </article>
+        """
+
+        // Parse once via HTMLParser and convert the resulting tree directly
+        var parser = HTMLParser(html: html)
+        guard let document = parser.parse() else {
+            XCTFail("Parser should produce a document node")
+            return
+        }
+        let nodeMarkdown = HTMLToMarkdown.convert(node: document)
+
+        // Compare against the string-based overload, which parses internally
+        let stringMarkdown = HTMLToMarkdown.convert(html)
+
+        XCTAssertEqual(nodeMarkdown, stringMarkdown,
+                       "convert(node:) should produce identical output to convert(_:)")
+        XCTAssertTrue(nodeMarkdown.contains("# Article Title"), "Should contain heading")
+        XCTAssertTrue(nodeMarkdown.contains("first paragraph"), "Should contain first paragraph")
+        XCTAssertTrue(nodeMarkdown.contains("second paragraph"), "Should contain second paragraph")
+    }
+
+    func testConvertNodePreservesImageMarkersInTextNodes() {
+        // Text nodes containing [[IMG:N]] markers (injected before Readability)
+        // must survive DOM-level conversion with their exact text.
+        let html = """
+        <article>
+            <p>Before image.</p>
+            [[IMG:0]]
+            <p>Between images.</p>
+            [[IMG:1]]
+            <p>After images.</p>
+        </article>
+        """
+
+        var parser = HTMLParser(html: html)
+        guard let document = parser.parse() else {
+            XCTFail("Parser should produce a document node")
+            return
+        }
+        let md = HTMLToMarkdown.convert(node: document)
+
+        XCTAssertTrue(md.contains("[[IMG:0]]"), "Marker 0 should survive, got: \(md)")
+        XCTAssertTrue(md.contains("[[IMG:1]]"), "Marker 1 should survive, got: \(md)")
+        XCTAssertTrue(md.contains("Before image"), "Text before marker should survive")
+        XCTAssertTrue(md.contains("Between images"), "Text between markers should survive")
+        XCTAssertTrue(md.contains("After images"), "Text after markers should survive")
+    }
+
     func testConvertPreservesImageMarkers() {
         let html = """
         <p>Text before image.</p>
@@ -481,7 +539,7 @@ final class HTMLToMarkdownTests: XCTestCase {
         guard let readability = readability else { return }
 
         // Step 3: Convert to Markdown
-        let md = HTMLToMarkdown.convert(readability.articleHTML)
+        let md = HTMLToMarkdown.convert(node: readability.articleNode)
 
         // Verify all content survived the full pipeline
         XCTAssertTrue(md.contains("First paragraph"), "First paragraph should survive pipeline")

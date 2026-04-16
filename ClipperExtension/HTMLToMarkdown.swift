@@ -36,6 +36,21 @@ enum HTMLToMarkdown {
         return md.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    /// Convert an already-parsed DOM subtree directly to Markdown, skipping
+    /// the HTML parser. Used when the caller (e.g. ReadabilityExtractor) has
+    /// already built the tree — avoids a redundant second parse of the same
+    /// content.
+    static func convert(node: HTMLNode) -> String {
+        var ctx = MarkdownContext()
+        renderNode(node, to: &ctx)
+
+        var md = ctx.result
+        md = md.replacingOccurrences(of: "\r\n", with: "\n")
+        md = md.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
+
+        return md.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     // MARK: - Tree-Walking Markdown Renderer
 
     /// Mutable context accumulated while walking the DOM tree.
