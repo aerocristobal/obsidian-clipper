@@ -199,14 +199,30 @@ struct HTMLParser {
         "option": ["option"],
     ]
 
-    private let html: String
-    private var index: String.Index
-    private let endIndex: String.Index
+    // UTF-8 byte-buffer backing store. Replaces the previous `String.Index`
+    // traversal, which was slow on multi-byte UTF-8 content (CJK pages) and
+    // allocated a new `String` per `peekString` call. Byte-level iteration is
+    // safe for the tokens we care about because HTML delimiters, tag names,
+    // and attribute names are ASCII per spec. UTF-8 is only decoded into a
+    // `String` at text-node/attribute-value emission sites.
+    private let bytes: ContiguousArray<UInt8>
+    private var offset: Int
+    private let endOffset: Int
+
+    // Frequently compared ASCII literals — cached as byte arrays so hot-path
+    // `peekString`/`consume` calls don't re-allocate on each invocation.
+    private static let openCommentBytes: [UInt8] = Array("<!--".utf8)
+    private static let closeCommentBytes: [UInt8] = Array("-->".utf8)
+    private static let openCDATABytes: [UInt8] = Array("<![CDATA[".utf8)
+    private static let closeCDATABytes: [UInt8] = Array("]]>".utf8)
+    private static let openDeclBytes: [UInt8] = Array("<!".utf8)
+    private static let openPIBytes: [UInt8] = Array("<?".utf8)
+    private static let openCloseTagBytes: [UInt8] = Array("</".utf8)
 
     init(html: String) {
-        self.html = html
-        self.index = html.startIndex
-        self.endIndex = html.endIndex
+        self.bytes = ContiguousArray(html.utf8)
+        self.offset = 0
+        self.endOffset = self.bytes.count
     }
 
     mutating func parse() -> HTMLNode? {
@@ -216,30 +232,58 @@ struct HTMLParser {
         return root
     }
 
+    // MARK: - ASCII Helpers
+
+    /// Lower-case an ASCII byte. Bytes outside A-Z are returned unchanged.
+    /// HTML tag and attribute names are ASCII per spec, so this is safe for
+    /// case-insensitive tag/attribute matching.
+    @inline(__always) private static func asciiLower(_ b: UInt8) -> UInt8 {
+        (b >= 0x41 && b <= 0x5A) ? b &+ 0x20 : b
+    }
+
+    /// HTML whitespace is limited to ASCII space, tab, LF, CR, FF. Any
+    /// multi-byte UTF-8 character has all continuation bytes ≥ 0x80, so a
+    /// byte-level check is safe inside tokens (between `<`/`>` delimiters).
+    @inline(__always) private static func isASCIIWhitespace(_ b: UInt8) -> Bool {
+        b == 0x20 || b == 0x09 || b == 0x0A || b == 0x0D || b == 0x0C
+    }
+
+    @inline(__always) private static func isASCIILetter(_ b: UInt8) -> Bool {
+        (b >= 0x41 && b <= 0x5A) || (b >= 0x61 && b <= 0x7A)
+    }
+
+    @inline(__always) private static func isASCIIDigit(_ b: UInt8) -> Bool {
+        b >= 0x30 && b <= 0x39
+    }
+
+    @inline(__always) private static func isTagNameByte(_ b: UInt8) -> Bool {
+        isASCIILetter(b) || isASCIIDigit(b) || b == 0x2D /* - */ || b == 0x5F /* _ */ || b == 0x3A /* : */
+    }
+
     // MARK: - Core Parsing
 
     private mutating func parseNodes(until closingTag: String?) -> [HTMLNode] {
         var nodes: [HTMLNode] = []
-        while index < endIndex {
+        while offset < endOffset {
             // Check for closing tag
             if let closing = closingTag, peekClosingTag(closing) {
                 break
             }
 
-            if peek() == "<" {
-                if peekString("<!--") {
+            if peek() == UInt8(ascii: "<") {
+                if peekBytes(Self.openCommentBytes) {
                     skipComment()
-                } else if peekString("<![CDATA[") {
+                } else if peekBytes(Self.openCDATABytes) {
                     skipCDATA()
-                } else if peekString("<!") || peekString("<?") {
+                } else if peekBytes(Self.openDeclBytes) || peekBytes(Self.openPIBytes) {
                     skipDeclaration()
-                } else if peekString("</") {
+                } else if peekBytes(Self.openCloseTagBytes) {
                     // Unexpected closing tag — if we're in an implicit-close context,
                     // let the caller handle it; otherwise skip it.
                     if closingTag != nil {
                         break
                     }
-                    skipToAfter(">")
+                    skipToAfter(UInt8(ascii: ">"))
                 } else {
                     if let element = parseElement(parentClosingTag: closingTag) {
                         nodes.append(element)
@@ -256,20 +300,20 @@ struct HTMLParser {
     }
 
     private mutating func parseElement(parentClosingTag: String?) -> HTMLNode? {
-        guard consume("<") else { return nil }
+        guard consume(UInt8(ascii: "<")) else { return nil }
 
-        let tag = parseTagName().lowercased()
+        let tag = parseTagName()
         guard !tag.isEmpty else {
             // Malformed tag — skip to >
-            skipToAfter(">")
+            skipToAfter(UInt8(ascii: ">"))
             return nil
         }
 
         let attrs = parseAttributes()
 
         // Check for self-closing /> or self-closing tag
-        let selfClose = consume("/")
-        consume(">")
+        let selfClose = consume(UInt8(ascii: "/"))
+        consume(UInt8(ascii: ">"))
 
         if Self.selfClosingTags.contains(tag) || selfClose {
             return HTMLNode(kind: .element(tag: tag, attributes: attrs))
@@ -290,7 +334,7 @@ struct HTMLParser {
     private mutating func parseChildren(tag: String, parentClosingTag: String?) -> [HTMLNode] {
         var children: [HTMLNode] = []
 
-        while index < endIndex {
+        while offset < endOffset {
             // Check for our own closing tag
             if peekClosingTag(tag) {
                 consumeClosingTag(tag)
@@ -310,14 +354,14 @@ struct HTMLParser {
                 break
             }
 
-            if peek() == "<" {
-                if peekString("<!--") {
+            if peek() == UInt8(ascii: "<") {
+                if peekBytes(Self.openCommentBytes) {
                     skipComment()
-                } else if peekString("<![CDATA[") {
+                } else if peekBytes(Self.openCDATABytes) {
                     skipCDATA()
-                } else if peekString("<!") || peekString("<?") {
+                } else if peekBytes(Self.openDeclBytes) || peekBytes(Self.openPIBytes) {
                     skipDeclaration()
-                } else if peekString("</") {
+                } else if peekBytes(Self.openCloseTagBytes) {
                     // A closing tag that doesn't match us — might be for an ancestor.
                     // Let the ancestor handle it.
                     break
@@ -339,240 +383,287 @@ struct HTMLParser {
 
     // MARK: - Tag/Attribute Parsing
 
+    /// Parse an ASCII tag name, lowercased. Returns an empty string if no
+    /// valid tag-name byte is present. Operates entirely on bytes — no
+    /// intermediate `String` allocation.
     private mutating func parseTagName() -> String {
-        var name = ""
-        while index < endIndex {
-            let c = html[index]
-            if c.isLetter || c.isNumber || c == "-" || c == "_" || c == ":" {
-                name.append(c)
-                index = html.index(after: index)
-            } else {
-                break
-            }
+        let start = offset
+        while offset < endOffset, Self.isTagNameByte(bytes[offset]) {
+            offset &+= 1
         }
-        return name
+        guard offset > start else { return "" }
+        // Tag names are ASCII; lowercase in-place into a small buffer.
+        var lower = [UInt8]()
+        lower.reserveCapacity(offset - start)
+        for i in start..<offset {
+            lower.append(Self.asciiLower(bytes[i]))
+        }
+        return String(decoding: lower, as: UTF8.self)
     }
 
     private mutating func parseAttributes() -> [(name: String, value: String)] {
         var attrs: [(name: String, value: String)] = []
 
-        while index < endIndex {
+        while offset < endOffset {
             skipWhitespace()
-            guard index < endIndex else { break }
+            guard offset < endOffset else { break }
 
-            let c = html[index]
-            if c == ">" || c == "/" { break }
+            let b = bytes[offset]
+            if b == UInt8(ascii: ">") || b == UInt8(ascii: "/") { break }
 
             let name = parseAttributeName()
             guard !name.isEmpty else {
-                // Skip unknown character
-                index = html.index(after: index)
+                // Skip unknown byte
+                offset &+= 1
                 continue
             }
 
             skipWhitespace()
 
             var value = ""
-            if index < endIndex && html[index] == "=" {
-                index = html.index(after: index)
+            if offset < endOffset && bytes[offset] == UInt8(ascii: "=") {
+                offset &+= 1
                 skipWhitespace()
                 value = parseAttributeValue()
             }
 
-            attrs.append((name: name.lowercased(), value: decodeEntities(value)))
+            attrs.append((name: name, value: decodeEntities(value)))
         }
 
         return attrs
     }
 
+    /// Parse an attribute name. HTML attribute names are ASCII in practice;
+    /// any byte ≥ 0x80 (UTF-8 lead/continuation) falls outside the stopping
+    /// set (`=`, `>`, `/`, whitespace) and will be included verbatim in the
+    /// range, which matches the previous Character-based behavior.
     private mutating func parseAttributeName() -> String {
-        var name = ""
-        while index < endIndex {
-            let c = html[index]
-            if c == "=" || c == ">" || c == "/" || c.isWhitespace {
+        let start = offset
+        while offset < endOffset {
+            let b = bytes[offset]
+            if b == UInt8(ascii: "=") || b == UInt8(ascii: ">") || b == UInt8(ascii: "/") || Self.isASCIIWhitespace(b) {
                 break
             }
-            name.append(c)
-            index = html.index(after: index)
+            offset &+= 1
         }
-        return name
+        guard offset > start else { return "" }
+        // Lowercase the ASCII byte range. Non-ASCII bytes (≥ 0x80) pass
+        // through asciiLower unchanged and are emitted as-is; String(decoding:)
+        // reassembles them into valid UTF-8 scalars.
+        var lower = [UInt8]()
+        lower.reserveCapacity(offset - start)
+        for i in start..<offset {
+            lower.append(Self.asciiLower(bytes[i]))
+        }
+        return String(decoding: lower, as: UTF8.self)
     }
 
+    /// Parse an attribute value. Quoted values may contain UTF-8 — the byte
+    /// range is decoded to a `String` once at the end, not during scanning.
     private mutating func parseAttributeValue() -> String {
-        guard index < endIndex else { return "" }
+        guard offset < endOffset else { return "" }
 
-        let quote = html[index]
-        if quote == "\"" || quote == "'" {
-            index = html.index(after: index)
-            var value = ""
-            while index < endIndex && html[index] != quote {
-                value.append(html[index])
-                index = html.index(after: index)
+        let quote = bytes[offset]
+        if quote == UInt8(ascii: "\"") || quote == UInt8(ascii: "'") {
+            offset &+= 1
+            let start = offset
+            while offset < endOffset && bytes[offset] != quote {
+                offset &+= 1
             }
-            if index < endIndex { index = html.index(after: index) } // consume closing quote
-            return value
+            let end = offset
+            if offset < endOffset { offset &+= 1 } // consume closing quote
+            return String(decoding: bytes[start..<end], as: UTF8.self)
         }
 
         // Unquoted value
-        var value = ""
-        while index < endIndex {
-            let c = html[index]
-            if c.isWhitespace || c == ">" || c == "/" { break }
-            value.append(c)
-            index = html.index(after: index)
+        let start = offset
+        while offset < endOffset {
+            let b = bytes[offset]
+            if Self.isASCIIWhitespace(b) || b == UInt8(ascii: ">") || b == UInt8(ascii: "/") { break }
+            offset &+= 1
         }
-        return value
+        return String(decoding: bytes[start..<offset], as: UTF8.self)
     }
 
     // MARK: - Text Parsing
 
+    /// Scan text until the next `<` and decode the byte range into a `String`
+    /// once at the end. Text nodes may contain UTF-8 multi-byte sequences, but
+    /// `<` (0x3C) cannot appear inside a UTF-8 continuation byte (all of which
+    /// are ≥ 0x80), so byte scanning is safe here.
     private mutating func parseText() -> String {
-        var text = ""
-        while index < endIndex && html[index] != "<" {
-            text.append(html[index])
-            index = html.index(after: index)
+        let start = offset
+        while offset < endOffset && bytes[offset] != UInt8(ascii: "<") {
+            offset &+= 1
         }
-        return decodeEntities(text)
+        if offset == start { return "" }
+        let raw = String(decoding: bytes[start..<offset], as: UTF8.self)
+        return decodeEntities(raw)
     }
 
     // MARK: - Skip Helpers
 
     private mutating func skipComment() {
-        guard consume("<") else { return }
-        guard consume("!") else { return }
-        guard consume("-") else { skipToAfter(">"); return }
-        guard consume("-") else { skipToAfter(">"); return }
+        guard consume(UInt8(ascii: "<")) else { return }
+        guard consume(UInt8(ascii: "!")) else { return }
+        guard consume(UInt8(ascii: "-")) else { skipToAfter(UInt8(ascii: ">")); return }
+        guard consume(UInt8(ascii: "-")) else { skipToAfter(UInt8(ascii: ">")); return }
 
         // Find -->
-        while index < endIndex {
-            if peekString("-->") {
-                index = html.index(index, offsetBy: 3, limitedBy: endIndex) ?? endIndex
+        while offset < endOffset {
+            if peekBytes(Self.closeCommentBytes) {
+                offset = min(offset &+ 3, endOffset)
                 return
             }
-            index = html.index(after: index)
+            offset &+= 1
         }
     }
 
     private mutating func skipCDATA() {
         // Skip past ]]>
-        while index < endIndex {
-            if peekString("]]>") {
-                index = html.index(index, offsetBy: 3, limitedBy: endIndex) ?? endIndex
+        while offset < endOffset {
+            if peekBytes(Self.closeCDATABytes) {
+                offset = min(offset &+ 3, endOffset)
                 return
             }
-            index = html.index(after: index)
+            offset &+= 1
         }
     }
 
     private mutating func skipDeclaration() {
-        skipToAfter(">")
+        skipToAfter(UInt8(ascii: ">"))
     }
 
-    private mutating func skipToAfter(_ char: Character) {
-        while index < endIndex {
-            if html[index] == char {
-                index = html.index(after: index)
+    private mutating func skipToAfter(_ b: UInt8) {
+        while offset < endOffset {
+            if bytes[offset] == b {
+                offset &+= 1
                 return
             }
-            index = html.index(after: index)
+            offset &+= 1
         }
     }
 
     private mutating func skipWhitespace() {
-        while index < endIndex && html[index].isWhitespace {
-            index = html.index(after: index)
+        while offset < endOffset && Self.isASCIIWhitespace(bytes[offset]) {
+            offset &+= 1
         }
     }
 
     // MARK: - Peek / Consume Helpers
 
-    private func peek() -> Character? {
-        guard index < endIndex else { return nil }
-        return html[index]
+    /// Peek the current byte without advancing. Returns `nil` at EOF.
+    private func peek() -> UInt8? {
+        guard offset < endOffset else { return nil }
+        return bytes[offset]
     }
 
-    private func peekString(_ s: String) -> Bool {
-        guard let end = html.index(index, offsetBy: s.count, limitedBy: endIndex) else {
-            return false
-        }
-        return html[index..<end].lowercased() == s.lowercased()
-    }
-
-    @discardableResult
-    private mutating func consume(_ char: Character) -> Bool {
-        guard index < endIndex && html[index] == char else { return false }
-        index = html.index(after: index)
-        return true
-    }
-
-    @discardableResult
-    private mutating func consume(_ s: String) -> Bool {
-        guard peekString(s) else { return false }
-        index = html.index(index, offsetBy: s.count, limitedBy: endIndex) ?? endIndex
-        return true
-    }
-
-    private func peekClosingTag(_ tag: String) -> Bool {
-        guard peekString("</") else { return false }
-        let afterSlash = html.index(index, offsetBy: 2, limitedBy: endIndex) ?? endIndex
-        guard afterSlash < endIndex else { return false }
-
-        var i = afterSlash
-        // Skip whitespace
-        while i < endIndex && html[i].isWhitespace { i = html.index(after: i) }
-
-        var name = ""
-        while i < endIndex {
-            let c = html[i]
-            if c.isLetter || c.isNumber || c == "-" || c == "_" || c == ":" {
-                name.append(c)
-                i = html.index(after: i)
-            } else {
-                break
+    /// Case-insensitive ASCII comparison of the upcoming bytes against the
+    /// given target byte array. No allocation — the target is expected to be
+    /// a precomputed static `[UInt8]` (see the `*Bytes` constants above).
+    private func peekBytes(_ target: [UInt8]) -> Bool {
+        let n = target.count
+        guard endOffset &- offset >= n else { return false }
+        for i in 0..<n {
+            if Self.asciiLower(bytes[offset &+ i]) != Self.asciiLower(target[i]) {
+                return false
             }
         }
-        return name.lowercased() == tag.lowercased()
+        return true
+    }
+
+    /// Case-insensitive ASCII comparison for a `String` literal. Accepts any
+    /// `String` but materializes its UTF-8 once up-front; for hot paths use
+    /// one of the cached `*Bytes` constants with `peekBytes(_:)`.
+    func peekString(_ s: String) -> Bool {
+        var target = [UInt8]()
+        target.reserveCapacity(s.utf8.count)
+        for b in s.utf8 { target.append(b) }
+        return peekBytes(target)
+    }
+
+    @discardableResult
+    private mutating func consume(_ b: UInt8) -> Bool {
+        guard offset < endOffset && bytes[offset] == b else { return false }
+        offset &+= 1
+        return true
+    }
+
+    @discardableResult
+    private mutating func consumeBytes(_ target: [UInt8]) -> Bool {
+        guard peekBytes(target) else { return false }
+        offset = min(offset &+ target.count, endOffset)
+        return true
+    }
+
+    /// Peek for a case-insensitive `</tag` sequence followed by a non-tag-name
+    /// byte (or EOF). Operates on bytes directly, lowercasing each byte on the
+    /// fly — no `String` allocation.
+    private func peekClosingTag(_ tag: String) -> Bool {
+        guard peekBytes(Self.openCloseTagBytes) else { return false }
+        var i = offset &+ 2
+        // Skip whitespace (HTML allows `</ tag>` — rare but tolerated)
+        while i < endOffset && Self.isASCIIWhitespace(bytes[i]) { i &+= 1 }
+
+        // Compare tag name bytes case-insensitively against `tag.utf8`.
+        var tagIter = tag.utf8.makeIterator()
+        while let expected = tagIter.next() {
+            guard i < endOffset else { return false }
+            let actual = bytes[i]
+            if !Self.isTagNameByte(actual) { return false }
+            if Self.asciiLower(actual) != Self.asciiLower(expected) { return false }
+            i &+= 1
+        }
+        // The next byte must NOT be part of a tag name (else it's a longer tag
+        // that merely starts with `tag`).
+        if i < endOffset && Self.isTagNameByte(bytes[i]) { return false }
+        return true
     }
 
     private mutating func consumeClosingTag(_ tag: String) {
-        guard consume("</") else { return }
+        guard consumeBytes(Self.openCloseTagBytes) else { return }
         skipWhitespace()
         _ = parseTagName()
         skipWhitespace()
-        consume(">")
+        consume(UInt8(ascii: ">"))
     }
 
+    /// Peek the tag name that would start at the current offset, if this is
+    /// an opening tag (`<letter...`). Returns `nil` for closing tags, text,
+    /// or EOF. Lowercased.
     private func peekOpenTag() -> String? {
-        guard index < endIndex, html[index] == "<" else { return nil }
-        let next = html.index(after: index)
-        guard next < endIndex, html[next] != "/" else { return nil }
-        guard html[next].isLetter else { return nil }
+        guard offset < endOffset, bytes[offset] == UInt8(ascii: "<") else { return nil }
+        let next = offset &+ 1
+        guard next < endOffset, bytes[next] != UInt8(ascii: "/") else { return nil }
+        guard Self.isASCIILetter(bytes[next]) else { return nil }
 
-        var name = ""
         var i = next
-        while i < endIndex {
-            let c = html[i]
-            if c.isLetter || c.isNumber || c == "-" || c == "_" || c == ":" {
-                name.append(c)
-                i = html.index(after: i)
-            } else {
-                break
-            }
+        while i < endOffset, Self.isTagNameByte(bytes[i]) {
+            i &+= 1
         }
-        return name.lowercased()
+        // Lowercase the ASCII range.
+        var lower = [UInt8]()
+        lower.reserveCapacity(i - next)
+        for j in next..<i {
+            lower.append(Self.asciiLower(bytes[j]))
+        }
+        return String(decoding: lower, as: UTF8.self)
     }
 
+    /// Read raw-text content (inside `<script>`, `<style>`, etc.) until the
+    /// matching closing tag. Captures a byte range and decodes to `String`
+    /// once at the end — no per-byte String appending.
     private mutating func readUntilClosingTag(_ tag: String) -> String {
-        var content = ""
-        while index < endIndex {
+        let start = offset
+        while offset < endOffset {
             if peekClosingTag(tag) {
+                let end = offset
                 consumeClosingTag(tag)
-                return content
+                return String(decoding: bytes[start..<end], as: UTF8.self)
             }
-            content.append(html[index])
-            index = html.index(after: index)
+            offset &+= 1
         }
-        return content
+        return String(decoding: bytes[start..<offset], as: UTF8.self)
     }
 
     private func setParents(_ node: HTMLNode) {
