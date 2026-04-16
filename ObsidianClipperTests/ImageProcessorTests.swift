@@ -235,6 +235,27 @@ final class ImageProcessorTests: XCTestCase {
         await processor.cleanup()
     }
 
+    // MARK: - reduceConcurrency() — memory warning response
+
+    func testReduceConcurrencyLowersMaxConcurrent() async {
+        let processor = ImageProcessor()
+        let before = await processor.maxConcurrent
+        XCTAssertEqual(before, 3, "Default concurrency cap should be 3")
+
+        await processor.reduceConcurrency()
+
+        let after = await processor.maxConcurrent
+        XCTAssertEqual(after, 1, "reduceConcurrency() should set maxConcurrent to 1")
+    }
+
+    func testReduceConcurrencyIsIdempotent() async {
+        let processor = ImageProcessor()
+        await processor.reduceConcurrency()
+        await processor.reduceConcurrency()
+        let after = await processor.maxConcurrent
+        XCTAssertEqual(after, 1, "Calling reduceConcurrency() twice should still leave maxConcurrent at 1")
+    }
+
     // MARK: - Test helpers
 
     /// Build a decodable PNG whose encoded size is approximately `sizeBytes`. The

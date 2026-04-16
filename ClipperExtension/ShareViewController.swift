@@ -37,11 +37,41 @@ final class ShareViewController: UIViewController {
     /// Held so the cancel path can tear down the scratch directory used for
     /// streamed image temp files. Retained until success cleanup or cancel.
     private var imageProcessor: ImageProcessor?
+    /// Token for the `didReceiveMemoryWarningNotification` observer. Retained
+    /// so `deinit` can remove it explicitly. Block-based observers are not
+    /// auto-removed, unlike selector-based ones.
+    private var memoryWarningObserver: NSObjectProtocol?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        registerMemoryWarningObserver()
         startClipping()
+    }
+
+    deinit {
+        if let token = memoryWarningObserver {
+            NotificationCenter.default.removeObserver(token)
+        }
+    }
+
+    // MARK: - Memory Warnings
+
+    /// Listen for system memory pressure. If image processing is in flight,
+    /// throttle the processor's concurrency cap down to 1 so no new tasks are
+    /// seeded. If the processor is nil (e.g. success state, idle) this is a
+    /// no-op — which satisfies the "no crash during idle" requirement.
+    private func registerMemoryWarningObserver() {
+        memoryWarningObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            guard let processor = self.imageProcessor else { return }
+            // Hop onto the actor; the notification fires on main.
+            Task { await processor.reduceConcurrency() }
+        }
     }
 
     // MARK: - UI

@@ -7,7 +7,22 @@ actor ImageProcessor {
 
     /// Concurrent in-flight downloads+OCR. Share extensions have a ~50MB RAM
     /// budget and Vision `.accurate` allocates 2–5MB per image; keep this low.
-    private static let maxConcurrent = 3
+    /// Instance-level (not static) so `reduceConcurrency()` can lower it in
+    /// response to a system memory warning without affecting other instances.
+    var maxConcurrent = 3
+
+    /// Count of tasks added to the current `withTaskGroup` but not yet drained.
+    /// Used to gate refill/seed loops against `maxConcurrent` at runtime so that
+    /// a mid-flight memory warning immediately throttles new task creation.
+    private var inFlightCount = 0
+
+    /// Lower the concurrency cap to 1. Called from `ShareViewController` when
+    /// the system posts `UIApplication.didReceiveMemoryWarningNotification`.
+    /// Already-running tasks continue to completion; only *new* tasks seeded
+    /// after this call are gated. Idempotent.
+    func reduceConcurrency() {
+        maxConcurrent = 1
+    }
 
     /// Longest edge (in pixels) before downscaling prior to OCR.
     private static let maxOCRDimension: CGFloat = 2048
@@ -71,25 +86,30 @@ actor ImageProcessor {
     /// `prefix` becomes part of each saved filename to avoid collisions across clips.
     func process(urls: [URL], enableOCR: Bool, prefix: String) async -> [ExtractedImage] {
         totalBytesDownloaded = 0
+        inFlightCount = 0
         return await withTaskGroup(of: ExtractedImage?.self) { group in
             var iterator = urls.enumerated().makeIterator()
 
-            // Seed the group up to the concurrency cap.
-            for _ in 0..<Self.maxConcurrent {
-                guard let (index, url) = iterator.next() else { break }
+            // Seed the group up to the current concurrency cap.
+            while inFlightCount < maxConcurrent, let (index, url) = iterator.next() {
+                inFlightCount += 1
                 group.addTask {
                     await self.downloadAndProcess(url: url, index: index, prefix: prefix, enableOCR: enableOCR)
                 }
             }
 
-            // Drain results and refill as slots free up.
+            // Drain results and refill as slots free up — but re-check the cap
+            // each iteration so a memory warning mid-flight (which lowers
+            // `maxConcurrent` to 1) pauses refills until in-flight drops below.
             var results: [ExtractedImage] = []
             while let result = await group.next() {
+                inFlightCount -= 1
                 if Task.isCancelled { break }
                 if let image = result {
                     results.append(image)
                 }
-                if let (index, url) = iterator.next() {
+                if inFlightCount < maxConcurrent, let (index, url) = iterator.next() {
+                    inFlightCount += 1
                     group.addTask {
                         await self.downloadAndProcess(url: url, index: index, prefix: prefix, enableOCR: enableOCR)
                     }
@@ -104,27 +124,31 @@ actor ImageProcessor {
     /// Uses the same concurrency cap as `process()` to stay within the extension memory budget.
     func processSharedImages(_ imageDataList: [Data], enableOCR: Bool, prefix: String) async -> [ExtractedImage] {
         totalBytesDownloaded = 0
+        inFlightCount = 0
         // Limit to 10 shared images to stay within the 50MB extension budget
         let limited = Array(imageDataList.prefix(10))
 
         return await withTaskGroup(of: ExtractedImage?.self) { group in
             var iterator = limited.enumerated().makeIterator()
 
-            // Seed the group up to the concurrency cap.
-            for _ in 0..<Self.maxConcurrent {
-                guard let (index, data) = iterator.next() else { break }
+            // Seed the group up to the current concurrency cap.
+            while inFlightCount < maxConcurrent, let (index, data) = iterator.next() {
+                inFlightCount += 1
                 group.addTask {
                     await self.processSharedImage(data: data, index: index, prefix: prefix, enableOCR: enableOCR)
                 }
             }
 
-            // Drain results and refill as slots free up.
+            // Drain results and refill as slots free up — re-checking the cap
+            // each iteration so a mid-flight memory warning throttles new work.
             var results: [ExtractedImage] = []
             while let result = await group.next() {
+                inFlightCount -= 1
                 if let image = result {
                     results.append(image)
                 }
-                if let (index, data) = iterator.next() {
+                if inFlightCount < maxConcurrent, let (index, data) = iterator.next() {
+                    inFlightCount += 1
                     group.addTask {
                         await self.processSharedImage(data: data, index: index, prefix: prefix, enableOCR: enableOCR)
                     }
