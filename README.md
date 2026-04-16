@@ -65,6 +65,21 @@ The extension should appear automatically. If it doesn't:
 2. Scroll right in the Share Sheet -> tap "More"
 3. Enable "Clip to Obsidian"
 
+## Sharing from Any App
+
+The Share Extension works from **any iOS app**, not just Safari. What you get depends on the source:
+
+| Source App | What's Shared | What Obsidian Clipper Does |
+|-----------|--------------|--------------------------|
+| **Safari** | Full page DOM via JavaScript preprocessing | Readability extraction, clean Markdown, images + OCR |
+| **Twitter/X, Reddit, News** | URL | Fetches the page, extracts article, converts to Markdown |
+| **Messages, Notes** | URL or plain text | Detects URLs in text and fetches the page; saves plain text directly |
+| **Mail** | URL | Fetches and clips the linked page |
+| **RSS Readers** | URL or HTML | Uses provided HTML or fetches from URL |
+| **Photos, Screenshots** | Images | Saves images with OCR text extraction |
+
+When an app shares a URL as plain text (common with Twitter, Reddit, and other social apps), Obsidian Clipper automatically detects it and fetches the linked page.
+
 ## Architecture
 
 ```
@@ -99,10 +114,11 @@ obsidian-clipper/
 ### Clipping Pipeline
 
 ```
-Safari → Action.js (extracts DOM) → Share Sheet
-    → WebContentExtractor (URL/HTML/text, charset detection)
+Any App → Share Sheet
+    → WebContentExtractor (URL/HTML/text/images, URL-in-text detection, charset detection)
+    → ReadabilityExtractor (article isolation, Safari: full DOM via Action.js)
     → HTMLToMarkdown (lists, code, blockquotes, tables, headings)
-    → ImageProcessor (download + OCR, srcset/lazy-load support)
+    → ImageProcessor (download + OCR, direct image OCR, srcset/lazy-load support)
     → ClipResult (Markdown assembly with image references)
     → FileSaver → vault/Inbox/article.md
                 → vault/Inbox/images/image-1.png
@@ -226,8 +242,9 @@ Settings are accessible from the main app:
 - If a page uses an unsupported encoding, it falls back to UTF-8
 
 ### Extension captures different content than what you see
-- Make sure you're sharing from Safari — the Action.js preprocessing captures the live DOM
-- Sharing from other apps may only provide a URL, requiring a re-fetch
+- For best results, share from Safari — the Action.js preprocessing captures the live DOM including authenticated content
+- Sharing from other apps provides a URL that is re-fetched, which may show different content (paywalls, mobile redirects)
+- Some apps share URLs as plain text — Obsidian Clipper detects these automatically
 
 ## Testing
 

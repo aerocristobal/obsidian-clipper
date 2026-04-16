@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 /// Extracts web page content from Share Extension input items.
-/// Handles URLs, HTML text, and plain text shared from Safari and other apps.
+/// Handles URLs, HTML text, plain text, and images shared from Safari and other apps.
 enum WebContentExtractor {
 
     struct RawContent {
@@ -10,6 +10,8 @@ enum WebContentExtractor {
         let url: URL?
         let html: String?
         let plainText: String?
+        /// Images shared directly (e.g. from Photos, Screenshots). Not from HTML extraction.
+        let sharedImages: [Data]
     }
 
     /// Extract content from the NSExtensionContext input items.
@@ -22,6 +24,7 @@ enum WebContentExtractor {
         var html: String?
         var plainText: String?
         var title: String?
+        var sharedImages: [Data] = []
 
         for item in items {
             // Grab the attributed title if available
@@ -69,6 +72,20 @@ enum WebContentExtractor {
                         }
                     }
                 }
+
+                // 5. Try to get images shared directly (Photos, Screenshots, etc.)
+                if provider.hasItemConformingToTypeIdentifier("public.image") {
+                    if let imageData = try? await loadImageData(from: provider) {
+                        sharedImages.append(imageData)
+                    }
+                }
+            }
+        }
+
+        // If plain text looks like a URL and we don't already have one, treat it as a URL
+        if url == nil, let text = plainText {
+            if let detected = detectURL(in: text) {
+                url = detected
             }
         }
 
@@ -86,15 +103,62 @@ enum WebContentExtractor {
 
         // Final fallback for title
         if title == nil || title!.isEmpty {
-            title = url?.host ?? "Untitled"
+            if !sharedImages.isEmpty {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd HH.mm"
+                title = "Clipped Image \u{2014} \(formatter.string(from: Date()))"
+            } else {
+                title = url?.host ?? "Untitled"
+            }
         }
 
         return RawContent(
             title: title!,
             url: url,
             html: html,
-            plainText: plainText
+            plainText: plainText,
+            sharedImages: sharedImages
         )
+    }
+
+    /// Detect a URL in plain text. Many apps (Twitter, Reddit, Messages) share URLs as plain text.
+    private static func detectURL(in text: String) -> URL? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Quick check: if the entire text is a URL
+        if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
+            if let url = URL(string: trimmed), url.host != nil {
+                return url
+            }
+        }
+        // Try to find a URL anywhere in the text using NSDataDetector
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
+            return nil
+        }
+        let range = NSRange(trimmed.startIndex..., in: trimmed)
+        if let match = detector.firstMatch(in: trimmed, range: range),
+           let url = match.url,
+           let scheme = url.scheme,
+           ["http", "https"].contains(scheme.lowercased()) {
+            return url
+        }
+        return nil
+    }
+
+    /// Load image data from an NSItemProvider. Handles UIImage, Data, and URL payloads.
+    private static func loadImageData(from provider: NSItemProvider) async -> Data? {
+        // Try loading as Data first
+        if let data = try? await provider.loadItem(forTypeIdentifier: "public.image") {
+            if let imageData = data as? Data {
+                return imageData
+            }
+            if let image = data as? UIImage, let pngData = image.pngData() {
+                return pngData
+            }
+            if let imageURL = data as? URL, let imageData = try? Data(contentsOf: imageURL) {
+                return imageData
+            }
+        }
+        return nil
     }
 
     /// Fetch HTML from a URL, detecting character encoding from the Content-Type header.

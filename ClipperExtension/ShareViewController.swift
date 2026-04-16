@@ -16,7 +16,7 @@ final class ShareViewModel {
         case error(String)
     }
 
-    var state: ClipState = .loading("Extracting article…")
+    var state: ClipState = .loading("Extracting content…")
 }
 
 // MARK: - ShareViewController
@@ -81,20 +81,25 @@ class ShareViewController: UIViewController {
         let saveConfig = FileSaver.SaveConfig(from: settings)
 
         // 1. Extract web content from the share extension input
-        viewModel.state = .loading("Extracting article…")
+        viewModel.state = .loading("Extracting content…")
 
         guard let context = extensionContext,
               let rawContent = await WebContentExtractor.extract(from: context) else {
             throw ClipError.noContent
         }
 
-        // 2. Run Readability extraction to isolate article content
-        viewModel.state = .loading("Extracting article…")
+        let isImageOnly = rawContent.html == nil && rawContent.url == nil && !rawContent.sharedImages.isEmpty
 
+        // 2. Run Readability extraction to isolate article content
         var articleTitle = rawContent.title
         let markdownBody: String
 
-        if let html = rawContent.html {
+        if isImageOnly {
+            // Image-only share: OCR the images, skip HTML pipeline
+            viewModel.state = .loading("Processing images…")
+            markdownBody = ""
+        } else if let html = rawContent.html {
+            viewModel.state = .loading("Extracting article…")
             let readabilityResult = ReadabilityExtractor.extract(html: html, url: rawContent.url)
 
             // Use extracted article HTML for Markdown if it has enough content
@@ -114,15 +119,27 @@ class ShareViewController: UIViewController {
             viewModel.state = .loading("Converting to Markdown…")
             markdownBody = HTMLToMarkdown.convert(articleHTML)
         } else if let plain = rawContent.plainText {
+            viewModel.state = .loading("Saving text…")
             markdownBody = plain
         } else {
             markdownBody = ""
         }
 
-        // 3. Extract and process images (use FULL HTML for image extraction)
+        // 3. Process images
         var images: [ExtractedImage] = []
+        let prefix = Self.shortHash(title: rawContent.title, url: rawContent.url)
 
-        if settings.saveImages, let html = rawContent.html {
+        if isImageOnly {
+            // Directly shared images — run OCR on each
+            viewModel.state = .loading("Running OCR…")
+            let processor = ImageProcessor()
+            images = await processor.processSharedImages(
+                rawContent.sharedImages,
+                enableOCR: settings.enableOCR,
+                prefix: prefix
+            )
+        } else if settings.saveImages, let html = rawContent.html {
+            // Web page images — download from extracted URLs
             viewModel.state = .loading("Processing images…")
 
             let imageURLs = HTMLToMarkdown.extractImageURLs(from: html, baseURL: rawContent.url)
@@ -141,7 +158,6 @@ class ShareViewController: UIViewController {
             // Limit to first 20 images to avoid huge downloads
             let limitedURLs = Array(filteredURLs.prefix(20))
 
-            let prefix = Self.shortHash(title: rawContent.title, url: rawContent.url)
             let processor = ImageProcessor()
             images = await processor.process(urls: limitedURLs, enableOCR: settings.enableOCR, prefix: prefix)
         }
@@ -195,7 +211,7 @@ enum ClipError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noContent:
-            return "Could not extract content from the shared item. Try sharing from Safari."
+            return "Could not extract content from the shared item. Try sharing a URL, text, or image."
         case .cancelled:
             return "Clipping was cancelled."
         }

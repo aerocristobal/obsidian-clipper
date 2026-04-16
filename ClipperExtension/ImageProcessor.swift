@@ -50,6 +50,79 @@ actor ImageProcessor {
         }
     }
 
+    /// Process images shared directly (e.g. from Photos, Screenshots) — no download needed.
+    /// Runs OCR if enabled and returns ExtractedImage results.
+    func processSharedImages(_ imageDataList: [Data], enableOCR: Bool, prefix: String) async -> [ExtractedImage] {
+        // Limit to 10 shared images to stay within the 50MB extension budget
+        let limited = Array(imageDataList.prefix(10))
+
+        return await withTaskGroup(of: ExtractedImage?.self) { group in
+            for (index, data) in limited.enumerated() {
+                group.addTask {
+                    await self.processSharedImage(data: data, index: index, prefix: prefix, enableOCR: enableOCR)
+                }
+            }
+
+            var results: [ExtractedImage] = []
+            for await result in group {
+                if let image = result {
+                    results.append(image)
+                }
+            }
+            return results.sorted { $0.filename < $1.filename }
+        }
+    }
+
+    private func processSharedImage(data: Data, index: Int, prefix: String, enableOCR: Bool) async -> ExtractedImage? {
+        guard UIImage(data: data) != nil else { return nil }
+
+        // Determine format from data header bytes
+        let ext = Self.imageExtension(from: data)
+        let filename = "\(prefix)-\(index + 1).\(ext)"
+
+        // Use a synthetic source URL so the image can be referenced in Markdown
+        let sourceURL = URL(string: "shared-image://\(filename)")!
+
+        var extracted = ExtractedImage(
+            sourceURL: sourceURL,
+            data: data,
+            filename: filename,
+            ocrText: nil
+        )
+
+        if enableOCR, let uiImage = UIImage(data: data) {
+            let ocrImage = Self.downscaledCGImage(from: uiImage)
+            if let cg = ocrImage {
+                extracted.ocrText = await recognizeText(in: cg)
+            }
+        }
+
+        return extracted
+    }
+
+    /// Determine image format from data header bytes.
+    private static func imageExtension(from data: Data) -> String {
+        guard data.count >= 4 else { return "png" }
+        let bytes = [UInt8](data.prefix(4))
+        // PNG: 89 50 4E 47
+        if bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47 {
+            return "png"
+        }
+        // JPEG: FF D8 FF
+        if bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF {
+            return "jpg"
+        }
+        // GIF: 47 49 46
+        if bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46 {
+            return "gif"
+        }
+        // WebP: starts with RIFF...WEBP
+        if bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46 {
+            return "webp"
+        }
+        return "png"
+    }
+
     private func downloadAndProcess(url: URL, index: Int, prefix: String, enableOCR: Bool) async -> ExtractedImage? {
         // Download the image data
         guard let (data, response) = try? await Self.session.data(from: url) else {

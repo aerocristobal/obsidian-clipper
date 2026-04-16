@@ -39,6 +39,8 @@
 				<integer>1</integer>
 				<key>NSExtensionActivationSupportsText</key>
 				<true/>
+				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
+				<integer>10</integer>
 			</dict>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
