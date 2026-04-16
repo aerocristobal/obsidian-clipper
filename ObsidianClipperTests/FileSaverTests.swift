@@ -170,4 +170,44 @@ final class FileSaverTests: XCTestCase {
             XCTAssertTrue(error is FileSaver.SaveError, "Should throw SaveError, got: \(error)")
         }
     }
+
+    // MARK: - Stale bookmark refresh
+
+    @MainActor
+    func testRefreshBookmarkUpdatesPersistedBookmark() throws {
+        // Create a temp directory — refreshing a bookmark for a real URL should
+        // produce persisted bookmark data that resolves cleanly and is not stale.
+        let tmp = FileManager.default.temporaryDirectory
+            .appendingPathComponent("clipper-refresh-test-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmp) }
+
+        let settings = ClipperSettings()
+        let before = settings.vaultBookmark
+
+        // Refresh should persist a fresh bookmark for the URL.
+        settings.refreshBookmark(for: tmp)
+        let after = settings.vaultBookmark
+        XCTAssertNotNil(after, "refreshBookmark should persist bookmark data for a valid URL")
+        XCTAssertNotEqual(before, after, "refreshBookmark should replace the persisted bookmark")
+
+        // Resolving the fresh bookmark should yield a non-stale vault.
+        let resolved = ClipperSettings.resolveVaultBookmark(after)
+        XCTAssertNotNil(resolved, "Freshly persisted bookmark should resolve")
+        XCTAssertFalse(resolved?.isStale ?? true, "Freshly persisted bookmark should not be stale")
+
+        // Restore the prior bookmark so this test doesn't bleed into other tests
+        // that share the App Group UserDefaults.
+        settings.vaultBookmark = before
+    }
+
+    @MainActor
+    func testRefreshBookmarkForInvalidURLLeavesBookmarkUnchanged() {
+        let settings = ClipperSettings()
+        let before = settings.vaultBookmark
+        // A path that does not exist — bookmarkData should fail and refresh should silently no-op.
+        let bogus = URL(fileURLWithPath: "/nonexistent/\(UUID().uuidString)/vault")
+        settings.refreshBookmark(for: bogus)
+        XCTAssertEqual(settings.vaultBookmark, before, "Failed refresh should not clear or corrupt existing bookmark")
+    }
 }

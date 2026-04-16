@@ -12,6 +12,21 @@ actor ImageProcessor {
     /// Longest edge (in pixels) before downscaling prior to OCR.
     private static let maxOCRDimension: CGFloat = 2048
 
+    /// Maximum cumulative bytes of image data downloaded per clip. Protects the
+    /// extension's ~120MB memory budget from pathological pages with huge images.
+    private static let maxCumulativeImageBytes = 50 * 1024 * 1024
+
+    /// Test-only override. When non-nil, takes precedence over `maxCumulativeImageBytes`
+    /// so unit tests can exercise cap behavior without downloading tens of MB.
+    static var testMaxCumulativeImageBytesOverride: Int? = nil
+
+    private static var effectiveMaxCumulativeBytes: Int {
+        testMaxCumulativeImageBytesOverride ?? maxCumulativeImageBytes
+    }
+
+    /// Running total of accepted image bytes for this clip.
+    private var totalBytesDownloaded: Int = 0
+
     /// URLSession configured with a 15-second resource timeout for image downloads.
     private static let session: URLSession = {
         let config = URLSessionConfiguration.default
@@ -20,10 +35,26 @@ actor ImageProcessor {
         return URLSession(configuration: config)
     }()
 
+    /// Returns true if the URL uses a scheme safe to fetch over the network.
+    /// Rejects file://, javascript:, ftp:, data:, etc. to avoid SSRF / local-file reads.
+    static func isFetchableScheme(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased() else { return false }
+        return scheme == "http" || scheme == "https"
+    }
+
+    /// Returns true if accepting `bytes` more data keeps the clip under the cumulative cap.
+    /// Also rejects any single payload that on its own exceeds the cap.
+    func shouldAcceptImageSize(_ bytes: Int) -> Bool {
+        let cap = Self.effectiveMaxCumulativeBytes
+        if bytes > cap { return false }
+        return totalBytesDownloaded + bytes <= cap
+    }
+
     /// Download images from the given URLs and optionally run OCR on each.
     /// `prefix` becomes part of each saved filename to avoid collisions across clips.
     func process(urls: [URL], enableOCR: Bool, prefix: String) async -> [ExtractedImage] {
-        await withTaskGroup(of: ExtractedImage?.self) { group in
+        totalBytesDownloaded = 0
+        return await withTaskGroup(of: ExtractedImage?.self) { group in
             var iterator = urls.enumerated().makeIterator()
 
             // Seed the group up to the concurrency cap.
@@ -55,6 +86,7 @@ actor ImageProcessor {
     /// Runs OCR if enabled and returns ExtractedImage results.
     /// Uses the same concurrency cap as `process()` to stay within the extension memory budget.
     func processSharedImages(_ imageDataList: [Data], enableOCR: Bool, prefix: String) async -> [ExtractedImage] {
+        totalBytesDownloaded = 0
         // Limit to 10 shared images to stay within the 50MB extension budget
         let limited = Array(imageDataList.prefix(10))
 
@@ -87,6 +119,10 @@ actor ImageProcessor {
 
     private func processSharedImage(data: Data, index: Int, prefix: String, enableOCR: Bool) async -> ExtractedImage? {
         guard !Task.isCancelled else { return nil }
+
+        // Enforce cumulative size cap. Oversized singles and cap-exceeders are dropped.
+        guard shouldAcceptImageSize(data.count) else { return nil }
+        totalBytesDownloaded += data.count
 
         // Validate the data is a decodable image and optionally get a downscaled
         // CGImage for OCR. Use autoreleasepool so UIImage intermediates are freed.
@@ -145,12 +181,20 @@ actor ImageProcessor {
     private func downloadAndProcess(url: URL, index: Int, prefix: String, enableOCR: Bool) async -> ExtractedImage? {
         guard !Task.isCancelled else { return nil }
 
+        // Only fetch over http(s). Blocks file://, javascript:, ftp:, data:, etc.
+        guard Self.isFetchableScheme(url) else { return nil }
+
         // Download the image data
         guard let (data, response) = try? await Self.session.data(from: url) else {
             return nil
         }
 
         guard !Task.isCancelled else { return nil }
+
+        // Enforce cumulative size cap. A single oversized image is skipped but does
+        // not consume budget, so smaller images later in the list still get through.
+        guard shouldAcceptImageSize(data.count) else { return nil }
+        totalBytesDownloaded += data.count
 
         // Verify it's actually an image. Accept either an image/* MIME type or
         // data that UIImage can decode. Use autoreleasepool for the UIImage probe.

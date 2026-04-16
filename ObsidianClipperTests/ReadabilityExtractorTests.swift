@@ -437,6 +437,54 @@ final class ReadabilityExtractorTests: XCTestCase {
                       "Last paragraph should be present")
     }
 
+    // MARK: - HTMLNode textContent Caching
+
+    func testTextContentCacheInvalidatesOnChildMutation() {
+        // Build a small tree: <div><p>hello</p><p>world</p></div>
+        let hello = HTMLNode(kind: .text("hello"))
+        let world = HTMLNode(kind: .text("world"))
+        let p1 = HTMLNode(kind: .element(tag: "p", attributes: []), children: [hello])
+        let p2 = HTMLNode(kind: .element(tag: "p", attributes: []), children: [world])
+        let div = HTMLNode(kind: .element(tag: "div", attributes: []), children: [p1, p2])
+        hello.parent = p1
+        world.parent = p2
+        p1.parent = div
+        p2.parent = div
+
+        // First read caches
+        XCTAssertEqual(div.textContent, "helloworld", "Initial textContent")
+
+        // Mutate: remove p2 and invalidate
+        div.children.removeAll { $0 === p2 }
+        div.invalidateTextContentCache()
+
+        XCTAssertEqual(div.textContent, "hello",
+                       "textContent should reflect post-mutation state after invalidation")
+    }
+
+    func testTextContentCacheInvalidationWalksParentChain() {
+        // <root><div><p>x</p></div></root>
+        let x = HTMLNode(kind: .text("x"))
+        let p = HTMLNode(kind: .element(tag: "p", attributes: []), children: [x])
+        let div = HTMLNode(kind: .element(tag: "div", attributes: []), children: [p])
+        let root = HTMLNode(kind: .element(tag: "root", attributes: []), children: [div])
+        x.parent = p
+        p.parent = div
+        div.parent = root
+
+        // Cache root's textContent
+        XCTAssertEqual(root.textContent, "x")
+
+        // Mutate p's children and invalidate from p — should propagate to div and root
+        p.children.removeAll()
+        p.invalidateTextContentCache()
+
+        XCTAssertEqual(root.textContent, "",
+                       "Invalidation should propagate up the parent chain")
+        XCTAssertEqual(div.textContent, "")
+        XCTAssertEqual(p.textContent, "")
+    }
+
     // MARK: - Multi-Paragraph Article Extraction
 
     func testExtractsFullArticleNotJustHeader() {

@@ -402,6 +402,7 @@ enum HTMLToMarkdown {
                 ?? extractAttribute("data-src", from: imgTag)
                 ?? extractAttribute("data-lazy-src", from: imgTag)
                 ?? extractAttribute("data-original", from: imgTag)
+                ?? extractAttribute("srcset", from: imgTag).flatMap(pickLargestFromSrcset)
 
             guard let srcStr = src else { continue }
             let trimmed = srcStr.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -423,7 +424,10 @@ enum HTMLToMarkdown {
                 resolved = nil
             }
 
-            guard let url = resolved else { continue }
+            guard let url = resolved,
+                  let scheme = url.scheme?.lowercased(),
+                  scheme == "http" || scheme == "https"
+            else { continue }
 
             let urlStr = url.absoluteString
 
@@ -439,9 +443,59 @@ enum HTMLToMarkdown {
             markerIndex += 1
         }
 
-        // Apply replacements in reverse so offsets stay valid
+        // Second pass: <source> elements (typically inside <picture>). Only emit a
+        // new marker when the URL isn't already covered by a sibling <img>.
+        let sourcePattern = #"<source\s[^>]*/?>"#
+        if let sourceRegex = try? NSRegularExpression(pattern: sourcePattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) {
+            let sourceMatches = sourceRegex.matches(in: html, range: fullRange)
+
+            for match in sourceMatches {
+                let sourceTag = nsHTML.substring(with: match.range)
+
+                let src = extractAttribute("srcset", from: sourceTag).flatMap(pickLargestFromSrcset)
+                    ?? extractAttribute("src", from: sourceTag)
+
+                guard let srcStr = src else { continue }
+                let trimmed = srcStr.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else { continue }
+
+                let lower = trimmed.lowercased()
+                if lower.contains("pixel") || lower.contains("tracking") || lower.contains("beacon") { continue }
+                if lower.contains(".svg") { continue }
+                if lower.hasPrefix("data:") { continue }
+
+                let resolved: URL?
+                if let absolute = URL(string: trimmed), absolute.scheme != nil {
+                    resolved = absolute
+                } else if let base = baseURL {
+                    resolved = URL(string: trimmed, relativeTo: base)
+                } else {
+                    resolved = nil
+                }
+
+                guard let url = resolved,
+                      let scheme = url.scheme?.lowercased(),
+                      scheme == "http" || scheme == "https"
+                else { continue }
+
+                let urlStr = url.absoluteString
+
+                // Already covered by a sibling <img>: skip without a replacement so
+                // the existing marker stays positioned at the <img> site.
+                if seen[urlStr] != nil { continue }
+
+                seen[urlStr] = markerIndex
+                markerMap[markerIndex] = url
+                replacements.append((range: match.range, marker: "[[IMG:\(markerIndex)]]"))
+                markerIndex += 1
+            }
+        }
+
+        // Apply replacements in reverse so offsets stay valid. Source matches may be
+        // interleaved with img matches, so sort by location first.
         var result = html
-        for replacement in replacements.reversed() {
+        let sorted = replacements.sorted { $0.range.location < $1.range.location }
+        for replacement in sorted.reversed() {
             let swiftRange = Range(replacement.range, in: result)!
             result.replaceSubrange(swiftRange, with: replacement.marker)
         }

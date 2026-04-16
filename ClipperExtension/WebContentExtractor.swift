@@ -169,8 +169,13 @@ enum WebContentExtractor {
         return nil
     }
 
-    /// Fetch HTML from a URL, detecting character encoding from the Content-Type header.
+    /// Fetch HTML from a URL, detecting character encoding from the Content-Type header or HTML meta tags.
+    /// Rejects non-HTTP(S) schemes (file://, javascript:, ftp://, data:, etc.).
     private static func fetchHTML(from url: URL) async -> String? {
+        guard isAllowedScheme(url) else {
+            return nil
+        }
+
         var request = URLRequest(url: url, timeoutInterval: 15)
         request.setValue(
             "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
@@ -183,48 +188,109 @@ enum WebContentExtractor {
             return nil
         }
 
-        let encoding = Self.detectEncoding(from: httpResponse)
+        let encoding = Self.detectEncoding(response: httpResponse, body: data)
         return String(data: data, encoding: encoding) ?? String(data: data, encoding: .utf8)
     }
 
+    /// Returns true if the URL uses a scheme safe for network fetching (http/https only).
+    static func isAllowedScheme(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased() else { return false }
+        return scheme == "http" || scheme == "https"
+    }
+
     /// Detect string encoding from HTTP Content-Type header charset.
+    /// Retained for backward compatibility; delegates to the body-aware variant with an empty body.
     static func detectEncoding(from response: HTTPURLResponse) -> String.Encoding {
-        guard let contentType = response.value(forHTTPHeaderField: "Content-Type") else {
-            return .utf8
+        return detectEncoding(response: response, body: Data())
+    }
+
+    /// Detect string encoding, preferring HTTP Content-Type charset, then HTML `<meta>` tags in the body.
+    static func detectEncoding(response: HTTPURLResponse, body: Data) -> String.Encoding {
+        if let contentType = response.value(forHTTPHeaderField: "Content-Type"),
+           let charset = parseCharset(fromContentType: contentType) {
+            return encoding(forCharset: charset)
         }
 
-        let lower = contentType.lowercased()
-
-        // Extract charset value from Content-Type header
-        if let charsetRange = lower.range(of: "charset=") {
-            let charsetStart = charsetRange.upperBound
-            var charsetValue = String(lower[charsetStart...])
-            // Strip any trailing parameters
-            if let semicolonIndex = charsetValue.firstIndex(of: ";") {
-                charsetValue = String(charsetValue[..<semicolonIndex])
-            }
-            charsetValue = charsetValue.trimmingCharacters(in: .whitespaces)
-                .replacingOccurrences(of: "\"", with: "")
-
-            switch charsetValue {
-            case "utf-8":
-                return .utf8
-            case "iso-8859-1", "latin1", "latin-1":
-                return .isoLatin1
-            case "windows-1252", "cp1252":
-                return .windowsCP1252
-            case "ascii", "us-ascii":
-                return .ascii
-            case "iso-8859-2", "latin2", "latin-2":
-                return .isoLatin2
-            case "utf-16":
-                return .utf16
-            default:
-                return .utf8
-            }
+        if let metaCharset = parseCharset(fromHTMLBody: body) {
+            return encoding(forCharset: metaCharset)
         }
 
         return .utf8
+    }
+
+    /// Parse the charset value from an HTTP Content-Type header value.
+    private static func parseCharset(fromContentType contentType: String) -> String? {
+        let lower = contentType.lowercased()
+        guard let charsetRange = lower.range(of: "charset=") else {
+            return nil
+        }
+        var charsetValue = String(lower[charsetRange.upperBound...])
+        if let semicolonIndex = charsetValue.firstIndex(of: ";") {
+            charsetValue = String(charsetValue[..<semicolonIndex])
+        }
+        charsetValue = charsetValue.trimmingCharacters(in: .whitespaces)
+            .replacingOccurrences(of: "\"", with: "")
+            .replacingOccurrences(of: "'", with: "")
+        return charsetValue.isEmpty ? nil : charsetValue
+    }
+
+    /// Parse the charset from the first ~1KB of an HTML document, looking at `<meta>` tags.
+    /// Supports both `<meta http-equiv="Content-Type" content="...; charset=...">` and `<meta charset="...">`.
+    private static func parseCharset(fromHTMLBody body: Data) -> String? {
+        guard !body.isEmpty else { return nil }
+        let prefix = body.prefix(1024)
+        guard let head = String(data: prefix, encoding: .ascii)
+                ?? String(data: prefix, encoding: .isoLatin1) else {
+            return nil
+        }
+
+        let pattern = #"<meta[^>]+charset\s*=\s*["']?([^"'>\s;]+)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+            return nil
+        }
+        let range = NSRange(head.startIndex..., in: head)
+        guard let match = regex.firstMatch(in: head, range: range),
+              match.numberOfRanges > 1,
+              let charsetRange = Range(match.range(at: 1), in: head) else {
+            return nil
+        }
+        return String(head[charsetRange]).lowercased()
+    }
+
+    /// Map a charset string (lowercased) to a `String.Encoding`, falling back to UTF-8 for unknown values.
+    private static func encoding(forCharset charset: String) -> String.Encoding {
+        switch charset {
+        case "utf-8", "utf8":
+            return .utf8
+        case "iso-8859-1", "latin1", "latin-1":
+            return .isoLatin1
+        case "iso-8859-2", "latin2", "latin-2":
+            return .isoLatin2
+        case "iso-8859-15", "latin-9", "latin9":
+            return isoLatin15Encoding()
+        case "windows-1252", "cp1252":
+            return .windowsCP1252
+        case "windows-1251", "cp1251":
+            return .windowsCP1251
+        case "ascii", "us-ascii":
+            return .ascii
+        case "utf-16":
+            return .utf16
+        case "shift_jis", "shift-jis", "sjis":
+            return .shiftJIS
+        case "euc-jp", "eucjp":
+            return .japaneseEUC
+        default:
+            return .utf8
+        }
+    }
+
+    /// ISO-8859-15 (Latin-9) via CoreFoundation bridging; falls back to UTF-8 if unavailable.
+    private static func isoLatin15Encoding() -> String.Encoding {
+        let cfEncoding = CFStringEncoding(CFStringEncodings.isoLatin9.rawValue)
+        let nsEncoding = CFStringConvertEncodingToNSStringEncoding(cfEncoding)
+        if nsEncoding == UInt(kCFStringEncodingInvalidId) { return .utf8 }
+        return String.Encoding(rawValue: nsEncoding)
     }
 
     /// Extract the <title> content from HTML.

@@ -238,6 +238,51 @@ final class HTMLToMarkdownTests: XCTestCase {
         XCTAssertEqual(result.markerMap[0]?.absoluteString, "https://example.com/lazy.jpg")
     }
 
+    func testReplaceImgTagsPictureSourceImgSameURL() {
+        let html = """
+        <picture>
+            <source srcset="https://example.com/photo.jpg" type="image/jpeg">
+            <img src="https://example.com/photo.jpg">
+        </picture>
+        """
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertEqual(result.markerMap.count, 1, "Duplicate URL across source+img should collapse to one marker")
+        let markerCount = result.html.components(separatedBy: "[[IMG:0]]").count - 1
+        XCTAssertEqual(markerCount, 1, "Only the <img> should be replaced; the <source> stays untouched")
+    }
+
+    func testReplaceImgTagsPictureSourceOnly() {
+        let html = """
+        <picture>
+            <source srcset="https://example.com/hero-large.webp 1024w, https://example.com/hero-small.webp 320w">
+        </picture>
+        """
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertEqual(result.markerMap.count, 1, "Source without sibling img should produce a marker")
+        XCTAssertEqual(result.markerMap[0]?.absoluteString, "https://example.com/hero-large.webp")
+        XCTAssertTrue(result.html.contains("[[IMG:0]]"), "Marker should be injected at the <source> position")
+    }
+
+    func testReplaceImgTagsUsesSrcsetWhenNoSrc() {
+        let html = #"<img srcset="https://example.com/a.jpg 1x, https://example.com/b.jpg 2x">"#
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertEqual(result.markerMap.count, 1)
+        XCTAssertEqual(result.markerMap[0]?.absoluteString, "https://example.com/b.jpg",
+                       "Should pick the largest (2x) candidate from srcset when no src is present")
+    }
+
+    func testReplaceImgTagsRejectsFileScheme() {
+        let html = #"<img src="file:///etc/passwd">"#
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertEqual(result.markerMap.count, 0, "file:// URLs must be rejected")
+    }
+
+    func testReplaceImgTagsRejectsJavascriptScheme() {
+        let html = #"<img src="javascript:alert(1)">"#
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertEqual(result.markerMap.count, 0, "javascript: URLs must be rejected")
+    }
+
     // MARK: - Marker Replacement
 
     func testReplaceMarkersWithImages() {

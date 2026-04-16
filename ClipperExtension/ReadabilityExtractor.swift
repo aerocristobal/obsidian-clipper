@@ -90,7 +90,12 @@ enum ReadabilityExtractor {
 /// A node in the parsed HTML tree. Uses a class (reference type) so that parent
 /// pointers and in-place mutation during scoring work naturally. The tree is built
 /// once and discarded after extraction, so ARC overhead is minimal.
-final class HTMLNode {
+///
+/// `@unchecked Sendable`: the tree is built synchronously by `HTMLParser.parse()`,
+/// all mutation (preprocess, postProcess) completes on the same actor before the
+/// tree is handed off for scoring, and the `_cachedTextContent` field is only
+/// written during sequential tree traversal. No cross-actor concurrent mutation occurs.
+final class HTMLNode: @unchecked Sendable {
     enum Kind {
         case element(tag: String, attributes: [(name: String, value: String)])
         case text(String)
@@ -99,6 +104,10 @@ final class HTMLNode {
     var kind: Kind
     var children: [HTMLNode]
     weak var parent: HTMLNode?
+
+    /// Memoized result of `textContent`. Cleared via `invalidateTextContentCache()`
+    /// whenever descendant structure mutates.
+    private var _cachedTextContent: String?
 
     init(kind: Kind, children: [HTMLNode] = []) {
         self.kind = kind
@@ -120,10 +129,29 @@ final class HTMLNode {
     }
 
     /// Concatenated text content of this node and all descendants.
+    ///
+    /// Caching strategy (Story 4.4): the first read memoizes the result in
+    /// `_cachedTextContent`. Mutation sites in `preprocess`/`postProcess` call
+    /// `invalidateTextContentCache()` on the mutated parent, which walks up the
+    /// parent chain clearing caches so stale descendant sums never get returned.
     var textContent: String {
+        if let cached = _cachedTextContent { return cached }
+        let computed: String
         switch kind {
-        case .text(let t): return t
-        case .element: return children.map(\.textContent).joined()
+        case .text(let t): computed = t
+        case .element: computed = children.map(\.textContent).joined()
+        }
+        _cachedTextContent = computed
+        return computed
+    }
+
+    /// Clear the cached `textContent` on this node and every ancestor, since an
+    /// ancestor's cached value depends on this node's descendants.
+    func invalidateTextContentCache() {
+        var node: HTMLNode? = self
+        while let n = node {
+            n._cachedTextContent = nil
+            node = n.parent
         }
     }
 
@@ -941,6 +969,7 @@ private extension ReadabilityExtractor {
 
     static func postProcess(_ element: HTMLNode) {
         // Remove high-link-density children
+        let before = element.children.count
         element.children.removeAll { child in
             guard child.tag != nil else { return false }
 
@@ -963,8 +992,12 @@ private extension ReadabilityExtractor {
 
             return false
         }
+        if element.children.count != before {
+            element.invalidateTextContentCache()
+        }
 
-        // Recurse
+        // Recurse. Each recursive call may mutate descendants and invalidate
+        // their caches up to (and including) `element` itself.
         for child in element.children {
             if child.tag != nil {
                 postProcess(child)
@@ -972,12 +1005,16 @@ private extension ReadabilityExtractor {
         }
 
         // Remove empty elements
+        let beforeEmpty = element.children.count
         element.children.removeAll { child in
             guard let tag = child.tag else { return false }
             if HTMLParser.selfClosingTags.contains(tag) { return false }
             if tag == "br" || tag == "hr" { return false }
             return child.children.isEmpty &&
                    child.textContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        if element.children.count != beforeEmpty {
+            element.invalidateTextContentCache()
         }
     }
 }

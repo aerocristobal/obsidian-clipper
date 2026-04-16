@@ -83,4 +83,129 @@ final class ImageProcessorTests: XCTestCase {
         let ext = await processor.fileExtension(for: url, mimeType: "image/webp")
         XCTAssertEqual(ext, "webp")
     }
+
+    // MARK: - isFetchableScheme(_:)
+
+    func testIsFetchableSchemeHTTP() {
+        XCTAssertTrue(ImageProcessor.isFetchableScheme(URL(string: "http://example.com/a.png")!))
+    }
+
+    func testIsFetchableSchemeHTTPS() {
+        XCTAssertTrue(ImageProcessor.isFetchableScheme(URL(string: "https://example.com/a.png")!))
+    }
+
+    func testIsFetchableSchemeUppercaseAccepted() {
+        XCTAssertTrue(ImageProcessor.isFetchableScheme(URL(string: "HTTPS://example.com/a.png")!))
+    }
+
+    func testIsFetchableSchemeFileRejected() {
+        XCTAssertFalse(ImageProcessor.isFetchableScheme(URL(string: "file:///etc/passwd")!))
+    }
+
+    func testIsFetchableSchemeJavascriptRejected() {
+        XCTAssertFalse(ImageProcessor.isFetchableScheme(URL(string: "javascript:alert(1)")!))
+    }
+
+    func testIsFetchableSchemeFTPRejected() {
+        XCTAssertFalse(ImageProcessor.isFetchableScheme(URL(string: "ftp://example.com/a.png")!))
+    }
+
+    func testIsFetchableSchemeDataRejected() {
+        XCTAssertFalse(ImageProcessor.isFetchableScheme(URL(string: "data:image/png;base64,AAAA")!))
+    }
+
+    // MARK: - shouldAcceptImageSize(_:)
+
+    func testShouldAcceptImageSizeWithinCap() async {
+        ImageProcessor.testMaxCumulativeImageBytesOverride = 100 * 1024 // 100 KB
+        defer { ImageProcessor.testMaxCumulativeImageBytesOverride = nil }
+
+        let processor = ImageProcessor()
+        let accepted = await processor.shouldAcceptImageSize(50 * 1024)
+        XCTAssertTrue(accepted)
+    }
+
+    func testShouldAcceptImageSizeRejectsSingleOversized() async {
+        ImageProcessor.testMaxCumulativeImageBytesOverride = 100 * 1024 // 100 KB
+        defer { ImageProcessor.testMaxCumulativeImageBytesOverride = nil }
+
+        let processor = ImageProcessor()
+        // A single image larger than the whole cap is rejected outright.
+        let accepted = await processor.shouldAcceptImageSize(200 * 1024)
+        XCTAssertFalse(accepted)
+    }
+
+    func testShouldAcceptImageSizeRejectsAtBoundary() async {
+        ImageProcessor.testMaxCumulativeImageBytesOverride = 100 * 1024
+        defer { ImageProcessor.testMaxCumulativeImageBytesOverride = nil }
+
+        let processor = ImageProcessor()
+        let atCap = await processor.shouldAcceptImageSize(100 * 1024)
+        XCTAssertTrue(atCap)
+        let justOver = await processor.shouldAcceptImageSize(100 * 1024 + 1)
+        XCTAssertFalse(justOver)
+    }
+
+    func testSharedImagesRespectCumulativeCap() async {
+        // 30KB cap, four 10KB shared images — first three accepted, fourth skipped.
+        ImageProcessor.testMaxCumulativeImageBytesOverride = 30 * 1024
+        defer { ImageProcessor.testMaxCumulativeImageBytesOverride = nil }
+
+        let processor = ImageProcessor()
+        let blob = makeDummyPNG(sizeBytes: 10 * 1024)
+        let images = [blob, blob, blob, blob]
+        let results = await processor.processSharedImages(images, enableOCR: false, prefix: "test")
+        // Three fit within 30KB; fourth is rejected by cap.
+        XCTAssertEqual(results.count, 3)
+    }
+
+    func testSharedImagesOversizedSingleDoesNotBlockOthers() async {
+        // Cap 20KB. First image is 50KB (oversized, skipped), next two 5KB each (accepted).
+        ImageProcessor.testMaxCumulativeImageBytesOverride = 20 * 1024
+        defer { ImageProcessor.testMaxCumulativeImageBytesOverride = nil }
+
+        let processor = ImageProcessor()
+        let huge = makeDummyPNG(sizeBytes: 50 * 1024)
+        let small = makeDummyPNG(sizeBytes: 5 * 1024)
+        let results = await processor.processSharedImages([huge, small, small], enableOCR: false, prefix: "test")
+        XCTAssertEqual(results.count, 2)
+    }
+
+    func testProcessResetsCumulativeTotalBetweenCalls() async {
+        ImageProcessor.testMaxCumulativeImageBytesOverride = 30 * 1024
+        defer { ImageProcessor.testMaxCumulativeImageBytesOverride = nil }
+
+        let processor = ImageProcessor()
+        let blob = makeDummyPNG(sizeBytes: 10 * 1024)
+
+        let first = await processor.processSharedImages([blob, blob, blob], enableOCR: false, prefix: "a")
+        XCTAssertEqual(first.count, 3)
+
+        // Second call should reset the counter and accept another 3.
+        let second = await processor.processSharedImages([blob, blob, blob], enableOCR: false, prefix: "b")
+        XCTAssertEqual(second.count, 3)
+    }
+
+    // MARK: - Test helpers
+
+    /// Build a decodable PNG whose encoded size is approximately `sizeBytes`. The
+    /// image must be real enough for `UIImage(data:)` to decode it, otherwise
+    /// `processSharedImage` filters it out before the cap check has any effect.
+    private func makeDummyPNG(sizeBytes: Int) -> Data {
+        // Render a solid-color image; PNG compression will shrink it drastically.
+        // Pad with trailing zero bytes after the PNG end chunk — UIImage still decodes
+        // the leading PNG and the total Data length hits our target.
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 8, height: 8), format: format)
+        let img = renderer.image { ctx in
+            UIColor.red.setFill()
+            ctx.fill(CGRect(x: 0, y: 0, width: 8, height: 8))
+        }
+        var png = img.pngData() ?? Data()
+        if png.count < sizeBytes {
+            png.append(Data(count: sizeBytes - png.count))
+        }
+        return png
+    }
 }

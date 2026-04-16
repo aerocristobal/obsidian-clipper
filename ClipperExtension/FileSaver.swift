@@ -67,6 +67,15 @@ enum FileSaver {
         }
         defer { vaultURL.stopAccessingSecurityScopedResource() }
 
+        // If the bookmark is stale, best-effort refresh while scoped access is held.
+        // Fire-and-forget on MainActor so `save`'s signature stays unchanged; if the
+        // refresh doesn't complete before save returns, the next save will try again.
+        if resolved.isStale {
+            Task.detached { @MainActor in
+                ClipperSettings().refreshBookmark(for: vaultURL)
+            }
+        }
+
         let fm = FileManager.default
 
         // Build the target folder path

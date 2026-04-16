@@ -169,26 +169,10 @@ final class ShareViewController: UIViewController {
                 enableOCR: settings.enableOCR,
                 prefix: prefix
             )
-        } else if settings.saveImages, let html = rawContent.html {
+        } else if settings.saveImages, rawContent.html != nil {
             viewModel.state = .loading("Processing images…")
 
-            var imageURLs = Array(markerMap.values)
-            let markerURLStrings = Set(imageURLs.map { $0.absoluteString })
-
-            let additionalURLs = HTMLToMarkdown.extractImageURLs(from: html, baseURL: rawContent.url)
-                .filter { !markerURLStrings.contains($0.absoluteString) }
-                .filter { url in
-                    let path = url.absoluteString.lowercased()
-                    if path.contains("pixel") || path.contains("tracking") || path.contains("beacon") {
-                        return false
-                    }
-                    if path.contains(".svg") { return false }
-                    if path.hasPrefix("data:") { return false }
-                    return true
-                }
-            imageURLs.append(contentsOf: additionalURLs)
-
-            let limitedURLs = Array(imageURLs.prefix(20))
+            let limitedURLs = Array(markerMap.values.prefix(20))
 
             let processor = ImageProcessor()
             images = await processor.process(urls: limitedURLs, enableOCR: settings.enableOCR, prefix: prefix)
