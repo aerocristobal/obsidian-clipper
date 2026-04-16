@@ -570,11 +570,12 @@ final class ReadabilityExtractorTests: XCTestCase {
         XCTAssertNotNil(result, "Should extract Japanese article content")
 
         guard let result = result else { return }
-        XCTAssertTrue(result.articleHTML.contains("こんにちは、世界"),
-                      "Should preserve Japanese heading text: \(result.articleHTML)")
-        XCTAssertTrue(result.articleHTML.contains("これは日本語のテストです"),
+        let articleHTML = result.articleNode.serialize()
+        XCTAssertTrue(articleHTML.contains("こんにちは、世界"),
+                      "Should preserve Japanese heading text: \(articleHTML)")
+        XCTAssertTrue(articleHTML.contains("これは日本語のテストです"),
                       "Should preserve first-paragraph Japanese text")
-        XCTAssertTrue(result.articleHTML.contains("第二段落"),
+        XCTAssertTrue(articleHTML.contains("第二段落"),
                       "Should preserve second-paragraph Japanese text")
     }
 
