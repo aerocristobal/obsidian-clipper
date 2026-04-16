@@ -27,21 +27,12 @@
 	</dict>
 	<key>NSExtension</key>
 	<dict>
-		<key>NSExtensionJavaScriptPreprocessingFile</key>
-		<string>Action</string>
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>NSExtensionActivationRule</key>
-			<dict>
-				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
-				<integer>1</integer>
-				<key>NSExtensionActivationSupportsWebPageWithMaxCount</key>
-				<integer>1</integer>
-				<key>NSExtensionActivationSupportsText</key>
-				<true/>
-				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
-				<integer>10</integer>
-			</dict>
+			<string>SUBQUERY(extensionItems, $item, SUBQUERY($item.attachments, $att, ANY $att.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url" OR ANY $att.registeredTypeIdentifiers UTI-CONFORMS-TO "public.plain-text" OR ANY $att.registeredTypeIdentifiers UTI-CONFORMS-TO "public.html" OR ANY $att.registeredTypeIdentifiers UTI-CONFORMS-TO "public.image").@count > 0).@count > 0</string>
+			<key>NSExtensionJavaScriptPreprocessingFile</key>
+			<string>Action</string>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
