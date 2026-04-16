@@ -398,4 +398,102 @@ final class ReadabilityExtractorTests: XCTestCase {
         XCTAssertTrue(result?.articleHTML.contains("article tag bonus") == true,
                       "Article tag should get score bonus and win")
     }
+
+    // MARK: - Image Marker Preservation
+
+    func testImageMarkersSurviveExtraction() {
+        let html = """
+        <html><body>
+        <nav><a href="/">Home</a></nav>
+        <article class="post-content">
+            <h1>Photo Essay</h1>
+            <p>This is a detailed article with inline images. The first paragraph has enough
+            text to score well, with commas, natural prose, and sufficient length for the
+            scoring algorithm to identify this as the main content area of the page.</p>
+            [[IMG:0]]
+            <p>After the first image, the article continues with more content. This second
+            paragraph provides additional detail and context about the photographs shown,
+            describing what they depict and why they matter.</p>
+            [[IMG:1]]
+            <p>The final paragraph wraps up the photo essay with concluding thoughts about
+            the collection of images and their significance in the broader context.</p>
+        </article>
+        <footer><p>Copyright 2024</p></footer>
+        </body></html>
+        """
+
+        let result = ReadabilityExtractor.extract(html: html, url: nil)
+        XCTAssertNotNil(result, "Should extract article")
+
+        guard let result = result else { return }
+
+        XCTAssertTrue(result.articleHTML.contains("[[IMG:0]]"),
+                      "First image marker should survive extraction, got: \(result.articleHTML)")
+        XCTAssertTrue(result.articleHTML.contains("[[IMG:1]]"),
+                      "Second image marker should survive extraction, got: \(result.articleHTML)")
+        XCTAssertTrue(result.articleHTML.contains("detailed article"),
+                      "First paragraph should be present")
+        XCTAssertTrue(result.articleHTML.contains("final paragraph"),
+                      "Last paragraph should be present")
+    }
+
+    // MARK: - Multi-Paragraph Article Extraction
+
+    func testExtractsFullArticleNotJustHeader() {
+        let html = """
+        <html><head><title>News Article | Daily News</title></head><body>
+        <header class="site-header"><a href="/">Daily News</a></header>
+        <nav><ul><li><a href="/politics">Politics</a></li></ul></nav>
+        <div class="article-wrapper">
+            <article>
+                <h1>Major Event Unfolds</h1>
+                <p class="byline">By Jane Reporter, April 15, 2024</p>
+                <p>The first paragraph of this news article describes a major event that
+                has been unfolding over the past week. Officials confirmed the details
+                in a press conference held earlier today, marking a significant development.</p>
+                <p>In the second paragraph, experts provide their analysis of the situation,
+                offering context about why this matters and what the potential consequences
+                might be for stakeholders across multiple sectors of the economy.</p>
+                <p>The third paragraph includes quotes from key figures involved in the
+                story, giving readers direct insight into the perspectives of those most
+                affected by these developments and their plans going forward.</p>
+                <p>Finally, the fourth paragraph outlines the next steps expected in this
+                ongoing situation, including upcoming meetings, deadlines, and milestones
+                that will determine the ultimate outcome of these events.</p>
+            </article>
+        </div>
+        <aside class="sidebar"><h3>Related Stories</h3><ul>
+            <li><a href="/story1">Related 1</a></li>
+            <li><a href="/story2">Related 2</a></li>
+        </ul></aside>
+        <footer><p>Copyright Daily News 2024</p></footer>
+        </body></html>
+        """
+
+        let result = ReadabilityExtractor.extract(html: html, url: URL(string: "https://dailynews.example.com/article"))
+        XCTAssertNotNil(result, "Should extract article content")
+
+        guard let result = result else { return }
+
+        // ALL four body paragraphs must be present — not just the header
+        XCTAssertTrue(result.articleHTML.contains("first paragraph"),
+                      "Should contain first paragraph")
+        XCTAssertTrue(result.articleHTML.contains("second paragraph"),
+                      "Should contain second paragraph")
+        XCTAssertTrue(result.articleHTML.contains("third paragraph"),
+                      "Should contain third paragraph")
+        XCTAssertTrue(result.articleHTML.contains("fourth paragraph"),
+                      "Should contain fourth paragraph")
+
+        // Should NOT contain sidebar or navigation
+        XCTAssertFalse(result.articleHTML.contains("Related Stories"),
+                       "Should not contain sidebar")
+        XCTAssertFalse(result.articleHTML.contains("Politics"),
+                       "Should not contain navigation")
+
+        // The 100-char check should pass easily with this much content
+        let nonWhitespace = result.articleHTML.filter { !$0.isWhitespace }.count
+        XCTAssertGreaterThan(nonWhitespace, 100,
+                            "Article should have well over 100 non-whitespace chars")
+    }
 }

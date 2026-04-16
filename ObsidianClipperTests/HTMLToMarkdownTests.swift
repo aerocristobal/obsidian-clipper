@@ -5,7 +5,6 @@ final class HTMLToMarkdownTests: XCTestCase {
 
     // MARK: - Bold
 
-    @MainActor
     func testBoldConversion() {
         let html = "<p>This is <b>bold</b> text</p>"
         let md = HTMLToMarkdown.convert(html)
@@ -14,7 +13,6 @@ final class HTMLToMarkdownTests: XCTestCase {
 
     // MARK: - Italic
 
-    @MainActor
     func testItalicConversion() {
         let html = "<p>This is <em>italic</em> text</p>"
         let md = HTMLToMarkdown.convert(html)
@@ -23,7 +21,6 @@ final class HTMLToMarkdownTests: XCTestCase {
 
     // MARK: - Links
 
-    @MainActor
     func testLinkConversion() {
         let html = "<p>Visit <a href=\"https://example.com\">Example</a> site</p>"
         let md = HTMLToMarkdown.convert(html)
@@ -33,7 +30,6 @@ final class HTMLToMarkdownTests: XCTestCase {
 
     // MARK: - Headings
 
-    @MainActor
     func testHeadingH1() {
         let html = "<h1>Main Title</h1>"
         let md = HTMLToMarkdown.convert(html)
@@ -41,7 +37,6 @@ final class HTMLToMarkdownTests: XCTestCase {
         XCTAssertTrue(md.contains("Main Title"), "Expected heading text, got: \(md)")
     }
 
-    @MainActor
     func testHeadingH2() {
         let html = "<h2>Section</h2>"
         let md = HTMLToMarkdown.convert(html)
@@ -49,7 +44,6 @@ final class HTMLToMarkdownTests: XCTestCase {
         XCTAssertTrue(md.contains("Section"), "Expected heading text, got: \(md)")
     }
 
-    @MainActor
     func testHeadingDoesNotContainBoldMarkers() {
         let html = "<h2>Bold Heading</h2>"
         let md = HTMLToMarkdown.convert(html)
@@ -59,14 +53,12 @@ final class HTMLToMarkdownTests: XCTestCase {
 
     // MARK: - Lists
 
-    @MainActor
     func testUnorderedList() {
         let html = "<ul><li>Item one</li><li>Item two</li></ul>"
         let md = HTMLToMarkdown.convert(html)
         XCTAssertTrue(md.contains("- ") || md.contains("Item one"), "Expected list items, got: \(md)")
     }
 
-    @MainActor
     func testOrderedList() {
         let html = "<ol><li>First</li><li>Second</li></ol>"
         let md = HTMLToMarkdown.convert(html)
@@ -75,26 +67,21 @@ final class HTMLToMarkdownTests: XCTestCase {
 
     // MARK: - Blockquotes
 
-    @MainActor
     func testBlockquote() {
         let html = "<blockquote>This is a quote</blockquote>"
         let md = HTMLToMarkdown.convert(html)
-        // Blockquote detection depends on NSAttributedString rendering;
-        // at minimum the text should be present
+        XCTAssertTrue(md.contains("> "), "Expected blockquote prefix, got: \(md)")
         XCTAssertTrue(md.contains("quote"), "Expected blockquote text, got: \(md)")
     }
 
     // MARK: - Code
 
-    @MainActor
     func testInlineCode() {
         let html = "<p>Use <code>print()</code> to output text</p>"
         let md = HTMLToMarkdown.convert(html)
-        // Code detection depends on font rendering
-        XCTAssertTrue(md.contains("print()"), "Expected code text, got: \(md)")
+        XCTAssertTrue(md.contains("`print()`"), "Expected inline code, got: \(md)")
     }
 
-    @MainActor
     func testCodeBlock() {
         let html = "<pre><code>func hello() {\n    print(\"hi\")\n}</code></pre>"
         let md = HTMLToMarkdown.convert(html)
@@ -103,16 +90,14 @@ final class HTMLToMarkdownTests: XCTestCase {
 
     // MARK: - Strikethrough
 
-    @MainActor
     func testStrikethrough() {
         let html = "<p>This is <s>deleted</s> text</p>"
         let md = HTMLToMarkdown.convert(html)
-        XCTAssertTrue(md.contains("~~deleted~~") || md.contains("deleted"), "Expected strikethrough, got: \(md)")
+        XCTAssertTrue(md.contains("~~deleted~~"), "Expected strikethrough, got: \(md)")
     }
 
     // MARK: - HTML Stripping Fallback
 
-    @MainActor
     func testFallbackStripsHTML() {
         // An extremely malformed HTML that NSAttributedString can't parse
         // still produces some output
@@ -276,7 +261,6 @@ final class HTMLToMarkdownTests: XCTestCase {
 
     // MARK: - Table Detection
 
-    @MainActor
     func testTableConversion() {
         let html = """
         <table><tr><th>Name</th><th>Value</th></tr>
@@ -284,8 +268,160 @@ final class HTMLToMarkdownTests: XCTestCase {
         <tr><td>B</td><td>2</td></tr></table>
         """
         let md = HTMLToMarkdown.convert(html)
-        // Tables from NSAttributedString are tab-separated; our converter should
-        // detect and format them. At minimum, content should be present.
-        XCTAssertTrue(md.contains("Name") && md.contains("Value"), "Expected table content, got: \(md)")
+        XCTAssertTrue(md.contains("| Name | Value |"), "Expected table header, got: \(md)")
+        XCTAssertTrue(md.contains("| A | 1 |"), "Expected table row, got: \(md)")
+    }
+
+    // MARK: - Full Article Body Extraction (regression tests for header-only bug)
+
+    func testConvertPreservesFullArticleBody() {
+        let html = """
+        <article>
+            <h1>Article Title</h1>
+            <p>This is the first paragraph of the article with enough content to be meaningful.
+            It discusses important topics about technology and its impact on modern society.</p>
+            <p>The second paragraph continues with more detailed information about the subject,
+            expanding on the themes introduced in the first paragraph with examples and analysis.</p>
+            <p>A third paragraph provides additional depth, covering related subtopics and
+            offering different perspectives on the main discussion points raised above.</p>
+        </article>
+        """
+        let md = HTMLToMarkdown.convert(html)
+
+        // ALL paragraphs must be present — this is the core regression test
+        XCTAssertTrue(md.contains("first paragraph"), "Should contain first paragraph, got: \(md)")
+        XCTAssertTrue(md.contains("second paragraph"), "Should contain second paragraph, got: \(md)")
+        XCTAssertTrue(md.contains("third paragraph"), "Should contain third paragraph, got: \(md)")
+        XCTAssertTrue(md.contains("# Article Title"), "Should contain heading, got: \(md)")
+    }
+
+    func testConvertPreservesImageMarkers() {
+        let html = """
+        <p>Text before image.</p>
+        [[IMG:0]]
+        <p>Text between images.</p>
+        [[IMG:1]]
+        <p>Text after images.</p>
+        """
+        let md = HTMLToMarkdown.convert(html)
+
+        XCTAssertTrue(md.contains("[[IMG:0]]"), "Should preserve marker 0, got: \(md)")
+        XCTAssertTrue(md.contains("[[IMG:1]]"), "Should preserve marker 1, got: \(md)")
+        XCTAssertTrue(md.contains("Text before image"), "Should preserve text before marker")
+        XCTAssertTrue(md.contains("Text between images"), "Should preserve text between markers")
+        XCTAssertTrue(md.contains("Text after images"), "Should preserve text after markers")
+    }
+
+    func testConvertHandlesComplexArticleWithImages() {
+        let html = """
+        <div class="article-content">
+            <h1>Breaking News Story</h1>
+            <p>The opening paragraph sets the scene for an important news story that
+            has been developing over the past several weeks.</p>
+            [[IMG:0]]
+            <h2>Background</h2>
+            <p>Historical context provides readers with the necessary background to
+            understand the significance of recent events and their broader implications.</p>
+            [[IMG:1]]
+            <p>Additional details emerge as experts weigh in on the developing situation,
+            offering their professional analysis and predictions.</p>
+            <blockquote>This is a direct quote from an expert source providing key insight.</blockquote>
+            <h2>Impact</h2>
+            <p>The final section discusses the expected impact on various stakeholders and
+            what steps are being taken to address the situation going forward.</p>
+        </div>
+        """
+        let md = HTMLToMarkdown.convert(html)
+
+        // Verify full structure is preserved
+        XCTAssertTrue(md.contains("# Breaking News Story"), "Should contain h1")
+        XCTAssertTrue(md.contains("## Background"), "Should contain h2")
+        XCTAssertTrue(md.contains("## Impact"), "Should contain second h2")
+        XCTAssertTrue(md.contains("opening paragraph"), "Should contain first paragraph")
+        XCTAssertTrue(md.contains("Historical context"), "Should contain second paragraph")
+        XCTAssertTrue(md.contains("Additional details"), "Should contain third paragraph")
+        XCTAssertTrue(md.contains("final section"), "Should contain fourth paragraph")
+        XCTAssertTrue(md.contains("[[IMG:0]]"), "Should contain first image marker")
+        XCTAssertTrue(md.contains("[[IMG:1]]"), "Should contain second image marker")
+        XCTAssertTrue(md.contains("> "), "Should contain blockquote")
+
+        // Verify order: IMG:0 should appear before IMG:1
+        let idx0 = md.range(of: "[[IMG:0]]")!.lowerBound
+        let idx1 = md.range(of: "[[IMG:1]]")!.lowerBound
+        XCTAssertTrue(idx0 < idx1, "IMG:0 should appear before IMG:1 in document order")
+    }
+
+    func testConvertPreservesNestedFormatting() {
+        let html = "<p>This has <strong>bold and <em>bold italic</em></strong> text</p>"
+        let md = HTMLToMarkdown.convert(html)
+        XCTAssertTrue(md.contains("**bold and"), "Should contain bold, got: \(md)")
+    }
+
+    func testConvertHandlesHorizontalRule() {
+        let html = "<p>Before</p><hr><p>After</p>"
+        let md = HTMLToMarkdown.convert(html)
+        XCTAssertTrue(md.contains("---"), "Should contain hr, got: \(md)")
+        XCTAssertTrue(md.contains("Before"), "Should contain text before hr")
+        XCTAssertTrue(md.contains("After"), "Should contain text after hr")
+    }
+
+    // MARK: - End-to-End Pipeline: Markers Through Readability to Markdown
+
+    func testMarkersPreservedThroughReadabilityAndMarkdown() {
+        // Simulate the full pipeline: HTML → marker injection → Readability → Markdown
+        let html = """
+        <html><body>
+        <nav><a href="/">Home</a><a href="/about">About</a></nav>
+        <article class="post-content">
+            <h1>Test Article</h1>
+            <p>First paragraph with enough text to score well in Readability. It contains
+            commas, natural prose, and sufficient length to pass all content thresholds easily.
+            This is the main body content that should be fully extracted.</p>
+            <img src="https://example.com/photo1.jpg" alt="Photo 1">
+            <p>Second paragraph continues with more detail. The content is rich with natural
+            language patterns, multiple sentences, and enough depth to clearly identify this
+            as an article worth extracting rather than navigation or sidebar content.</p>
+            <img src="https://example.com/photo2.jpg" alt="Photo 2">
+            <p>Third paragraph wraps up the article with concluding remarks about the topic,
+            providing a satisfying conclusion that rounds out the piece nicely.</p>
+        </article>
+        <footer><p>Copyright 2024</p></footer>
+        </body></html>
+        """
+
+        // Step 1: Inject markers
+        let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertEqual(markerResult.markerMap.count, 2)
+
+        // Step 2: Run Readability
+        let readability = ReadabilityExtractor.extract(html: markerResult.html, url: nil)
+        XCTAssertNotNil(readability, "Readability should extract content")
+
+        guard let readability = readability else { return }
+
+        // Step 3: Convert to Markdown
+        let md = HTMLToMarkdown.convert(readability.articleHTML)
+
+        // Verify all content survived the full pipeline
+        XCTAssertTrue(md.contains("First paragraph"), "First paragraph should survive pipeline")
+        XCTAssertTrue(md.contains("Second paragraph"), "Second paragraph should survive pipeline")
+        XCTAssertTrue(md.contains("Third paragraph"), "Third paragraph should survive pipeline")
+        XCTAssertTrue(md.contains("[[IMG:0]]"), "First image marker should survive pipeline, got: \(md)")
+        XCTAssertTrue(md.contains("[[IMG:1]]"), "Second image marker should survive pipeline, got: \(md)")
+
+        // Verify markers are in document order
+        if let idx0 = md.range(of: "[[IMG:0]]"), let idx1 = md.range(of: "[[IMG:1]]") {
+            XCTAssertTrue(idx0.lowerBound < idx1.lowerBound, "Markers should be in document order")
+        }
+
+        // Step 4: Replace markers with image paths
+        let markerToPath: [Int: String] = [
+            0: "images/photo1.jpg",
+            1: "images/photo2.jpg"
+        ]
+        let finalResult = HTMLToMarkdown.replaceMarkersWithImages(md, markerToPath: markerToPath)
+        XCTAssertTrue(finalResult.markdown.contains("![photo1](images/photo1.jpg)"), "Should have inline image 1")
+        XCTAssertTrue(finalResult.markdown.contains("![photo2](images/photo2.jpg)"), "Should have inline image 2")
+        XCTAssertFalse(finalResult.markdown.contains("[[IMG:"), "No markers should remain")
     }
 }

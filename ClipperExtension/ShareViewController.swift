@@ -126,20 +126,27 @@ class ShareViewController: UIViewController {
                 let readabilityResult = ReadabilityExtractor.extract(html: markedHTML, url: rawContent.url)
 
                 let articleHTML: String
-                if let result = readabilityResult,
-                   result.articleHTML.filter({ !$0.isWhitespace }).count >= 100 {
-                    articleHTML = result.articleHTML
-                    if let extractedTitle = result.title, !extractedTitle.isEmpty {
-                        articleTitle = extractedTitle
+                if let result = readabilityResult {
+                    // Convert to markdown and check if it has meaningful content.
+                    // The 100-char threshold catches cases where Readability picked
+                    // a too-narrow container (e.g. just the header/title area).
+                    let candidateMarkdown = HTMLToMarkdown.convert(result.articleHTML)
+                    if candidateMarkdown.filter({ !$0.isWhitespace }).count >= 100 {
+                        articleHTML = result.articleHTML
+                        markdownBody = candidateMarkdown
+                        if let extractedTitle = result.title, !extractedTitle.isEmpty {
+                            articleTitle = extractedTitle
+                        }
+                    } else {
+                        articleHTML = markedHTML
+                        markdownBody = HTMLToMarkdown.convert(articleHTML)
                     }
                 } else {
                     articleHTML = markedHTML
+                    markdownBody = HTMLToMarkdown.convert(articleHTML)
                 }
 
                 try Task.checkCancellation()
-
-                viewModel.state = .loading("Converting to Markdown…")
-                markdownBody = HTMLToMarkdown.convert(articleHTML)
             }
         } else if let plain = rawContent.plainText {
             viewModel.state = .loading("Saving text…")
