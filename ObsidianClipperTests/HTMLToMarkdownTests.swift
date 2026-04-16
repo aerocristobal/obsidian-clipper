@@ -186,6 +186,94 @@ final class HTMLToMarkdownTests: XCTestCase {
         XCTAssertTrue(urls.count >= 2, "Expected at least 2 URLs from picture element, got: \(urls.count)")
     }
 
+    // MARK: - Image Marker Injection
+
+    func testReplaceImgTagsWithMarkersSingle() {
+        let html = #"<p>Before</p><img src="https://example.com/photo.png"><p>After</p>"#
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertTrue(result.html.contains("[[IMG:0]]"), "Should contain marker, got: \(result.html)")
+        XCTAssertFalse(result.html.contains("<img"), "Should not contain <img> tag")
+        XCTAssertEqual(result.markerMap.count, 1)
+        XCTAssertEqual(result.markerMap[0]?.absoluteString, "https://example.com/photo.png")
+    }
+
+    func testReplaceImgTagsWithMarkersMultiple() {
+        let html = """
+        <p>First</p><img src="https://example.com/1.png">
+        <p>Second</p><img src="https://example.com/2.jpg">
+        <p>Third</p><img src="https://example.com/3.gif">
+        """
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertTrue(result.html.contains("[[IMG:0]]"), "Should contain marker 0")
+        XCTAssertTrue(result.html.contains("[[IMG:1]]"), "Should contain marker 1")
+        XCTAssertTrue(result.html.contains("[[IMG:2]]"), "Should contain marker 2")
+        XCTAssertEqual(result.markerMap.count, 3)
+        // Markers should be in document order
+        XCTAssertEqual(result.markerMap[0]?.absoluteString, "https://example.com/1.png")
+        XCTAssertEqual(result.markerMap[1]?.absoluteString, "https://example.com/2.jpg")
+        XCTAssertEqual(result.markerMap[2]?.absoluteString, "https://example.com/3.gif")
+    }
+
+    func testReplaceImgTagsDeduplicates() {
+        let html = """
+        <img src="https://example.com/same.png">
+        <img src="https://example.com/same.png">
+        """
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertEqual(result.markerMap.count, 1, "Should deduplicate same URLs in marker map")
+        // Both <img> tags should be replaced with the same marker
+        let markerCount = result.html.components(separatedBy: "[[IMG:0]]").count - 1
+        XCTAssertEqual(markerCount, 2, "Both duplicate <img> tags should get the same marker")
+    }
+
+    func testReplaceImgTagsSkipsTrackingPixels() {
+        let html = #"<img src="https://example.com/tracking-pixel.gif">"#
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertEqual(result.markerMap.count, 0, "Should skip tracking pixels")
+    }
+
+    func testReplaceImgTagsSkipsSVG() {
+        let html = #"<img src="https://example.com/icon.svg">"#
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertEqual(result.markerMap.count, 0, "Should skip SVG images")
+    }
+
+    func testReplaceImgTagsResolvesRelativeURLs() {
+        let html = #"<img src="/images/photo.jpg">"#
+        let base = URL(string: "https://example.com")!
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: base)
+        XCTAssertEqual(result.markerMap.count, 1)
+        XCTAssertEqual(result.markerMap[0]?.absoluteString, "https://example.com/images/photo.jpg")
+    }
+
+    func testReplaceImgTagsUsesDataSrc() {
+        let html = #"<img data-src="https://example.com/lazy.jpg">"#
+        let result = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: nil)
+        XCTAssertEqual(result.markerMap.count, 1)
+        XCTAssertEqual(result.markerMap[0]?.absoluteString, "https://example.com/lazy.jpg")
+    }
+
+    // MARK: - Marker Replacement
+
+    func testReplaceMarkersWithImages() {
+        let markdown = "Some text\n\n[[IMG:0]]\n\nMore text\n\n[[IMG:1]]"
+        let mapping: [Int: String] = [0: "images/abc-1.png", 1: "images/abc-2.jpg"]
+        let result = HTMLToMarkdown.replaceMarkersWithImages(markdown, markerToPath: mapping)
+        XCTAssertTrue(result.markdown.contains("![abc-1](images/abc-1.png)"), "Should replace marker 0, got: \(result.markdown)")
+        XCTAssertTrue(result.markdown.contains("![abc-2](images/abc-2.jpg)"), "Should replace marker 1, got: \(result.markdown)")
+        XCTAssertFalse(result.markdown.contains("[[IMG:"), "Should not contain any remaining markers")
+        XCTAssertEqual(result.placedIndices, [0, 1], "Should report both indices as placed")
+    }
+
+    func testReplaceMarkersPartialMapping() {
+        let markdown = "Before [[IMG:0]] middle [[IMG:1]] after"
+        let mapping: [Int: String] = [0: "images/abc-1.png"]
+        let result = HTMLToMarkdown.replaceMarkersWithImages(markdown, markerToPath: mapping)
+        XCTAssertTrue(result.markdown.contains("![abc-1](images/abc-1.png)"), "Should replace mapped marker")
+        XCTAssertTrue(result.markdown.contains("[[IMG:1]]"), "Should leave unmapped marker intact")
+        XCTAssertEqual(result.placedIndices, [0])
+    }
+
     // MARK: - Table Detection
 
     @MainActor

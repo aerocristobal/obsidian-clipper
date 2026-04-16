@@ -74,7 +74,26 @@ final class ClipResultTests: XCTestCase {
 
     // MARK: - Image References
 
-    func testToMarkdownWithImageReferences() {
+    func testToMarkdownWithInlineImageNoFallbackSection() {
+        // When images are already inline in the body, no "## Images" section should appear
+        let images = [
+            ExtractedImage(
+                sourceURL: URL(string: "https://example.com/photo.png")!,
+                data: Data(),
+                filename: "abc-1.png",
+                ocrText: nil
+            )
+        ]
+        let body = "Some text\n\n![abc-1](images/abc-1.png)\n\nMore text"
+        let result = makeResult(markdownBody: body, images: images)
+        let refs = ["https://example.com/photo.png": "images/abc-1.png"]
+        let md = result.toMarkdown(includeFrontmatter: false, imageReferences: refs)
+        XCTAssertTrue(md.contains("![abc-1](images/abc-1.png)"), "Should contain inline image, got: \(md)")
+        XCTAssertFalse(md.contains("## Images"), "Should not have fallback Images section when images are inline")
+    }
+
+    func testToMarkdownWithUnreferencedImagesFallback() {
+        // When images are NOT inline in the body, they should appear in a fallback section
         let images = [
             ExtractedImage(
                 sourceURL: URL(string: "https://example.com/photo.png")!,
@@ -86,7 +105,8 @@ final class ClipResultTests: XCTestCase {
         let result = makeResult(images: images)
         let refs = ["https://example.com/photo.png": "images/abc-1.png"]
         let md = result.toMarkdown(includeFrontmatter: false, imageReferences: refs)
-        XCTAssertTrue(md.contains("![image-1](images/abc-1.png)"), "Should include image reference, got: \(md)")
+        XCTAssertTrue(md.contains("## Images"), "Should include fallback Images section")
+        XCTAssertTrue(md.contains("![abc-1](images/abc-1.png)"), "Should include image reference, got: \(md)")
     }
 
     func testToMarkdownWithoutImageReferencesNoSection() {

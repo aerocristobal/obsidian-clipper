@@ -90,17 +90,24 @@ class ShareViewController: UIViewController {
 
         let isImageOnly = rawContent.html == nil && rawContent.url == nil && !rawContent.sharedImages.isEmpty
 
-        // 2. Run Readability extraction to isolate article content
+        // 2. Inject image markers into HTML, run Readability, convert to Markdown
         var articleTitle = rawContent.title
-        let markdownBody: String
+        var markdownBody: String
+        var markerMap: [Int: URL] = [:]
 
         if isImageOnly {
             // Image-only share: OCR the images, skip HTML pipeline
             viewModel.state = .loading("Processing images…")
             markdownBody = ""
         } else if let html = rawContent.html {
+            // Replace <img> tags with [[IMG:N]] markers before any processing.
+            // Markers survive Readability extraction and NSAttributedString conversion.
+            let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: rawContent.url)
+            markerMap = markerResult.markerMap
+            let markedHTML = markerResult.html
+
             viewModel.state = .loading("Extracting article…")
-            let readabilityResult = ReadabilityExtractor.extract(html: html, url: rawContent.url)
+            let readabilityResult = ReadabilityExtractor.extract(html: markedHTML, url: rawContent.url)
 
             // Use extracted article HTML for Markdown if it has enough content
             let articleHTML: String
@@ -112,8 +119,8 @@ class ShareViewController: UIViewController {
                     articleTitle = extractedTitle
                 }
             } else {
-                // Fall back to full HTML
-                articleHTML = html
+                // Fall back to full marked HTML
+                articleHTML = markedHTML
             }
 
             viewModel.state = .loading("Converting to Markdown…")
@@ -139,27 +146,50 @@ class ShareViewController: UIViewController {
                 prefix: prefix
             )
         } else if settings.saveImages, let html = rawContent.html {
-            // Web page images — download from extracted URLs
+            // Web page images — download from marker map URLs (already filtered/deduped)
+            // plus any additional URLs found via extractImageURLs that weren't in <img> tags
             viewModel.state = .loading("Processing images…")
 
-            let imageURLs = HTMLToMarkdown.extractImageURLs(from: html, baseURL: rawContent.url)
+            // Collect URLs from marker map
+            var imageURLs = Array(markerMap.values)
+            let markerURLStrings = Set(imageURLs.map { $0.absoluteString })
 
-            // Filter: skip tiny tracking pixels, data URIs, SVGs
-            let filteredURLs = imageURLs.filter { url in
-                let path = url.absoluteString.lowercased()
-                if path.contains("pixel") || path.contains("tracking") || path.contains("beacon") {
-                    return false
+            // Also extract URLs from the original HTML for images that may not have
+            // been in <img> tags (e.g., CSS backgrounds, <source> elements)
+            let additionalURLs = HTMLToMarkdown.extractImageURLs(from: html, baseURL: rawContent.url)
+                .filter { !markerURLStrings.contains($0.absoluteString) }
+                .filter { url in
+                    let path = url.absoluteString.lowercased()
+                    if path.contains("pixel") || path.contains("tracking") || path.contains("beacon") {
+                        return false
+                    }
+                    if path.contains(".svg") { return false }
+                    if path.hasPrefix("data:") { return false }
+                    return true
                 }
-                if path.contains(".svg") { return false }
-                if path.hasPrefix("data:") { return false }
-                return true
-            }
+            imageURLs.append(contentsOf: additionalURLs)
 
             // Limit to first 20 images to avoid huge downloads
-            let limitedURLs = Array(filteredURLs.prefix(20))
+            let limitedURLs = Array(imageURLs.prefix(20))
 
             let processor = ImageProcessor()
             images = await processor.process(urls: limitedURLs, enableOCR: settings.enableOCR, prefix: prefix)
+
+            // Build URL → local path mapping and replace markers in markdown
+            var urlToPath: [String: String] = [:]
+            for image in images {
+                urlToPath[image.sourceURL.absoluteString] = "images/\(image.filename)"
+            }
+
+            // Replace [[IMG:N]] markers with inline image references
+            var markerToPath: [Int: String] = [:]
+            for (index, url) in markerMap {
+                if let path = urlToPath[url.absoluteString] {
+                    markerToPath[index] = path
+                }
+            }
+            let inlineResult = HTMLToMarkdown.replaceMarkersWithImages(markdownBody, markerToPath: markerToPath)
+            markdownBody = inlineResult.markdown
         }
 
         // 4. Build the ClipResult

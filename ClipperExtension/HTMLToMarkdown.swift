@@ -333,6 +333,132 @@ enum HTMLToMarkdown {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    // MARK: - Image marker injection
+
+    /// Replace `<img>` tags in HTML with text markers like `[[IMG:0]]`, `[[IMG:1]]`, etc.
+    /// Returns the modified HTML and a mapping of marker index to original image source URL.
+    /// The markers survive Readability extraction and NSAttributedString conversion as plain text,
+    /// allowing us to place images inline at their original positions in the final Markdown.
+    static func replaceImgTagsWithMarkers(_ html: String, baseURL: URL?) -> (html: String, markerMap: [Int: URL]) {
+        var markerMap: [Int: URL] = [:]
+        var markerIndex = 0
+        var seen: [String: Int] = [:] // URL string -> marker index
+
+        let nsHTML = html as NSString
+        let fullRange = NSRange(location: 0, length: nsHTML.length)
+
+        let imgPattern = #"<img\s[^>]*/?>"#
+        guard let imgRegex = try? NSRegularExpression(pattern: imgPattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) else {
+            return (html, markerMap)
+        }
+
+        let matches = imgRegex.matches(in: html, range: fullRange)
+
+        // Process matches in reverse so that replacements don't shift ranges
+        var result = html
+        for match in matches.reversed() {
+            let imgTag = nsHTML.substring(with: match.range)
+
+            // Find the best src URL for this img tag
+            let src = extractAttribute("src", from: imgTag)
+                ?? extractAttribute("data-src", from: imgTag)
+                ?? extractAttribute("data-lazy-src", from: imgTag)
+                ?? extractAttribute("data-original", from: imgTag)
+
+            guard let srcStr = src else { continue }
+            let trimmed = srcStr.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { continue }
+
+            // Skip tracking pixels, SVGs, data URIs
+            let lower = trimmed.lowercased()
+            if lower.contains("pixel") || lower.contains("tracking") || lower.contains("beacon") { continue }
+            if lower.contains(".svg") { continue }
+            if lower.hasPrefix("data:") { continue }
+
+            // Resolve URL
+            let resolved: URL?
+            if let absolute = URL(string: trimmed), absolute.scheme != nil {
+                resolved = absolute
+            } else if let base = baseURL {
+                resolved = URL(string: trimmed, relativeTo: base)
+            } else {
+                resolved = nil
+            }
+
+            guard let url = resolved else { continue }
+
+            let urlStr = url.absoluteString
+
+            // If we've seen this URL before, reuse the existing marker index
+            if let existingIndex = seen[urlStr] {
+                let marker = "[[IMG:\(existingIndex)]]"
+                let swiftRange = Range(match.range, in: result)!
+                result.replaceSubrange(swiftRange, with: marker)
+                continue
+            }
+
+            seen[urlStr] = markerIndex
+            markerMap[markerIndex] = url
+            let marker = "[[IMG:\(markerIndex)]]"
+            markerIndex += 1
+
+            // Replace the <img> tag with the marker
+            let swiftRange = Range(match.range, in: result)!
+            result.replaceSubrange(swiftRange, with: marker)
+        }
+
+        // Reverse the marker indices so they're in document order
+        // (we processed matches in reverse, so index 0 = last match)
+        let count = markerMap.count
+        if count > 1 {
+            var reordered: [Int: URL] = [:]
+            for (idx, url) in markerMap {
+                reordered[count - 1 - idx] = url
+            }
+            markerMap = reordered
+
+            // Also fix the markers in the HTML string
+            for i in 0..<count {
+                let oldMarker = "[[IMG:\(count - 1 - i)]]"
+                let tempMarker = "[[IMGTEMP:\(i)]]"
+                result = result.replacingOccurrences(of: oldMarker, with: tempMarker)
+            }
+            for i in 0..<count {
+                let tempMarker = "[[IMGTEMP:\(i)]]"
+                let newMarker = "[[IMG:\(i)]]"
+                result = result.replacingOccurrences(of: tempMarker, with: newMarker)
+            }
+        }
+
+        return (result, markerMap)
+    }
+
+    /// Replace `[[IMG:N]]` markers in Markdown with actual image references.
+    /// `markerToFilename` maps marker index to the local filename (e.g. "images/abc-1.png").
+    /// Returns the processed Markdown and a set of marker indices that were placed inline.
+    static func replaceMarkersWithImages(_ markdown: String, markerToPath: [Int: String]) -> (markdown: String, placedIndices: Set<Int>) {
+        var result = markdown
+        var placed = Set<Int>()
+
+        for (index, path) in markerToPath {
+            let marker = "[[IMG:\(index)]]"
+            if result.contains(marker) {
+                let imageRef = "![\(imageAltText(from: path))](\(path))"
+                result = result.replacingOccurrences(of: marker, with: imageRef)
+                placed.insert(index)
+            }
+        }
+
+        return (result, placed)
+    }
+
+    private static func imageAltText(from path: String) -> String {
+        // Extract filename without extension for alt text
+        let filename = (path as NSString).lastPathComponent
+        let name = (filename as NSString).deletingPathExtension
+        return name
+    }
+
     // MARK: - Image URL extraction from raw HTML
 
     /// Extract all image source URLs from HTML, including srcset, lazy-load attributes,

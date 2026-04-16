@@ -56,12 +56,20 @@ struct ClipResult: Sendable {
 
         parts.append(markdownBody)
 
-        // Append image references as properly formatted Markdown images
-        if !imageReferences.isEmpty {
+        // Append any unreferenced images as a fallback section.
+        // Images that were placed inline via markers are already in the body.
+        let unreferencedImages = images.filter { image in
+            guard let localPath = imageReferences[image.sourceURL.absoluteString] else { return false }
+            // Check if this image path already appears inline in the markdown body
+            return !markdownBody.contains(localPath)
+        }
+        if !unreferencedImages.isEmpty {
             parts.append("\n## Images\n")
-            for (index, image) in images.enumerated() {
+            for image in unreferencedImages {
                 if let localPath = imageReferences[image.sourceURL.absoluteString] {
-                    parts.append("![image-\(index + 1)](\(localPath))\n")
+                    let name = (localPath as NSString).lastPathComponent
+                    let alt = (name as NSString).deletingPathExtension
+                    parts.append("![\(alt)](\(localPath))\n")
                 }
             }
         }

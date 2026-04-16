@@ -76,13 +76,24 @@ enum FileSaver {
             try fm.createDirectory(at: targetDir, withIntermediateDirectories: true)
         }
 
-        // Sanitize the title for use as a filename
+        // Sanitize the title for use as a folder/filename
         let safeTitle = sanitizeFilename(result.title)
+
+        // Create a per-article subfolder to keep each clip self-contained
+        var articleDir = targetDir.appendingPathComponent(safeTitle, isDirectory: true)
+
+        // If a subfolder with the same name already exists (re-clip), append timestamp
+        if fm.fileExists(atPath: articleDir.path) {
+            let timestamp = Int(Date().timeIntervalSince1970)
+            articleDir = targetDir.appendingPathComponent("\(safeTitle)-\(timestamp)", isDirectory: true)
+        }
+
+        try fm.createDirectory(at: articleDir, withIntermediateDirectories: true)
 
         // Save images if any
         var imageReferences: [String: String] = [:] // sourceURL -> relative markdown path
         if !result.images.isEmpty {
-            let imagesDir = targetDir.appendingPathComponent("images", isDirectory: true)
+            let imagesDir = articleDir.appendingPathComponent("images", isDirectory: true)
             if !fm.fileExists(atPath: imagesDir.path) {
                 try fm.createDirectory(at: imagesDir, withIntermediateDirectories: true)
             }
@@ -105,19 +116,9 @@ enum FileSaver {
             imageReferences: imageReferences
         )
 
-        // Write the markdown file
+        // Write the markdown file inside the article subfolder
         let mdFilename = "\(safeTitle).md"
-        let mdURL = targetDir.appendingPathComponent(mdFilename)
-
-        // If a file with this name already exists, append a timestamp
-        let finalURL: URL
-        if fm.fileExists(atPath: mdURL.path) {
-            let timestamp = Int(Date().timeIntervalSince1970)
-            let uniqueName = "\(safeTitle)-\(timestamp).md"
-            finalURL = targetDir.appendingPathComponent(uniqueName)
-        } else {
-            finalURL = mdURL
-        }
+        let finalURL = articleDir.appendingPathComponent(mdFilename)
 
         guard let mdData = markdown.data(using: .utf8) else {
             throw SaveError.writeFailed("Could not encode markdown as UTF-8")
