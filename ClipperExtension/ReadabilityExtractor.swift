@@ -42,8 +42,17 @@ enum ReadabilityExtractor {
         var candidates: [CandidateScore] = []
         scoreCandidates(node: document, candidates: &candidates)
 
-        guard let winner = candidates.max(by: { $0.score < $1.score }),
-              winner.score > 0 else {
+        // Re-apply link-density penalty at the *aggregated* level. The per-element
+        // scoreElement penalty is applied to each candidate in isolation, but it
+        // doesn't account for the fact that many candidates get their score
+        // propagated from high-link-density children (e.g. a grid of 9 related-
+        // article summary cards on a news page). Without this, the accumulated
+        // score of a "list of cards" container can easily exceed the actual
+        // article body -- see the Wired ArticlePageChunks layout, where body is
+        // split into 4 BodyWrapper chunks and the sidebar recirc widget wins.
+        guard let winner = candidates.max(by: { c1, c2 in
+            effectiveScore(c1) < effectiveScore(c2)
+        }), winner.score > 0 else {
             return nil
         }
 
@@ -923,6 +932,18 @@ private extension ReadabilityExtractor {
         "ad", "social", "share", "related", "widget", "promo",
         "sponsor", "popup", "modal", "banner", "cookie", "consent"
     ]
+
+    /// Final score used at winner-selection time. Re-applies the link-density
+    /// penalty against the *aggregated* score so containers that accumulated
+    /// most of their points from link-heavy children (related-article grids,
+    /// tag clouds, navigation lists) can't beat genuine article bodies.
+    static func effectiveScore(_ c: CandidateScore) -> Double {
+        let d = computeLinkDensity(c.element)
+        // Clamp density so a single stray link doesn't zero us out, and a
+        // pathological 100%-link container is still strongly penalized.
+        let damping = max(0.05, 1.0 - d)
+        return c.score * damping
+    }
 
     static func scoreCandidates(node: HTMLNode, candidates: inout [CandidateScore]) {
         guard case .element(let tag, _) = node.kind else { return }

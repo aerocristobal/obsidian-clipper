@@ -620,4 +620,69 @@ final class HTMLToMarkdownTests: XCTestCase {
         XCTAssertTrue(md.contains("Opening callout"),
                       "`lead-in-text-callout` span should not be removed by 'ad' false match: \(md)")
     }
+
+    /// Regression test for the Wired "ArticlePageChunks" shape, where the
+    /// article body is split into multiple BodyWrapper chunks (interleaved
+    /// with ad slots) and a "More from WIRED" recirculation widget sits at
+    /// the bottom with many summary cards. The recirc container used to
+    /// accumulate enough propagated score from its link-card children to
+    /// beat the actual article body, yielding a clip of just the related
+    /// articles list.
+    ///
+    /// Fix: re-apply the link-density penalty against the aggregated score
+    /// at winner-selection time.
+    func testChunkedArticleBeatsRelatedArticlesGrid() {
+        let html = """
+        <html><body>
+        <main>
+            <article class="article main-content story">
+                <header><h1>The Article Title</h1></header>
+                <div class="BodyWrapper body__container article__body">
+                    <p>First chunk of the body has enough length and natural prose to score
+                    well in Readability, with commas and punctuation to flag it as content.</p>
+                    <p>More content in the first chunk that keeps the article feeling real —
+                    paragraphs, inline details, and the occasional reference.</p>
+                </div>
+                <div class="advertisement"><p>Sponsored promo inserted between body chunks.</p></div>
+                <div class="BodyWrapper body__container article__body">
+                    <p>Second chunk picks up where the first left off, continuing the
+                    narrative with more substantive paragraphs and detail.</p>
+                    <p>The split across multiple BodyWrapper containers mirrors how some
+                    publishers interleave ads with prose, which fragments the score.</p>
+                </div>
+                <div class="advertisement"><p>Another inserted promo.</p></div>
+                <div class="BodyWrapper body__container article__body">
+                    <p>Third chunk wraps the article with concluding remarks and
+                    a call-back to the opening theme, tying the piece together.</p>
+                </div>
+            </article>
+            <aside class="ContentFooterRelated">
+                <h2>More from Example</h2>
+                <div class="SummaryCollectionGridItems">
+                    <div class="SummaryItemWrapper summary-item summary-item--ARTICLE"><a href="/a1">Related article one with a moderately long headline goes here.</a></div>
+                    <div class="SummaryItemWrapper summary-item summary-item--ARTICLE"><a href="/a2">Related article two with a moderately long headline goes here.</a></div>
+                    <div class="SummaryItemWrapper summary-item summary-item--ARTICLE"><a href="/a3">Related article three with a moderately long headline goes here.</a></div>
+                    <div class="SummaryItemWrapper summary-item summary-item--ARTICLE"><a href="/a4">Related article four with a moderately long headline goes here.</a></div>
+                    <div class="SummaryItemWrapper summary-item summary-item--ARTICLE"><a href="/a5">Related article five with a moderately long headline goes here.</a></div>
+                    <div class="SummaryItemWrapper summary-item summary-item--ARTICLE"><a href="/a6">Related article six with a moderately long headline goes here.</a></div>
+                    <div class="SummaryItemWrapper summary-item summary-item--ARTICLE"><a href="/a7">Related article seven with a moderately long headline goes here.</a></div>
+                    <div class="SummaryItemWrapper summary-item summary-item--ARTICLE"><a href="/a8">Related article eight with a moderately long headline goes here.</a></div>
+                    <div class="SummaryItemWrapper summary-item summary-item--ARTICLE"><a href="/a9">Related article nine with a moderately long headline goes here.</a></div>
+                </div>
+            </aside>
+        </main>
+        </body></html>
+        """
+
+        let r = ReadabilityExtractor.extract(html: html, url: nil)
+        XCTAssertNotNil(r)
+        guard let r = r else { return }
+        let md = HTMLToMarkdown.convert(node: r.articleNode)
+
+        XCTAssertTrue(md.contains("First chunk"), "Article chunk 1 missing: \(md)")
+        XCTAssertTrue(md.contains("Second chunk"), "Article chunk 2 missing: \(md)")
+        XCTAssertTrue(md.contains("Third chunk"), "Article chunk 3 missing: \(md)")
+        XCTAssertFalse(md.contains("Related article one"),
+                       "Related-articles grid should not win over the article body: \(md)")
+    }
 }
