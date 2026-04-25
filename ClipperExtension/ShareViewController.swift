@@ -148,36 +148,56 @@ final class ShareViewController: UIViewController {
             // Use a `do` block so the large intermediate HTML string
             // (markedHTML) is released before image processing.
             do {
-                // Replace <img> tags with [[IMG:N]] markers before any processing.
-                let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: rawContent.url)
-                markerMap = markerResult.markerMap
-                let markedHTML = markerResult.html
+                // 1. JSON-LD fast path. Many publishers (Wired, NYT, Substack)
+                //    embed the full article body as Schema.org `articleBody`.
+                //    When present, it's the publisher-of-record body — strictly
+                //    cleaner than scoring-based extraction, and 30-40× faster.
+                //    On miss (no `articleBody` >= 500 chars), fall through to
+                //    the marker-injection + Readability pipeline.
+                if let ld = JSONLDExtractor.tryFastPath(html: html) {
+                    viewModel.state = .loading("Extracting article…")
+                    let bodyHTML = ld.articleBodyIsHTML
+                        ? ld.articleBody
+                        : Self.wrapPlainTextAsHTML(ld.articleBody)
+                    let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(bodyHTML, baseURL: rawContent.url)
+                    markerMap = markerResult.markerMap
+                    markdownBody = HTMLToMarkdown.convert(markerResult.html)
+                    if !ld.title.isEmpty {
+                        articleTitle = ld.title
+                    }
+                    try Task.checkCancellation()
+                } else {
+                    // Replace <img> tags with [[IMG:N]] markers before any processing.
+                    let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: rawContent.url)
+                    markerMap = markerResult.markerMap
+                    let markedHTML = markerResult.html
 
-                try Task.checkCancellation()
+                    try Task.checkCancellation()
 
-                viewModel.state = .loading("Extracting article…")
-                let readabilityResult = ReadabilityExtractor.extract(html: markedHTML, url: rawContent.url)
+                    viewModel.state = .loading("Extracting article…")
+                    let readabilityResult = ReadabilityExtractor.extract(html: markedHTML, url: rawContent.url)
 
-                if let result = readabilityResult {
-                    // Convert to markdown directly from the DOM subtree — avoids a
-                    // redundant re-parse of the serialized article HTML. Check if
-                    // it has meaningful content; the 100-char threshold catches
-                    // cases where Readability picked a too-narrow container
-                    // (e.g. just the header/title area).
-                    let candidateMarkdown = HTMLToMarkdown.convert(node: result.articleNode)
-                    if candidateMarkdown.filter({ !$0.isWhitespace }).count >= 100 {
-                        markdownBody = candidateMarkdown
-                        if let extractedTitle = result.title, !extractedTitle.isEmpty {
-                            articleTitle = extractedTitle
+                    if let result = readabilityResult {
+                        // Convert to markdown directly from the DOM subtree — avoids a
+                        // redundant re-parse of the serialized article HTML. Check if
+                        // it has meaningful content; the 100-char threshold catches
+                        // cases where Readability picked a too-narrow container
+                        // (e.g. just the header/title area).
+                        let candidateMarkdown = HTMLToMarkdown.convert(node: result.articleNode)
+                        if candidateMarkdown.filter({ !$0.isWhitespace }).count >= 100 {
+                            markdownBody = candidateMarkdown
+                            if let extractedTitle = result.title, !extractedTitle.isEmpty {
+                                articleTitle = extractedTitle
+                            }
+                        } else {
+                            markdownBody = HTMLToMarkdown.convert(markedHTML)
                         }
                     } else {
                         markdownBody = HTMLToMarkdown.convert(markedHTML)
                     }
-                } else {
-                    markdownBody = HTMLToMarkdown.convert(markedHTML)
-                }
 
-                try Task.checkCancellation()
+                    try Task.checkCancellation()
+                }
             }
         } else if let plain = rawContent.plainText {
             viewModel.state = .loading("Saving text…")
@@ -292,6 +312,25 @@ final class ShareViewController: UIViewController {
         let seed = "\(title)|\(url?.absoluteString ?? "")|\(Date().timeIntervalSince1970)"
         let digest = SHA256.hash(data: Data(seed.utf8))
         return digest.prefix(4).map { String(format: "%02x", $0) }.joined()
+    }
+
+    /// Wrap a JSON-LD plain-text `articleBody` in `<p>` tags so it flows
+    /// through `HTMLToMarkdown.convert` cleanly. Splits on `\n\n` when
+    /// available, falls back to single `\n` (Wired emits the latter).
+    fileprivate static func wrapPlainTextAsHTML(_ text: String) -> String {
+        let normalized = text.replacingOccurrences(of: "\r\n", with: "\n")
+        let separator = normalized.contains("\n\n") ? "\n\n" : "\n"
+        let escape: (String) -> String = { s in
+            s.replacingOccurrences(of: "&", with: "&amp;")
+             .replacingOccurrences(of: "<", with: "&lt;")
+             .replacingOccurrences(of: ">", with: "&gt;")
+        }
+        return normalized
+            .components(separatedBy: separator)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .map { "<p>\(escape($0))</p>" }
+            .joined(separator: "\n")
     }
 }
 
