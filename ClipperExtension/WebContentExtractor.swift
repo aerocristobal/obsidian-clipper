@@ -24,7 +24,9 @@ enum WebContentExtractor {
 
     /// Extract content from the NSExtensionContext input items.
     static func extract(from extensionContext: NSExtensionContext) async -> RawContent? {
+        NSLog("[Clipper.input] extract() entered; items=%d", extensionContext.inputItems.count)
         guard let items = extensionContext.inputItems as? [NSExtensionItem] else {
+            NSLog("[Clipper.input] inputItems cast failed → returning nil")
             return nil
         }
 
@@ -34,26 +36,51 @@ enum WebContentExtractor {
         var title: String?
         var sharedImages: [Data] = []
 
-        for item in items {
+        for (itemIdx, item) in items.enumerated() {
             // Grab the attributed title if available
             if let attrTitle = item.attributedContentText?.string, !attrTitle.isEmpty {
                 title = attrTitle
+                NSLog("[Clipper.input] item[%d] attributedContentText set; len=%d", itemIdx, attrTitle.count)
             }
 
-            guard let attachments = item.attachments else { continue }
+            guard let attachments = item.attachments else {
+                NSLog("[Clipper.input] item[%d] no attachments", itemIdx)
+                continue
+            }
 
-            for provider in attachments {
+            NSLog("[Clipper.input] item[%d] attachments=%d", itemIdx, attachments.count)
+
+            for (provIdx, provider) in attachments.enumerated() {
+                NSLog("[Clipper.input] item[%d].provider[%d] types=%@",
+                      itemIdx, provIdx, provider.registeredTypeIdentifiers as NSArray)
+
                 // 1. Try to get a URL (highest priority — Safari shares the page URL)
                 if provider.hasItemConformingToTypeIdentifier("public.url") {
-                    if let loaded = try? await provider.loadItem(forTypeIdentifier: "public.url") as? URL {
-                        url = loaded
+                    let loaded = try? await provider.loadItem(forTypeIdentifier: "public.url")
+                    NSLog("[Clipper.input] item[%d].provider[%d] public.url loaded=%@",
+                          itemIdx, provIdx, String(describing: type(of: loaded)))
+                    if let u = loaded as? URL {
+                        url = u
+                    } else if let nsu = loaded as? NSURL {
+                        url = nsu as URL
+                        NSLog("[Clipper.input]   → bridged via NSURL")
+                    } else if let s = loaded as? String, let parsed = URL(string: s) {
+                        url = parsed
+                        NSLog("[Clipper.input]   → parsed from String")
+                    } else {
+                        NSLog("[Clipper.input]   → cast FAILED; raw=%@", String(describing: loaded))
                     }
                 }
 
                 // 2. Try to get HTML content directly
                 if provider.hasItemConformingToTypeIdentifier("public.html") {
-                    if let loaded = try? await provider.loadItem(forTypeIdentifier: "public.html") as? String {
-                        html = loaded
+                    let loaded = try? await provider.loadItem(forTypeIdentifier: "public.html")
+                    NSLog("[Clipper.input] item[%d].provider[%d] public.html loaded=%@",
+                          itemIdx, provIdx, String(describing: type(of: loaded)))
+                    if let s = loaded as? String {
+                        html = s
+                    } else if let d = loaded as? Data, let s = String(data: d, encoding: .utf8) {
+                        html = s
                     }
                 }
 
@@ -66,17 +93,33 @@ enum WebContentExtractor {
 
                 // 4. Property list (Safari sometimes sends data this way)
                 if provider.hasItemConformingToTypeIdentifier("public.property-list") {
-                    if let dict = try? await provider.loadItem(forTypeIdentifier: "public.property-list") as? [String: Any] {
-                        if let results = dict[NSExtensionJavaScriptPreprocessingResultsKey] as? [String: Any] {
-                            if let pageTitle = results["title"] as? String {
-                                title = pageTitle
-                            }
-                            if let pageURL = results["URL"] as? String {
-                                url = URL(string: pageURL)
-                            }
-                            if let pageHTML = results["html"] as? String {
-                                html = pageHTML
-                            }
+                    let raw = try? await provider.loadItem(forTypeIdentifier: "public.property-list")
+                    NSLog("[Clipper.input] item[%d].provider[%d] property-list raw=%@",
+                          itemIdx, provIdx, String(describing: type(of: raw)))
+
+                    // Try wrapped form (key under NSExtensionJavaScriptPreprocessingResultsKey)
+                    var results: [String: Any]?
+                    if let dict = raw as? [String: Any],
+                       let inner = dict[NSExtensionJavaScriptPreprocessingResultsKey] as? [String: Any] {
+                        results = inner
+                        NSLog("[Clipper.input]   → wrapped JS preprocessing results")
+                    } else if let dict = raw as? [String: Any] {
+                        // Fallback: maybe Safari sent the JS results directly without wrapping
+                        results = dict
+                        NSLog("[Clipper.input]   → flat dict (not wrapped); keys=%@", Array(dict.keys) as NSArray)
+                    }
+
+                    if let r = results {
+                        if let pageTitle = r["title"] as? String {
+                            title = pageTitle
+                        }
+                        if let pageURL = r["URL"] as? String {
+                            url = URL(string: pageURL)
+                            NSLog("[Clipper.input]   → URL from JS results: %@", pageURL)
+                        }
+                        if let pageHTML = r["html"] as? String {
+                            html = pageHTML
+                            NSLog("[Clipper.input]   → HTML from JS results, len=%d", pageHTML.count)
                         }
                     }
                 }
@@ -90,6 +133,13 @@ enum WebContentExtractor {
             }
         }
 
+        NSLog("[Clipper.input] post-loop: url=%@ html_len=%d plainText_len=%d title=%@ images=%d",
+              url?.absoluteString ?? "nil",
+              html?.count ?? -1,
+              plainText?.count ?? -1,
+              title ?? "nil",
+              sharedImages.count)
+
         // If plain text looks like a URL and we don't already have one, treat it as a URL
         if url == nil, let text = plainText {
             if let detected = detectURL(in: text) {
@@ -99,7 +149,9 @@ enum WebContentExtractor {
 
         // If we have a URL but no HTML, fetch the page content
         if html == nil, let pageURL = url {
+            NSLog("[Clipper.input] no HTML from share sheet; fetching %@", pageURL.absoluteString)
             html = await fetchHTML(from: pageURL)
+            NSLog("[Clipper.input] server-fetched HTML len=%d", html?.count ?? -1)
         }
 
         // Derive title from HTML <title> tag if not already set

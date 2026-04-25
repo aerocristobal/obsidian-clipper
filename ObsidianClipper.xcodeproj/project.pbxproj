@@ -228,7 +228,6 @@
 			);
 			name = ClipperExtension;
 			packageProductDependencies = (
-				A91111002 /* SwiftSoup */,
 			);
 			productName = ClipperExtension;
 			productReference = A70000002 /* ClipperExtension.appex */;
@@ -345,7 +344,6 @@
 				A10000027 /* ClipResult.swift in Sources */,
 				A10000028 /* ReadabilityExtractor.swift in Sources */,
 				A10000078 /* JSONLDExtractor.swift in Sources */,
-				A10000090 /* SwiftSoupAdapter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -381,7 +379,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A10000092 /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
