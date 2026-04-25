@@ -1,11 +1,11 @@
 import Foundation
 @testable import ClipperExtension
 
-/// Per-branch extraction adapter for the eval harness.
+/// Eval harness extraction adapter.
 ///
-/// **Branch: `spike/jsonld-fastpath`** — tries `JSONLDExtractor` first;
-/// falls through to the shipped Readability pipeline when JSON-LD doesn't
-/// yield a substantial article body.
+/// On `main` (post-merge of B + C): JSON-LD fast path runs first; on miss,
+/// falls through to the shipped Readability pipeline which now uses the
+/// SwiftSoup parser underneath. Output goes to `eval/main/`.
 enum EvalEntryPoint {
 
     struct EvalResult {
@@ -15,7 +15,8 @@ enum EvalEntryPoint {
         let approach: String
     }
 
-    static let approachName: String = "jsonld-fastpath"
+    /// Identifier used for eval-output directory naming.
+    static let approachName: String = "main"
 
     static func extract(html: String, baseURL: URL?) -> EvalResult {
         // 1. JSON-LD fast path — short-circuit when the publisher has

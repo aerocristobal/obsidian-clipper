@@ -1,0 +1,82 @@
+Is truth determined by the size of the audience it reaches?
+
+If so, _Michael_—a [new film](https://www.rottentomatoes.com/m/michael) about the pop singer Michael Jackson that is on track to have the biggest-ever opening for a music biopic, with projected earnings of [$70 million](https://www.hollywoodreporter.com/movies/movie-news/michael-jackson-biopic-box-office-1236573688/) at the US box office, despite critics saying it sanitizes the reality of who Jackson actually was—intends to supplant the King of Pop as the apotheosis of artistic virtue.
+
+The film’s release has sparked a civil war online, between those eager to reclaim the music and myth of Jackson, and those who see any celebration of him as a failure of accountability.
+
+Musically, Jackson was in a class all his own. In the pre-[social media](https://www.wired.com/tag/social-media/) days, before AI artists [charted on Billboard](https://www.billboard.com/lists/ai-artists-on-billboard-charts/) and he became a recurring meme online, Jackson was the epitome of monoculture: 13 number one singles, countless awards, twice inducted into the Rock & Roll Hall of Fame. He remains, even in death, one of the best-selling music artists of all time. But his legacy was also defined by multiple allegations of sexual abuse, an occasionally eccentric personal life, and Jackson’s on-record admission of sharing his bed with underage boys. “This guy was worse than Jeffrey Epstein,” Dan Reed, the director of [Leaving Neverland](https://www.imdb.com/title/tt9573980/), the 2019 Emmy-winning HBO documentary about Jackson’s alleged sexual misconduct, recently told the [Hollywood Reporter](https://www.hollywoodreporter.com/movies/movie-news/leaving-neverland-michael-jackson-dan-reed-1236571986/).
+
+Director Antoine Fuqua, who maintains Jackson’s innocence, never intended to fully avoid the allegations that circled Jackson later in life. [According](https://www.newyorker.com/magazine/2026/04/27/antoine-fuqua-profile) to him, the original cut of _Michael_ included a reenactment of the 1993 police raid on Neverland Ranch, where Jackson was strip-searched to verify the physical description of his first accuser, Jordan Chandler. But the scene was ultimately [scrapped](https://www.nbcnews.com/video/michael-jackson-movie-set-to-release-after-massive-re-write-261943877686) along with the film’s entire third act—totaling $15 million in reshoots—because of a legal clause in a settlement with Chandler that prohibited the depiction of his experience on screen.
+
+The result is a film that stops abruptly in 1988 and [erases](https://variety.com/2026/film/news/michael-movie-reshoots-removing-child-abuse-allegations-1236710221/) the most controversial two decades of Jackson’s life. Instead, the film emphasizes Jackson’s musical legacy—the story arc is structured around career-defining music moments, like the [making of](https://www.yahoo.com/entertainment/music/articles/michael-movie-highlights-thriller-music-205635140.html) the “Thriller” video—over the more contentious aspects of his personal behavior.
+
+Scrubbing the Neverland Ranch scene, but also choosing to completely write around any of Jackson's alleged misconduct, is not surprising given that the Jackson estate had approval over the use of his music, essentially granting it veto power over the film’s final cut. One argument that keeps surfacing on social media is that critics should judge _Michael_ on its own terms rather than on what they think it should have been. “It seems like people wanted a movie [that] was never going to exist,” noted [one X user](https://x.com/sauvamemte/status/2046971180142198801?s=20). “So it was never going to be salacious or introspective”
+
+Jackson’s fans argue the allegations shouldn’t eclipse his musical and artistic legacy, separating the artist from the work, while critics insist that a biopic should present a complete picture of Jackson, regardless of how [unflattering](https://x.com/ByDobson/status/2047064594850414750?s=20) that picture may be. As film critic [Sean Burns](https://x.com/SeanMBurns/status/2046439952804671542?s=20) characterized it on X, ending “with the release of _Bad_ is like ending an OJ biopic with him winning the Heisman.” A good Michael Jackson movie, [wrote](https://x.com/Harmony_Holiday/status/2046990813675364576?s=20) the artist Harmony Holiday, “would be part tragedy, part farce,” calling attention to how the film lacks the real kind of interiority that made Jackson so polarizing.
+
+“Watching it feels more like being frog-marched through a wax museum than watching a movie, each milestone restaged with an off-putting, uncanny-valley resemblance and no interiority,” critic Alison Willmore noted in [Vulture](https://www.vulture.com/article/review-michael-isnt-a-movie-its-a-wax-museum.html).
+
+As so many of people seek out and sculpt their own truths, there is also a responsibility to challenge how the film was framed, or at least question the assumptions it asks its audience to accept.
+
+In response to the backlash, the Jackson family has expressed that they intend to reclaim Jackson’s public image. “Sorry media, u don’t get to control the narrative anymore,” Taj Jackson, Michael’s nephew, [posted](https://x.com/tajjackson3/status/2046629271989559659) on X. But if anything, _Michael_ is a reminder that the collective narrative is dead. Several Jackson family members—including Janet, Rebbie, and Randy—declined to participate in the film. Jackson’s own daughter, Paris, [said](https://www.theguardian.com/music/2025/sep/04/michael-jackson-daughter-paris-criticises-sugar-coated-biopic-about-her-father) on Instagram that it “panders to a very specific section of my dad’s fandom that still lives in the fantasy.” (There is talk that a [potential sequel](https://x.com/TMZ/status/2046997279077257317?s=20) is in the works that touches on Jackson’s darker side.)
+
+_Michael_ won’t make or break Jackson’s legacy. He’s virtually cancel-culture-proof, too large and immovable in the pop imagination. “Michael’s too important a character for our culture to just walk away from,” Fuqua said in an interview with The New Yorker. So Jackson will continue on as he has for so long—streamed, sampled, impersonated, memed, and mythologized—each of us creating our own narratives, and living with our own truths, about him.
+
+## You Might Also Like
+
+- In your inbox: Will Knight's AI Lab explores advances in AI
+- Big Story: The snake bros getting bitten by their lethal pets
+- The deepfake nudes crisis in schools is worse than you thought
+- Listen: Silicon Valley is spending millions to stop one of its own
+
+[Jason Parham](/author/jason-parham/) is a senior writer at WIRED where he covers internet culture, the future of sex, and the intersection of race and power in America. His WIRED cover story [“A People’s History of Black Twitter”](https://www.wired.com/story/black-twitter-oral-history-part-i-coming-together/) was adapted into a Hulu docuseries in 2024, and won the AAFCA Award for ... [Read More](/author/jason-parham)
+
+Senior Writer
+
+[The Last Airbender Leaked Online. Some Fans Say Paramount Deserves the Fallout](https://www.wired.com/story/the-last-airbender-leak-fans-say-paramount-deserves-fallout/#intcid=_wired-article-bottom-recirc_b13d311e-e067-4ce4-af73-be7866a722c5_roberta-similarity1_fallback_text2vec1)
+
+After the full movie leaked, animators mourned the chance to release their work as intended. Others feel the leak is justified in light of Paramount’s marketing blunders and association with Trump.
+
+Miles Klee
+
+[Sam Altman’s Orb Company Promoted a Bruno Mars Partnership That Doesn't Exist](https://www.wired.com/story/sam-altman-orb-company-bruno-mars-partnership-fake/#intcid=_wired-article-bottom-recirc_b13d311e-e067-4ce4-af73-be7866a722c5_roberta-similarity1_fallback_text2vec1)
+
+“To be clear, we were never approached … nor were we in any discussions regarding a partnership or tour access,” a spokesperson for the artist tells WIRED.
+
+Maxwell Zeff
+
+[The 8 Best Movies to Stream This Month](https://www.wired.com/story/the-best-movies-to-stream-right-now/#intcid=_wired-article-bottom-recirc_b13d311e-e067-4ce4-af73-be7866a722c5_roberta-similarity1_fallback_text2vec1)
+
+_28 Years Later: The Bone Temple_, _Crime 101_, and _Deathstalker_ are among the films deserving of your eyeballs this month
+
+Matt Kamen
+
+[US Senate Candidate Caught Insider Trading on Kalshi Says He Did It on Purpose](https://www.wired.com/story/us-senate-candidate-caught-insider-trading-on-kalshi-says-he-did-it-on-purpose/#intcid=_wired-article-bottom-recirc_b13d311e-e067-4ce4-af73-be7866a722c5_roberta-similarity1_fallback_text2vec1)
+
+Mark Moran, an underdog Senate candidate from Virginia, claims he wanted to get caught violating the prediction market platform’s rules.
+
+Kate Knibbs
+
+[The Fanfare Around the Band Geese Actually Was a Psyop](https://www.wired.com/story/geese-chaotic-good-marketing-industry-plant/#intcid=_wired-article-bottom-recirc_b13d311e-e067-4ce4-af73-be7866a722c5_roberta-similarity1_fallback_text2vec1)
+
+The Brooklyn band Geese was labeled an “industry plant” by those who questioned its sudden ubiquity. Maybe it was.
+
+John Semley
+
+[A New Horror Movie Depicts Realistic Snuff. That’s Not the Most Disturbing Thing About It](https://www.wired.com/story/a-new-horror-movie-depicts-realistic-snuff-thats-not-the-most-disturbing-thing-about-it/#intcid=_wired-article-bottom-recirc_b13d311e-e067-4ce4-af73-be7866a722c5_roberta-similarity1_fallback_text2vec1)
+
+_Faces of Death_ features a black-pilled killer who thinks he’s giving the internet what it wants. In some ways, he’s right.
+
+Corey Atad
+
+[X’s Big Bot Purge Wiped Out a Lot of People’s Secret Porn Feeds](https://www.wired.com/story/x-bot-purge-wipes-out-secret-porn-feeds/#intcid=_wired-article-bottom-recirc_b13d311e-e067-4ce4-af73-be7866a722c5_roberta-similarity1_fallback_text2vec1)
+
+The platform’s large-scale crackdown on automated accounts is also impacting people who’ve spent years curating niche porn on secret X accounts.
+
+Jason Parham
+
+[California Suspends Enforcement of Law Requiring VCs to Report Diversity Data](https://www.wired.com/story/california-temporarily-lets-vcs-off-the-hook-for-dei-reporting/#intcid=_wired-article-bottom-recirc_b13d311e-e067-4ce4-af73-be7866a722c5_roberta-similarity1_fallback_text2vec1)
+
+After investors appealed to the governor, California again delayed the deadline for venture firms to disclose the demographics of startup founders they back.
+
+Paresh Dave
