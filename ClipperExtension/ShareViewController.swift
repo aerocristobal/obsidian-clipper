@@ -204,7 +204,14 @@ final class ShareViewController: UIViewController {
         } else if settings.saveImages, rawContent.html != nil {
             viewModel.state = .loading("Processing images…")
 
-            let limitedURLs = Array(markerMap.values.prefix(20))
+            // Only download images whose markers survived Readability's article
+            // extraction. Without this filter, the 20-image cap is consumed by
+            // page chrome (logos, badges, recirc thumbnails) before the actual
+            // article images get a slot, and downloaded-but-unplaced images
+            // dump into the `## Images` / `## Extracted Text (OCR)` fallbacks.
+            let surviving = HTMLToMarkdown.findMarkerIndices(in: markdownBody)
+            let filteredMarkerMap = markerMap.filter { surviving.contains($0.key) }
+            let limitedURLs = Array(filteredMarkerMap.values.prefix(20))
 
             let processor = ImageProcessor()
             self.imageProcessor = processor
@@ -216,7 +223,7 @@ final class ShareViewController: UIViewController {
             }
 
             var markerToPath: [Int: String] = [:]
-            for (index, url) in markerMap {
+            for (index, url) in filteredMarkerMap {
                 if let path = urlToPath[url.absoluteString] {
                     markerToPath[index] = path
                 }

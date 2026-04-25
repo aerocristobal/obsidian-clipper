@@ -941,8 +941,54 @@ private extension ReadabilityExtractor {
         let d = computeLinkDensity(c.element)
         // Clamp density so a single stray link doesn't zero us out, and a
         // pathological 100%-link container is still strongly penalized.
-        let damping = max(0.05, 1.0 - d)
-        return c.score * damping
+        let linkDamping = max(0.05, 1.0 - d)
+
+        // Recirc card grids on news sites (Wired, Federal News Network)
+        // pattern: `<a><h3>title</h3></a><p>dek</p>` repeated per card.
+        // Real article bodies have unlinked section headings ("The AI
+        // imperative", "Background", etc.). When most headings inside a
+        // candidate are link-wrapped, treat it as a card grid and damp
+        // the aggregated score.
+        let (linked, total) = countLinkedHeadings(c.element)
+        let headingDamping: Double
+        if total >= 3 {
+            let ratio = Double(linked) / Double(total)
+            if ratio > 0.5 {
+                // Floor at 0.2 so a borderline article body with a few
+                // cross-reference linked headings (round-up posts) stays
+                // viable rather than being effectively zeroed out.
+                headingDamping = max(0.2, 1.0 - ratio)
+            } else {
+                headingDamping = 1.0
+            }
+        } else {
+            headingDamping = 1.0
+        }
+
+        return c.score * linkDamping * headingDamping
+    }
+
+    /// Count `<h1>-<h6>` descendants of `element`, recording how many sit
+    /// under an `<a>` ancestor (within `element`'s subtree). Used by
+    /// `effectiveScore` to detect recirc card grids.
+    static func countLinkedHeadings(_ element: HTMLNode) -> (linked: Int, total: Int) {
+        var linked = 0
+        var total = 0
+        walkHeadings(element, insideLink: false, linked: &linked, total: &total)
+        return (linked, total)
+    }
+
+    private static let headingTags: Set<String> = ["h1", "h2", "h3", "h4", "h5", "h6"]
+
+    private static func walkHeadings(_ node: HTMLNode, insideLink: Bool, linked: inout Int, total: inout Int) {
+        let isLink = node.tag == "a"
+        if let tag = node.tag, headingTags.contains(tag) {
+            total += 1
+            if insideLink { linked += 1 }
+        }
+        for child in node.children {
+            walkHeadings(child, insideLink: insideLink || isLink, linked: &linked, total: &total)
+        }
     }
 
     static func scoreCandidates(node: HTMLNode, candidates: inout [CandidateScore]) {
@@ -1013,19 +1059,22 @@ private extension ReadabilityExtractor {
         default: break
         }
 
-        // ID/class-based bonuses
+        // ID/class-based bonuses. Match on word boundaries so that short
+        // negative patterns like "ad" don't false-match real article body
+        // classes like `readmore_available` or `lead-in-text-callout`. The
+        // word-boundary helper is shared with `postProcess`.
         let idClass = ((element.attribute("id") ?? "") + " " +
                        (element.attribute("class") ?? "")).lowercased()
 
         for pattern in positivePatterns {
-            if idClass.contains(pattern) {
+            if containsWholeWord(idClass, pattern: pattern) {
                 score += 25
                 break
             }
         }
 
         for pattern in negativePatterns {
-            if idClass.contains(pattern) {
+            if containsWholeWord(idClass, pattern: pattern) {
                 score -= 25
                 break
             }

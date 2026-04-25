@@ -28,12 +28,7 @@ enum HTMLToMarkdown {
         var ctx = MarkdownContext()
         renderNode(document, to: &ctx)
 
-        var md = ctx.result
-        // Clean up: normalize whitespace, fix excessive newlines
-        md = md.replacingOccurrences(of: "\r\n", with: "\n")
-        md = md.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
-
-        return md.trimmingCharacters(in: .whitespacesAndNewlines)
+        return finalizeMarkdown(ctx.result)
     }
 
     /// Convert an already-parsed DOM subtree directly to Markdown, skipping
@@ -44,10 +39,23 @@ enum HTMLToMarkdown {
         var ctx = MarkdownContext()
         renderNode(node, to: &ctx)
 
-        var md = ctx.result
-        md = md.replacingOccurrences(of: "\r\n", with: "\n")
-        md = md.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
+        return finalizeMarkdown(ctx.result)
+    }
 
+    /// Shared post-processing: strip whitespace-only lines (which `<p>&nbsp;</p>`
+    /// and similar empty wrappers produce after `collapseWhitespace`), then
+    /// collapse runs of 3+ newlines into paragraph breaks.
+    private static func finalizeMarkdown(_ raw: String) -> String {
+        var md = raw
+        md = md.replacingOccurrences(of: "\r\n", with: "\n")
+        // Strip trailing whitespace from blank-looking lines so the next
+        // collapse can fold them. Lookahead keeps the trailing newline.
+        md = md.replacingOccurrences(
+            of: "\\n[ \\t]+(?=\\n)",
+            with: "\n",
+            options: .regularExpression
+        )
+        md = md.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
         return md.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
@@ -516,6 +524,29 @@ enum HTMLToMarkdown {
         }
 
         return (result, markerMap)
+    }
+
+    /// Cached regex for marker discovery — `[[IMG:N]]` where N is a non-negative integer.
+    private static let markerRegex: NSRegularExpression? = {
+        try? NSRegularExpression(pattern: #"\[\[IMG:(\d+)\]\]"#)
+    }()
+
+    /// Find every `[[IMG:N]]` marker index present in the given text.
+    /// Used to filter the markerMap down to images whose markers survived
+    /// Readability's article extraction, so we only download images that
+    /// actually appear in the final article body.
+    static func findMarkerIndices(in text: String) -> Set<Int> {
+        guard let regex = markerRegex else { return [] }
+        let ns = text as NSString
+        var indices = Set<Int>()
+        regex.enumerateMatches(in: text, range: NSRange(location: 0, length: ns.length)) { match, _, _ in
+            guard let match = match, match.numberOfRanges > 1 else { return }
+            let captured = ns.substring(with: match.range(at: 1))
+            if let n = Int(captured) {
+                indices.insert(n)
+            }
+        }
+        return indices
     }
 
     /// Replace `[[IMG:N]]` markers in Markdown with actual image references.

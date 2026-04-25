@@ -283,6 +283,62 @@ final class HTMLToMarkdownTests: XCTestCase {
         XCTAssertEqual(result.markerMap.count, 0, "javascript: URLs must be rejected")
     }
 
+    // MARK: - Marker Index Discovery
+
+    func testFindMarkerIndicesEmpty() {
+        XCTAssertEqual(HTMLToMarkdown.findMarkerIndices(in: ""), [])
+        XCTAssertEqual(HTMLToMarkdown.findMarkerIndices(in: "no markers here"), [])
+    }
+
+    func testFindMarkerIndicesSingle() {
+        let text = "before [[IMG:0]] after"
+        XCTAssertEqual(HTMLToMarkdown.findMarkerIndices(in: text), [0])
+    }
+
+    func testFindMarkerIndicesMultiple() {
+        let text = "[[IMG:0]] then [[IMG:5]] then [[IMG:12]]"
+        XCTAssertEqual(HTMLToMarkdown.findMarkerIndices(in: text), [0, 5, 12])
+    }
+
+    func testFindMarkerIndicesDeduplicates() {
+        let text = "[[IMG:3]] and again [[IMG:3]]"
+        XCTAssertEqual(HTMLToMarkdown.findMarkerIndices(in: text), [3])
+    }
+
+    func testFindMarkerIndicesIgnoresMalformed() {
+        // Letters, negative numbers, missing brackets — none should match.
+        let text = "[[IMG:abc]] [[IMG:-1]] [[IMG]] IMG:0 [[IMG:7]]"
+        XCTAssertEqual(HTMLToMarkdown.findMarkerIndices(in: text), [7])
+    }
+
+    // MARK: - Whitespace-only Line Collapse
+
+    func testWhitespaceOnlyLinesAreCollapsed() {
+        // `<p>&nbsp;</p>` and similar empty wrappers produce blank-looking
+        // lines (a single space between newlines) that previously escaped
+        // the `\n{3,}` collapse. Real input from Electrek / FNN clips.
+        let html = "<p>First paragraph.</p><p>&nbsp;</p><p>&nbsp;</p><p>Second paragraph.</p>"
+        let md = HTMLToMarkdown.convert(html)
+
+        XCTAssertTrue(md.contains("First paragraph."), "Should keep first paragraph")
+        XCTAssertTrue(md.contains("Second paragraph."), "Should keep second paragraph")
+        XCTAssertFalse(md.range(of: "\\n[ \\t]+\\n", options: .regularExpression) != nil,
+                       "No whitespace-only lines should remain, got: \(md.debugDescription)")
+        XCTAssertFalse(md.contains("\n\n\n"),
+                       "No runs of 3+ newlines should remain, got: \(md.debugDescription)")
+    }
+
+    func testWhitespaceOnlyLinesPreserveLeadingIndentInContent() {
+        // Lookahead-only strip means leading whitespace on a content line
+        // (e.g. inside a code block context emitted separately) isn't touched.
+        // Sanity: a paragraph between two empty wrappers should still produce
+        // exactly one blank line above and below.
+        let html = "<p>A</p><p>&nbsp;</p><p>B</p><p>&nbsp;</p><p>C</p>"
+        let md = HTMLToMarkdown.convert(html)
+        // Expect: A\n\nB\n\nC (or same with trailing newline trimmed)
+        XCTAssertEqual(md, "A\n\nB\n\nC", "Empty paragraphs should collapse cleanly, got: \(md.debugDescription)")
+    }
+
     // MARK: - Marker Replacement
 
     func testReplaceMarkersWithImages() {

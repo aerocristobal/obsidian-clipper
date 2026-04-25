@@ -606,4 +606,194 @@ final class ReadabilityExtractorTests: XCTestCase {
             XCTAssertNotNil(result)
         }
     }
+
+    // MARK: - Linked-Heading Penalty (recirc card grid discrimination)
+
+    /// Recirc card grids on news sites render as `<a><h3>title</h3></a>`
+    /// repeated 8-10 times. The aggregated link-density damping wasn't
+    /// strong enough to keep them from beating fragmented article bodies.
+    /// The linked-heading ratio gives us a direct discriminator.
+    func testLinkedHeadingGridLosesToFragmentedArticleBody() {
+        let html = """
+        <html><body>
+        <main>
+            <article class="post-content">
+                <header><h1>The Article Title</h1></header>
+                <div class="BodyWrapper">
+                    <p>First chunk of the body has enough length and natural prose to score
+                    well in Readability, with commas and punctuation flagging it as content.</p>
+                    <p>Continuing in the first chunk with more substantive paragraph text
+                    to give the article weight in the scorer.</p>
+                </div>
+                <div class="advertisement"><p>Sponsored slot.</p></div>
+                <div class="BodyWrapper">
+                    <p>Second chunk picks up where the first left off and continues the
+                    narrative with additional paragraphs of real prose.</p>
+                </div>
+                <div class="BodyWrapper">
+                    <p>Third chunk wraps the article with concluding remarks and
+                    a call-back to the opening theme, tying the piece together.</p>
+                </div>
+            </article>
+            <aside class="recirc-widget">
+                <h2>More Stories</h2>
+                <div>
+                    <a href="/r1"><h3>Related story one with a moderately long headline</h3></a>
+                    <a href="/r2"><h3>Related story two with a moderately long headline</h3></a>
+                    <a href="/r3"><h3>Related story three with a moderately long headline</h3></a>
+                    <a href="/r4"><h3>Related story four with a moderately long headline</h3></a>
+                    <a href="/r5"><h3>Related story five with a moderately long headline</h3></a>
+                    <a href="/r6"><h3>Related story six with a moderately long headline</h3></a>
+                    <a href="/r7"><h3>Related story seven with a moderately long headline</h3></a>
+                    <a href="/r8"><h3>Related story eight with a moderately long headline</h3></a>
+                    <a href="/r9"><h3>Related story nine with a moderately long headline</h3></a>
+                </div>
+            </aside>
+        </main>
+        </body></html>
+        """
+
+        let r = ReadabilityExtractor.extract(html: html, url: nil)
+        XCTAssertNotNil(r)
+        guard let r = r else { return }
+
+        let serialized = r.articleNode.serialize()
+        XCTAssertTrue(serialized.contains("First chunk"), "Article body should win, got: \(serialized.prefix(500))")
+        XCTAssertTrue(serialized.contains("Second chunk"), "All article chunks should be present")
+        XCTAssertTrue(serialized.contains("Third chunk"), "All article chunks should be present")
+        XCTAssertFalse(serialized.contains("Related story one"),
+                       "Recirc grid should not win: \(serialized.prefix(500))")
+    }
+
+    /// False-positive guard: a legitimate round-up post (link-blog with
+    /// linked headings AND prose between them) must still extract — the
+    /// linked-heading damping must not reduce the article's score below
+    /// other (lower-scoring) candidates. The 0.2 floor is what protects
+    /// this case.
+    ///
+    /// Note: separately from heading damping, `postProcess` strips short
+    /// link-wrapped headings as high-link-density blocks. That's a
+    /// pre-existing behavior outside this fix's scope; the prose between
+    /// headings is what carries the article's content forward.
+    func testRoundUpPostWithLinkedHeadingsStillExtracts() {
+        let html = """
+        <html><body>
+        <article class="post">
+            <h1>This Week's Reading List</h1>
+            <p>A few things worth reading from across the web this week, in no particular order.
+            Each entry has a short note about why it caught my attention and a link to the source.</p>
+
+            <h2><a href="https://a.example">First headline that links to the source</a></h2>
+            <p>A meaningful paragraph of commentary on the linked piece, explaining what makes
+            it interesting and how it relates to ongoing themes in the field. This is not just
+            a bullet list — it's actual analysis prose that the scorer should reward.</p>
+
+            <h2><a href="https://b.example">Second headline linking out</a></h2>
+            <p>More commentary on the second item, again written as a paragraph of prose with
+            commas, periods, and substantive content. The kind of writing that distinguishes a
+            curated round-up from a list of bookmarks.</p>
+
+            <h2><a href="https://c.example">Third headline linking out</a></h2>
+            <p>And a third entry with its own commentary paragraph, completing the pattern that
+            makes this a legitimate post rather than a navigation widget masquerading as content.</p>
+
+            <p>Closing thought: round-ups like this should still extract correctly even though
+            their headings are link-wrapped, because the prose between headings carries weight.</p>
+        </article>
+        </body></html>
+        """
+
+        let r = ReadabilityExtractor.extract(html: html, url: nil)
+        XCTAssertNotNil(r, "Round-up post should still extract — heading damping floor at 0.2 protects this")
+
+        guard let r = r else { return }
+        let serialized = r.articleNode.serialize()
+        XCTAssertTrue(serialized.contains("meaningful paragraph"),
+                      "Commentary prose between linked headings must survive: \(serialized.prefix(500))")
+        XCTAssertTrue(serialized.contains("More commentary"),
+                      "Second commentary block must survive")
+        XCTAssertTrue(serialized.contains("Closing thought"),
+                      "Closing prose must survive")
+    }
+
+    /// Regression: Federal News Network article bodies have the class
+    /// `Entry-content u-textFormat readmore_available`. The substring `"ad"`
+    /// from `negativePatterns` previously matched inside `"readmore"`, slapping
+    /// a -25 penalty on the actual article body and letting the recirc widget
+    /// win. `scoreElement` now uses `containsWholeWord`, the same boundary
+    /// check `postProcess` uses.
+    func testReadmoreClassIsNotPenalizedForAdSubstring() {
+        let html = """
+        <html><body>
+        <main>
+            <div class="Entry-content u-textFormat readmore_available" id="Entry-content">
+                <p>The FBI and the Cybersecurity and Infrastructure Security Agency say senior
+                government officials need to be aware of ongoing phishing campaigns targeting
+                Signal and other commercial messaging applications.</p>
+                <p>The alert makes clear that the hackers have compromised individual accounts,
+                and not the encryption or applications themselves. This is a meaningful detail
+                that distinguishes the campaign from a vulnerability disclosure.</p>
+                <p>David Wiseman, vice president of secure communications at BlackBerry, said
+                attackers are exploiting human factors rather than technical weaknesses, which
+                makes mitigation a training and process problem more than a software one.</p>
+                <p>Federal agencies are being advised to roll out additional account-protection
+                measures, review their messaging-app inventories, and re-train staff on
+                phishing-resistance fundamentals over the next quarter.</p>
+            </div>
+            <aside class="related-stories">
+                <h4>Related coverage</h4>
+                <h4>Trending in defense news</h4>
+                <h4>Latest from the federal workforce</h4>
+            </aside>
+        </main>
+        </body></html>
+        """
+
+        let r = ReadabilityExtractor.extract(html: html, url: nil)
+        XCTAssertNotNil(r)
+
+        guard let r = r else { return }
+        let serialized = r.articleNode.serialize()
+        XCTAssertTrue(serialized.contains("FBI and the Cybersecurity"),
+                      "Article body should win — `readmore` should not match `ad`: \(serialized.prefix(500))")
+        XCTAssertTrue(serialized.contains("David Wiseman"),
+                      "Article body paragraphs must survive")
+        XCTAssertFalse(serialized.contains("Trending in defense news"),
+                       "Recirc aside should not win: \(serialized.prefix(500))")
+    }
+
+    /// Sanity test: an article with unlinked section headings ("The AI imperative")
+    /// should never be penalized — its linked-heading ratio is 0.
+    func testUnlinkedSectionHeadingsAreNotPenalized() {
+        let html = """
+        <html><body>
+        <article class="content">
+            <h1>The Main Article</h1>
+            <p>Opening paragraph establishes the topic and sets up what follows. The text is long
+            enough and natural enough to score well, with commas and other punctuation cues.</p>
+
+            <h2>First Section</h2>
+            <p>First section content runs for a paragraph or two, going into detail on the first
+            sub-topic. The heading is not link-wrapped, which is the normal article shape.</p>
+
+            <h2>Second Section</h2>
+            <p>Second section continues the discussion, again with paragraph prose under an
+            unlinked heading. This is the structural pattern of real journalism.</p>
+
+            <h2>Third Section</h2>
+            <p>Final section wraps up with a conclusion and a forward-looking statement, also
+            under an unlinked heading. The article's heading-damping factor should be 1.0.</p>
+        </article>
+        </body></html>
+        """
+
+        let r = ReadabilityExtractor.extract(html: html, url: nil)
+        XCTAssertNotNil(r)
+
+        guard let r = r else { return }
+        let serialized = r.articleNode.serialize()
+        XCTAssertTrue(serialized.contains("First Section"), "Unlinked section heading should be preserved")
+        XCTAssertTrue(serialized.contains("Second Section"), "All sections should survive")
+        XCTAssertTrue(serialized.contains("Third Section"), "All sections should survive")
+    }
 }
