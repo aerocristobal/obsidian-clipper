@@ -1,0 +1,13 @@
+{
+  "title_contains": "AI is the productivity",
+  "must_contain": [
+    "Three ways agencies can incorporate AI"
+  ],
+  "must_not_contain": [
+    "OPM's 2027 budget proposal",
+    "Space Force moves Air Force reservists"
+  ],
+  "min_body_chars": 2000,
+  "max_total_images": 4,
+  "ocr_must_not_contain": ["DOWNLOAD OUR APP", "App Store", "SUBSCRIBE"]
+}

@@ -1,0 +1,15 @@
+{
+  "title_contains": "FBI warning",
+  "must_contain": [
+    "The alert makes clear that the hackers have compromised individual accounts",
+    "David Wiseman"
+  ],
+  "must_not_contain": [
+    "OPM's 2027 budget proposal",
+    "Space Force moves Air Force reservists",
+    "CMMC won't fail on controls"
+  ],
+  "min_body_chars": 1500,
+  "max_total_images": 4,
+  "ocr_must_not_contain": ["DOWNLOAD OUR APP", "SUBSCRIBE"]
+}

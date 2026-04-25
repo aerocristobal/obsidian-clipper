@@ -30,6 +30,8 @@
 		A10000073 /* ReadabilityExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000073 /* ReadabilityExtractorTests.swift */; };
 		A10000074 /* ImageProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000074 /* ImageProcessorTests.swift */; };
 		A10000075 /* WebContentExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000075 /* WebContentExtractorTests.swift */; };
+		A10000076 /* EvalEntryPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000076 /* EvalEntryPoint.swift */; };
+		A10000077 /* ExtractionEvalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000077 /* ExtractionEvalTests.swift */; };
 		A10000080 /* HTMLToMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000021 /* HTMLToMarkdown.swift */; };
 		A10000081 /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000022 /* ImageProcessor.swift */; };
 		A10000082 /* FileSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000023 /* FileSaver.swift */; };
@@ -95,6 +97,8 @@
 		A20000073 /* ReadabilityExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadabilityExtractorTests.swift; sourceTree = "<group>"; };
 		A20000074 /* ImageProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessorTests.swift; sourceTree = "<group>"; };
 		A20000075 /* WebContentExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentExtractorTests.swift; sourceTree = "<group>"; };
+		A20000076 /* EvalEntryPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvalEntryPoint.swift; sourceTree = "<group>"; };
+		A20000077 /* ExtractionEvalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractionEvalTests.swift; sourceTree = "<group>"; };
 		A70000001 /* ObsidianClipper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObsidianClipper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A70000002 /* ClipperExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipperExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A70000003 /* ObsidianClipperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ObsidianClipperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -170,6 +174,8 @@
 				A20000073 /* ReadabilityExtractorTests.swift */,
 				A20000074 /* ImageProcessorTests.swift */,
 				A20000075 /* WebContentExtractorTests.swift */,
+				A20000076 /* EvalEntryPoint.swift */,
+				A20000077 /* ExtractionEvalTests.swift */,
 			);
 			path = ObsidianClipperTests;
 			sourceTree = "<group>";
@@ -327,6 +333,8 @@
 				A10000073 /* ReadabilityExtractorTests.swift in Sources */,
 				A10000074 /* ImageProcessorTests.swift in Sources */,
 				A10000075 /* WebContentExtractorTests.swift in Sources */,
+				A10000076 /* EvalEntryPoint.swift in Sources */,
+				A10000077 /* ExtractionEvalTests.swift in Sources */,
 				A10000080 /* HTMLToMarkdown.swift in Sources */,
 				A10000081 /* ImageProcessor.swift in Sources */,
 				A10000082 /* FileSaver.swift in Sources */,

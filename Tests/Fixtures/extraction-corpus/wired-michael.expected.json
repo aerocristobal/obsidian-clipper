@@ -1,0 +1,12 @@
+{
+  "title_contains": "Michael",
+  "must_contain": [
+    "civil war online"
+  ],
+  "must_not_contain": [
+    "Justice Department Says Anthropic"
+  ],
+  "min_body_chars": 1500,
+  "max_total_images": 6,
+  "ocr_must_not_contain": ["SUBSCRIBE"]
+}
