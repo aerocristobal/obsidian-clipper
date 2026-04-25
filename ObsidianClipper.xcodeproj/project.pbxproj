@@ -42,6 +42,7 @@
 		A10000078 /* JSONLDExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000078 /* JSONLDExtractor.swift */; };
 		A10000087 /* JSONLDExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000078 /* JSONLDExtractor.swift */; };
 		A10000079 /* JSONLDExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000079 /* JSONLDExtractorTests.swift */; };
+		A1000007A /* WebContentExtractorIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000007A /* WebContentExtractorIntegrationTests.swift */; };
 		A10000090 /* SwiftSoupAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000090 /* SwiftSoupAdapter.swift */; };
 		A10000091 /* SwiftSoupAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000090 /* SwiftSoupAdapter.swift */; };
 		A10000092 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = A91111002 /* SwiftSoup */; };
@@ -108,6 +109,7 @@
 		A20000077 /* ExtractionEvalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractionEvalTests.swift; sourceTree = "<group>"; };
 		A20000078 /* JSONLDExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLDExtractor.swift; sourceTree = "<group>"; };
 		A20000079 /* JSONLDExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLDExtractorTests.swift; sourceTree = "<group>"; };
+		A2000007A /* WebContentExtractorIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentExtractorIntegrationTests.swift; sourceTree = "<group>"; };
 		A20000090 /* SwiftSoupAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftSoupAdapter.swift; sourceTree = "<group>"; };
 		A70000001 /* ObsidianClipper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObsidianClipper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A70000002 /* ClipperExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipperExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -189,6 +191,7 @@
 				A20000076 /* EvalEntryPoint.swift */,
 				A20000077 /* ExtractionEvalTests.swift */,
 				A20000079 /* JSONLDExtractorTests.swift */,
+				A2000007A /* WebContentExtractorIntegrationTests.swift */,
 			);
 			path = ObsidianClipperTests;
 			sourceTree = "<group>";
@@ -370,6 +373,7 @@
 				A10000086 /* ReadabilityExtractor.swift in Sources */,
 				A10000087 /* JSONLDExtractor.swift in Sources */,
 				A10000079 /* JSONLDExtractorTests.swift in Sources */,
+				A1000007A /* WebContentExtractorIntegrationTests.swift in Sources */,
 				A10000091 /* SwiftSoupAdapter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
