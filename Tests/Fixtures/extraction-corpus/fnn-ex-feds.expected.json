@@ -1,0 +1,14 @@
+{
+  "title_contains": "former feds",
+  "must_contain": [
+    "Many former federal employees are navigating the job market"
+  ],
+  "must_not_contain": [
+    "A better group of people",
+    "Wildland firefighters on track",
+    "DoD seeks to curb high military spouse"
+  ],
+  "min_body_chars": 800,
+  "max_total_images": 4,
+  "ocr_must_not_contain": ["DOWNLOAD OUR APP", "App Store", "SUBSCRIBE"]
+}

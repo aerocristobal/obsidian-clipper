@@ -1,0 +1,13 @@
+{
+  "title_contains": "Anthropic",
+  "must_contain": [
+    "Anthropic, on the other hand"
+  ],
+  "must_not_contain": [
+    "Justice Department Says Anthropic",
+    "OpenAI Backs Bill That Would Limit Liability"
+  ],
+  "min_body_chars": 1500,
+  "max_total_images": 6,
+  "ocr_must_not_contain": ["SUBSCRIBE", "Download on the"]
+}

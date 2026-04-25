@@ -1,0 +1,13 @@
+{
+  "title_contains": "FridgePower",
+  "must_contain": [
+    "biggest barriers to home backup power",
+    "FridgePower packs serious capability"
+  ],
+  "must_not_contain": [
+    "subscribing to Electrek on Google News"
+  ],
+  "min_body_chars": 1500,
+  "max_total_images": 8,
+  "ocr_must_not_contain": ["NAVS- Rrand Amhassador", "App Store", "SUBSCRIBE"]
+}
