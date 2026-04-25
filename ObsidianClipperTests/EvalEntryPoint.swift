@@ -31,7 +31,7 @@ enum EvalEntryPoint {
     }
 
     /// Identifier for the current branch. Each spike branch overrides this.
-    static let approachName: String = "master"
+    static let approachName: String = "swiftsoup"
 
     static func extract(html: String, baseURL: URL?) -> EvalResult {
         // 1. Inject image markers (matches the live pipeline)

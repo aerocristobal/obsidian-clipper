@@ -29,8 +29,10 @@ enum ReadabilityExtractor {
     /// - Returns: A `ReadabilityResult` with the cleaned article HTML, or `nil`
     ///   if extraction fails.
     static func extract(html: String, url: URL?) -> ReadabilityResult? {
-        var parser = HTMLParser(html: html)
-        guard let document = parser.parse() else { return nil }
+        // Spike C: route through SwiftSoup. The adapter produces the same
+        // HTMLNode tree shape the rest of the pipeline expects, so all
+        // downstream scoring and post-processing work unchanged.
+        guard let document = SwiftSoupAdapter.parse(html: html) else { return nil }
 
         // Extract metadata before preprocessing mutates the tree
         let metadata = extractMetadata(from: document)

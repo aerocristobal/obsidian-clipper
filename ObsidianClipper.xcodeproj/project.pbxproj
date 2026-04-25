@@ -39,6 +39,10 @@
 		A10000084 /* WebContentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000026 /* WebContentExtractor.swift */; };
 		A10000085 /* ClipResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000027 /* ClipResult.swift */; };
 		A10000086 /* ReadabilityExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000028 /* ReadabilityExtractor.swift */; };
+		A10000090 /* SwiftSoupAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000090 /* SwiftSoupAdapter.swift */; };
+		A10000091 /* SwiftSoupAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000090 /* SwiftSoupAdapter.swift */; };
+		A10000092 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = A91111002 /* SwiftSoup */; };
+		A10000093 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = A91111003 /* SwiftSoup */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -99,6 +103,7 @@
 		A20000075 /* WebContentExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentExtractorTests.swift; sourceTree = "<group>"; };
 		A20000076 /* EvalEntryPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvalEntryPoint.swift; sourceTree = "<group>"; };
 		A20000077 /* ExtractionEvalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractionEvalTests.swift; sourceTree = "<group>"; };
+		A20000090 /* SwiftSoupAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftSoupAdapter.swift; sourceTree = "<group>"; };
 		A70000001 /* ObsidianClipper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObsidianClipper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A70000002 /* ClipperExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClipperExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A70000003 /* ObsidianClipperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ObsidianClipperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -140,6 +145,7 @@
 				A20000026 /* WebContentExtractor.swift */,
 				A20000027 /* ClipResult.swift */,
 				A20000028 /* ReadabilityExtractor.swift */,
+				A20000090 /* SwiftSoupAdapter.swift */,
 				A20000030 /* Info.plist */,
 				A20000041 /* ClipperExtension.entitlements */,
 				A20000060 /* Action.js */,
@@ -206,6 +212,7 @@
 			buildConfigurationList = A90000002 /* Build configuration list for PBXNativeTarget "ClipperExtension" */;
 			buildPhases = (
 				AB0000003 /* Sources */,
+				AB0000006 /* Frameworks */,
 				AB0000004 /* Resources */,
 			);
 			buildRules = (
@@ -213,6 +220,9 @@
 			dependencies = (
 			);
 			name = ClipperExtension;
+			packageProductDependencies = (
+				A91111002 /* SwiftSoup */,
+			);
 			productName = ClipperExtension;
 			productReference = A70000002 /* ClipperExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -222,6 +232,7 @@
 			buildConfigurationList = A90000004 /* Build configuration list for PBXNativeTarget "ObsidianClipperTests" */;
 			buildPhases = (
 				AB0000005 /* Sources */,
+				AB0000007 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -229,6 +240,9 @@
 				AC0000002 /* PBXTargetDependency */,
 			);
 			name = ObsidianClipperTests;
+			packageProductDependencies = (
+				A91111003 /* SwiftSoup */,
+			);
 			productName = ObsidianClipperTests;
 			productReference = A70000003 /* ObsidianClipperTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -264,6 +278,9 @@
 				Base,
 			);
 			mainGroup = A80000001;
+			packageReferences = (
+				A91111001 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+			);
 			productRefGroup = A80000005 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -320,6 +337,7 @@
 				A10000026 /* WebContentExtractor.swift in Sources */,
 				A10000027 /* ClipResult.swift in Sources */,
 				A10000028 /* ReadabilityExtractor.swift in Sources */,
+				A10000090 /* SwiftSoupAdapter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -342,10 +360,30 @@
 				A10000084 /* WebContentExtractor.swift in Sources */,
 				A10000085 /* ClipResult.swift in Sources */,
 				A10000086 /* ReadabilityExtractor.swift in Sources */,
+				A10000091 /* SwiftSoupAdapter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AB0000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000092 /* SwiftSoup in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB0000007 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000093 /* SwiftSoup in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXTargetDependency section */
 		AC0000001 /* PBXTargetDependency */ = {
@@ -565,6 +603,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A91111001 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A91111002 /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A91111001 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+		A91111003 /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A91111001 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A40000001 /* Project object */;
 }
