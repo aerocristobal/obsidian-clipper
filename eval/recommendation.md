@@ -1,5 +1,9 @@
 # Recommendation: merge B + C, defer A
 
+> **Status (2026-04-25):** B + C merged into main. Spike A deferred. JSON-LD fast path wired into the live `ShareViewController` pipeline. Post-merge eval result: 4/6 fixtures pass — exact match with the prediction in this document. See `eval/comparison.md` § "Post-merge result" for the full breakdown.
+
+---
+
 **TL;DR**
 
 Merge Spike B (JSON-LD fast path) and Spike C (SwiftSoup parser) into master as two separate, independent commits. Defer Spike A (Readability.js / JSC). Add a small follow-up scoring/post-processing fix for `fnn-fbi`'s recirc bleed-through. Total expected pass rate: **5/6** at meaningful but bounded cost.

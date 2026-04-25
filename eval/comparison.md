@@ -6,15 +6,15 @@
 
 ## Pass/fail matrix
 
-| Fixture | Master | A: Readability.js + JSC | B: JSON-LD fast path | C: SwiftSoup parser |
-|---|:-:|:-:|:-:|:-:|
-| electrek-bluetti | ✗ | **✓** | ✗ (fall-through) | ✗ |
-| fnn-ai-productivity | ✓ | ✓ | ✓ (fall-through) | ✓ |
-| fnn-ex-feds | ✗ | ✗* | ✗ (fall-through) | **✓** |
-| fnn-fbi | ✗ | **✓** | ✗ (fall-through) | partial† |
-| wired-anthropic | ✗ | **✓** | **✓** (JSON-LD fired) | ✗ |
-| wired-michael | ✓ | ✓ | ✓ (JSON-LD fired) | ✓ |
-| **Pass count** | **2/6** | **5/6** | **3/6** | **3/6** |
+| Fixture | Master | A: Readability.js + JSC | B: JSON-LD fast path | C: SwiftSoup parser | **Main (B+C merged)** |
+|---|:-:|:-:|:-:|:-:|:-:|
+| electrek-bluetti | ✗ | **✓** | ✗ (fall-through) | ✗ | ✗ |
+| fnn-ai-productivity | ✓ | ✓ | ✓ (fall-through) | ✓ | ✓ |
+| fnn-ex-feds | ✗ | ✗* | ✗ (fall-through) | **✓** | **✓** |
+| fnn-fbi | ✗ | **✓** | ✗ (fall-through) | partial† | partial† |
+| wired-anthropic | ✗ | **✓** | **✓** (JSON-LD fired) | ✗ | **✓** |
+| wired-michael | ✓ | ✓ | ✓ (JSON-LD fired) | ✓ | ✓ |
+| **Pass count** | **2/6** | **5/6** | **3/6** | **3/6** | **4/6** |
 
 \* A's `fnn-ex-feds` ✗ is a fixture-criteria mismatch, not an extraction defect: Readability.js drops the deck paragraph our `must_contain` canary lived in, but the full 8101-char interview transcript is intact (vs master's 948 chars). With a different canary phrase, A would be 6/6.
 
@@ -22,29 +22,29 @@
 
 ## Body-character delta (vs master)
 
-| Fixture | Master | A | B | C |
-|---|---|---|---|---|
-| electrek-bluetti | 5662 | 4881 | 5662 | 5662 |
-| fnn-ai-productivity | 6954 | 6966 | 6954 | 9000 |
-| fnn-ex-feds | 948 | **8101** | 948 | **10961** |
-| fnn-fbi | **764** | **3888** | 764 | **5165** |
-| wired-anthropic | 2918 | 4803 | 4223 | 2918 |
-| wired-michael | 9273 | 5527 | 4103 | 9273 |
+| Fixture | Master | A | B | C | **Main (B+C)** |
+|---|---|---|---|---|---|
+| electrek-bluetti | 5662 | 4881 | 5662 | 5662 | 5662 |
+| fnn-ai-productivity | 6954 | 6966 | 6954 | 9000 | 9000 |
+| fnn-ex-feds | 948 | **8101** | 948 | **10961** | **10961** |
+| fnn-fbi | **764** | **3888** | 764 | **5165** | **5165** |
+| wired-anthropic | 2918 | 4803 | 4223 | 2918 | 4223 |
+| wired-michael | 9273 | 5527 | 4103 | 9273 | 4103 |
 
-Bold = substantial body-volume change. A and C both rescue FNN articles where master truncated to <1000 chars.
+Bold = substantial body-volume change. A and C both rescue FNN articles where master truncated to <1000 chars. The merged main inherits C's body recovery on FNN and B's clean publisher body on Wired.
 
 ## Per-fixture timing (ms)
 
-| Fixture | Master | A | B | C |
-|---|---|---|---|---|
-| electrek-bluetti | 103 | 660 | 164 | 241 |
-| fnn-ai-productivity | 90 | 177 | 313 | 244 |
-| fnn-ex-feds | 74 | **24** | 72 | 226 |
-| fnn-fbi | 53 | **18** | 61 | 150 |
-| wired-anthropic | 428 | 74 | **10** | 311 |
-| wired-michael | 475 | 85 | **15** | 356 |
+| Fixture | Master | A | B | C | **Main (B+C)** |
+|---|---|---|---|---|---|
+| electrek-bluetti | 103 | 660 | 164 | 241 | 398 |
+| fnn-ai-productivity | 90 | 177 | 313 | 244 | 207 |
+| fnn-ex-feds | 74 | **24** | 72 | 226 | 257 |
+| fnn-fbi | 53 | **18** | 61 | 150 | 165 |
+| wired-anthropic | 428 | 74 | **10** | 311 | **10** |
+| wired-michael | 475 | 85 | **15** | 356 | **13** |
 
-A's per-fixture warm time is consistently fast once initialized; B's fast-path hits are 30–40× faster than master's full Readability run; C is uniformly slower (SwiftSoup tree-builder cost) but never pathologically so.
+Merged main inherits B's fast-path speed on Wired (10–13 ms) and C's tree-builder cost everywhere else (165–400 ms). The Wired wins are dramatic — 30–40× faster than master because JSON-LD short-circuits before SwiftSoup ever touches the page.
 
 ## Cost summary
 
@@ -53,6 +53,7 @@ A's per-fixture warm time is consistently fast once initialized; B's fast-path h
 | **A: Readability.js / JSC** | **+25 MB** resident (cold init ~270ms one-time) | +538 KB JS bundle | +500 LOC Swift+JS | npm + esbuild build step | `@mozilla/readability`, `linkedom` (vendored as bundle) | JSC lifecycle, JS update cadence, share-extension memory cap |
 | **B: JSON-LD fast path** | trivial | trivial | +210 LOC Swift | none | none | minimal |
 | **C: SwiftSoup parser** | trivial | **+5–6 MB** universal (~+2.5 MB arm64 `__TEXT`) | +105 LOC Swift | SPM resolution | SwiftSoup 2.13.4 | new SPM dep, bigger appex |
+| **Main (B + C)** | trivial | **+5–6 MB** universal | +315 LOC Swift | none beyond SPM | SwiftSoup 2.13.4 | new SPM dep, bigger appex |
 
 ## Where each approach helps
 
@@ -98,6 +99,7 @@ Each branch's eval output:
 - `eval/readability-jsc/{summary.json, *.md, notes.md}` — branch A
 - `eval/jsonld-fastpath/{summary.json, *.md, notes.md}` — branch B
 - `eval/swiftsoup/{summary.json, *.md, notes.md}` — branch C
+- `eval/main/{summary.json, *.md}` — main after B + C merged (this iteration)
 
 To re-run any branch:
 ```bash
@@ -111,3 +113,41 @@ To compare:
 ```bash
 diff <(jq .fixtures eval/master/summary.json) <(jq .fixtures eval/<branch>/summary.json)
 ```
+
+---
+
+## Post-merge result (2026-04-25)
+
+B + C merged into main; Spike A deferred. Live `ShareViewController.performClipping` rewired to call `JSONLDExtractor.tryFastPath` first; on miss, falls through to the existing Readability pipeline (now backed by SwiftSoup). All 203 tests pass.
+
+**Actual: 4/6** — exact match with the recommendation's prediction.
+
+| Fixture | Outcome | Source |
+|---|---|---|
+| electrek-bluetti | ✗ (unchanged) | "Subscribe to Electrek" recirc bleed; needs follow-up post-processing strip |
+| fnn-ai-productivity | ✓ (unchanged) | already passing |
+| fnn-ex-feds | **✓ flipped** | C's SwiftSoup parser correctly recovered Entry-content (10961c vs master's 948c) |
+| fnn-fbi | ✗ (improved but not pass) | C extracts the body cleanly (must_contain 2/2, body 5165c vs 764c) but a recirc paragraph still bleeds; needs the same follow-up |
+| wired-anthropic | **✓ flipped** | B's JSON-LD fast path returns Wired's `articleBody` directly (10ms) |
+| wired-michael | ✓ (unchanged) | already passing — also now via B's fast path (13ms vs master's 475ms) |
+
+### Net effect
+
+- +2 fixtures passing vs master (2/6 → 4/6)
+- 30–40× faster on Wired articles (JSON-LD short-circuit)
+- Body-volume rescue on FNN articles (SwiftSoup tree-builder)
+- No behavioral regressions (all 86 prior tests + 8 JSON-LD tests + harness all pass)
+- +5–6 MB universal binary (App Store thinning halves on-device)
+
+### Remaining gaps (deferred follow-up)
+
+Both `electrek-bluetti` and `fnn-fbi` fail the `must_not_contain` check — the body extracts correctly, but a recirc/footer paragraph survives:
+
+- electrek-bluetti: "subscribing to Electrek on Google News" — at the end of the article body, marked but not class-named as recirc
+- fnn-fbi: a sidebar/recirc canary still appears post-extraction
+
+Both are fixable with a small targeted post-processing pass that strips known-pattern paragraphs (`Subscribe to`, `Follow us on`, `Read more from`) and class-suffixed subtrees (`*[class*="recirc"]`, `*[class*="related"]`, `*[class*="trending"]`). ~30 LOC. Tracked in `eval/recommendation.md` action items.
+
+### What stays on the shelf
+
+`spike/readability-jsc` (A) remains unmerged. Documented option for future iteration if widening the corpus shows B+C+follow-up not generalizing. A's 5/6 score plus the +25 MB memory cost makes it the right escape hatch but not the right default.
