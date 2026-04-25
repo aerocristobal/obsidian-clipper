@@ -3,70 +3,75 @@ import Foundation
 
 /// Per-branch extraction adapter for the eval harness.
 ///
-/// The harness in `ExtractionEvalTests.swift` calls `EvalEntryPoint.extract`
-/// for every fixture. **This is the only file branches diverge on** —
-/// each spike branch swaps the body of `extract` to route through its
-/// own approach. The harness, fixtures, and scoring stay identical.
+/// **Spike A — Readability.js + linkedom in JavaScriptCore.**
 ///
-/// Contract:
-/// - Input: raw HTML string + optional baseURL (for relative link resolution)
-/// - Output: an `EvalResult` with markdown body, image URL count (or nil if
-///   not measurable), and the title used.
+/// This branch routes through `JSCReadabilityExtractor`, which loads a bundled
+/// `readability-bundle.js` (Mozilla's Readability + linkedom) into a shared
+/// JSContext and parses each fixture's HTML there. The article HTML returned
+/// by Readability is then fed to the existing `HTMLToMarkdown.convert(_:)`
+/// string overload to produce the markdown the eval harness scores.
 ///
-/// The default (master) implementation runs the shipped pipeline:
-/// `replaceImgTagsWithMarkers` → `ReadabilityExtractor.extract` →
-/// `HTMLToMarkdown.convert(node:)`, then filters image markers to those
-/// surviving Readability (mirroring what `ShareViewController` does).
+/// Falls back to the master Swift `ReadabilityExtractor` if JSC fails (bundle
+/// missing, JS exception, or Readability returns null).
 enum EvalEntryPoint {
 
     struct EvalResult {
         let title: String
         let markdown: String
-        /// Number of image markers that survived Readability (proxy for
-        /// "images that would actually get downloaded"). nil if the
-        /// approach doesn't go through marker injection.
         let imageMarkerCount: Int?
-        /// Source label for the comparison report header.
         let approach: String
     }
 
-    /// Identifier for the current branch. Each spike branch overrides this.
-    static let approachName: String = "master"
+    static let approachName: String = "readability-jsc"
 
     static func extract(html: String, baseURL: URL?) -> EvalResult {
-        // 1. Inject image markers (matches the live pipeline)
+        // 1. Inject [[IMG:N]] markers into the *original* HTML. We do this
+        //    before sending to Readability.js so image positions can survive
+        //    the cleanup pass — Readability strips/rewrites <img> tags, but
+        //    the markers live as plain text inside <p> elements that
+        //    Readability preserves.
         let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: baseURL)
         let markedHTML = markerResult.html
 
-        // 2. Run Readability
-        let readability = ReadabilityExtractor.extract(html: markedHTML, url: baseURL)
+        // 2. Run Readability.js via JSC.
+        if let jsc = JSCReadabilityExtractor.extract(html: markedHTML, url: baseURL) {
+            // Convert article HTML → markdown using the existing string parser.
+            let candidate = HTMLToMarkdown.convert(jsc.content)
 
-        let title: String
-        let markdown: String
-        let surviving: Set<Int>
-
-        if let r = readability {
-            let candidate = HTMLToMarkdown.convert(node: r.articleNode)
-            // Match the live "<100 chars" fallback behavior in ShareViewController.
             if candidate.filter({ !$0.isWhitespace }).count >= 100 {
-                markdown = candidate
-                title = r.title ?? ""
-                surviving = HTMLToMarkdown.findMarkerIndices(in: candidate)
-            } else {
-                markdown = HTMLToMarkdown.convert(markedHTML)
-                title = r.title ?? ""
-                surviving = HTMLToMarkdown.findMarkerIndices(in: markdown)
+                let surviving = HTMLToMarkdown.findMarkerIndices(in: candidate)
+                return EvalResult(
+                    title: jsc.title,
+                    markdown: candidate,
+                    imageMarkerCount: surviving.count,
+                    approach: approachName
+                )
             }
-        } else {
-            markdown = HTMLToMarkdown.convert(markedHTML)
-            title = ""
-            surviving = HTMLToMarkdown.findMarkerIndices(in: markdown)
+            // Fall through to the full-HTML fallback below — Readability
+            // returned a too-short result.
         }
 
+        // 3. Fallback path: try the master Swift ReadabilityExtractor, then
+        //    full-HTML conversion. Mirrors what `ShareViewController` does
+        //    when extraction is too short.
+        if let r = ReadabilityExtractor.extract(html: markedHTML, url: baseURL) {
+            let candidate = HTMLToMarkdown.convert(node: r.articleNode)
+            if candidate.filter({ !$0.isWhitespace }).count >= 100 {
+                let surviving = HTMLToMarkdown.findMarkerIndices(in: candidate)
+                return EvalResult(
+                    title: r.title ?? "",
+                    markdown: candidate,
+                    imageMarkerCount: surviving.count,
+                    approach: approachName
+                )
+            }
+        }
+
+        let fallbackMarkdown = HTMLToMarkdown.convert(markedHTML)
         return EvalResult(
-            title: title,
-            markdown: markdown,
-            imageMarkerCount: surviving.count,
+            title: "",
+            markdown: fallbackMarkdown,
+            imageMarkerCount: HTMLToMarkdown.findMarkerIndices(in: fallbackMarkdown).count,
             approach: approachName
         )
     }
