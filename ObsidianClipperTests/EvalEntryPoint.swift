@@ -3,42 +3,36 @@ import Foundation
 
 /// Per-branch extraction adapter for the eval harness.
 ///
-/// The harness in `ExtractionEvalTests.swift` calls `EvalEntryPoint.extract`
-/// for every fixture. **This is the only file branches diverge on** —
-/// each spike branch swaps the body of `extract` to route through its
-/// own approach. The harness, fixtures, and scoring stay identical.
-///
-/// Contract:
-/// - Input: raw HTML string + optional baseURL (for relative link resolution)
-/// - Output: an `EvalResult` with markdown body, image URL count (or nil if
-///   not measurable), and the title used.
-///
-/// The default (master) implementation runs the shipped pipeline:
-/// `replaceImgTagsWithMarkers` → `ReadabilityExtractor.extract` →
-/// `HTMLToMarkdown.convert(node:)`, then filters image markers to those
-/// surviving Readability (mirroring what `ShareViewController` does).
+/// **Branch: `spike/jsonld-fastpath`** — tries `JSONLDExtractor` first;
+/// falls through to the shipped Readability pipeline when JSON-LD doesn't
+/// yield a substantial article body.
 enum EvalEntryPoint {
 
     struct EvalResult {
         let title: String
         let markdown: String
-        /// Number of image markers that survived Readability (proxy for
-        /// "images that would actually get downloaded"). nil if the
-        /// approach doesn't go through marker injection.
         let imageMarkerCount: Int?
-        /// Source label for the comparison report header.
         let approach: String
     }
 
-    /// Identifier for the current branch. Each spike branch overrides this.
-    static let approachName: String = "master"
+    static let approachName: String = "jsonld-fastpath"
 
     static func extract(html: String, baseURL: URL?) -> EvalResult {
-        // 1. Inject image markers (matches the live pipeline)
+        // 1. JSON-LD fast path — short-circuit when the publisher has
+        //    embedded the article body as Schema.org structured data.
+        if let ld = JSONLDExtractor.tryFastPath(html: html) {
+            let (markdown, imageCount) = renderJSONLDBody(ld, baseURL: baseURL)
+            return EvalResult(
+                title: ld.title,
+                markdown: markdown,
+                imageMarkerCount: imageCount,
+                approach: approachName
+            )
+        }
+
+        // 2. Fallback — identical to master pipeline.
         let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: baseURL)
         let markedHTML = markerResult.html
-
-        // 2. Run Readability
         let readability = ReadabilityExtractor.extract(html: markedHTML, url: baseURL)
 
         let title: String
@@ -47,7 +41,6 @@ enum EvalEntryPoint {
 
         if let r = readability {
             let candidate = HTMLToMarkdown.convert(node: r.articleNode)
-            // Match the live "<100 chars" fallback behavior in ShareViewController.
             if candidate.filter({ !$0.isWhitespace }).count >= 100 {
                 markdown = candidate
                 title = r.title ?? ""
@@ -69,5 +62,53 @@ enum EvalEntryPoint {
             imageMarkerCount: surviving.count,
             approach: approachName
         )
+    }
+
+    // MARK: - JSON-LD body rendering
+
+    /// Render a JSON-LD body to Markdown and count any image markers.
+    /// HTML bodies pass through `HTMLToMarkdown.convert` after marker
+    /// injection; plain-text bodies are wrapped in `<p>` per paragraph
+    /// (split on `\n\n`, then `\n` if no double newline) and pushed through
+    /// the same converter so output style is consistent across branches.
+    private static func renderJSONLDBody(
+        _ ld: JSONLDExtractor.Result,
+        baseURL: URL?
+    ) -> (markdown: String, imageCount: Int) {
+        let bodyHTML: String
+        if ld.articleBodyIsHTML {
+            bodyHTML = ld.articleBody
+        } else {
+            bodyHTML = wrapPlainTextAsHTML(ld.articleBody)
+        }
+
+        // Inject image markers on the body HTML (article-only — no recirc
+        // bleed-through).
+        let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(bodyHTML, baseURL: baseURL)
+        let markdown = HTMLToMarkdown.convert(markerResult.html)
+        let surviving = HTMLToMarkdown.findMarkerIndices(in: markdown)
+        return (markdown, surviving.count)
+    }
+
+    private static func wrapPlainTextAsHTML(_ text: String) -> String {
+        // Prefer paragraph splits on `\n\n`. If the body has no blank
+        // lines, fall back to single `\n` (still common — Wired emits a
+        // single `\n` between paragraphs).
+        let normalized = text.replacingOccurrences(of: "\r\n", with: "\n")
+        let separator = normalized.contains("\n\n") ? "\n\n" : "\n"
+        let paragraphs = normalized
+            .components(separatedBy: separator)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        return paragraphs.map { "<p>\(escapeHTML($0))</p>" }.joined(separator: "\n")
+    }
+
+    /// Minimal HTML-escape for plain-text bodies. Only escapes `<` and `&`
+    /// so the markdown converter sees them as text, not tags.
+    private static func escapeHTML(_ s: String) -> String {
+        s
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
     }
 }
