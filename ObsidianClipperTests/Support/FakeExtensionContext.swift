@@ -51,11 +51,12 @@ final class FakeExtensionContext: NSExtensionContext {
 extension FakeExtensionContext {
 
     /// Build a context that mimics Safari's share input: a single
-    /// `NSExtensionItem` carrying a `public.property-list` provider whose
+    /// `NSExtensionItem` carrying a `com.apple.property-list` provider whose
     /// payload follows the `NSExtensionJavaScriptPreprocessingResultsKey`
     /// shape. This is the path `WebContentExtractor` exercises when Safari
     /// runs `Action.js` and hands the resulting `{title, URL, html}` dict
-    /// back to the extension.
+    /// back to the extension. The UTI must match what real iOS Safari
+    /// registers — `com.apple.property-list`, not `public.property-list`.
     static func safariJSResults(
         title: String,
         url: String,
@@ -70,7 +71,7 @@ extension FakeExtensionContext {
             NSExtensionJavaScriptPreprocessingResultsKey: payload
         ]
 
-        let provider = NSItemProvider(item: wrapped as NSDictionary, typeIdentifier: "public.property-list")
+        let provider = NSItemProvider(item: wrapped as NSDictionary, typeIdentifier: "com.apple.property-list")
 
         let item = NSExtensionItem()
         item.attributedContentText = NSAttributedString(string: title)
