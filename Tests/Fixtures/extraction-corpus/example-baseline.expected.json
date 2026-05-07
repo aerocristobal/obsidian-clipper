@@ -1,0 +1,11 @@
+{
+  "title_contains": "Example Domain",
+  "must_contain": [
+    "Example Domain",
+    "documentation examples"
+  ],
+  "must_not_contain": [],
+  "min_body_chars": 100,
+  "max_total_images": 0,
+  "ocr_must_not_contain": []
+}

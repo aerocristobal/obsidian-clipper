@@ -1,0 +1,10 @@
+{
+  "title_contains": "Hacker News",
+  "must_contain": [
+    "Hacker News"
+  ],
+  "must_not_contain": [],
+  "min_body_chars": 800,
+  "max_total_images": 5,
+  "ocr_must_not_contain": []
+}

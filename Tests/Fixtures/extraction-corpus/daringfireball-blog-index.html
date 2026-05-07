@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en"  class="daringfireball-net">
+<head>
+	<meta charset="UTF-8" />
+	<title>Daring Fireball</title>
+	<meta name="viewport" content="width=device, initial-scale=0.5, minimum-scale=0.45" />
+	<link rel="apple-touch-icon-precomposed" href="/graphics/apple-touch-icon.png" />
+	<link rel="shortcut icon" href="/graphics/favicon.ico?v=005" />
+	<link rel="mask-icon" href="/graphics/dfstar.svg" color="#4a525a">
+	<link rel="stylesheet" type="text/css" media="screen"  href="/css/fireball_screen.css?v1.2025-03-12" />
+	<link rel="stylesheet" type="text/css" media="screen"  href="/css/ie_sucks.php" />
+	<link rel="stylesheet" type="text/css" media="print"   href="/css/fireball_print.css?v01" />
+	<link rel="alternate"  type="application/atom+xml"     href="/feeds/main" />
+	<link rel="alternate"  type="application/json"         href="/feeds/json" />
+	<link rel="me"                                         href="https://mastodon.social/@gruber" />
+	<link rel="me"                                         href="https://mastodon.social/@daringfireball" />
+	<script src="/js/js-global/FancyZoom.js"></script>
+	<script src="/js/js-global/FancyZoomHTML.js"></script>
+
+	<!-- Open Graph bullshit, for home page: -->
+	<meta property="og:title"       content="Daring Fireball, by John Gruber" />
+	<meta property="og:type"        content="website" />
+	<meta property="og:url"         content="https://daringfireball.net/" />
+	<meta property="og:image"       content="https://daringfireball.net/graphics/df-wide-card.png" />
+	<meta property="og:site_name"   content="Daring Fireball" />
+	<meta property="og:description" content="Commentary on Apple, technology, design, politics, and more." />
+</head>
+<body  class="daringfireball-net"  onload="setupZoom()">
+<div id="Box">
+
+<div id="Banner">
+<a href="/" title="Daring Fireball: Home"><img src="/graphics/logos/" alt="Daring Fireball" height="56" /></a>
+</div>
+<div id="Sidebar">
+<p>By <strong>John&nbsp;Gruber</strong></p>
+
+<ul><!--&#9733;-->
+<li><a href="/archive/" title="Previous articles.">Archive</a></li><li><script>
+// <![CDATA[
+function ReadCookie(name) {
+	var nameEQ = name + "=";
+	var ca = document.cookie.split(';');
+	for(var i=0; i < ca.length; i++) {
+		var c = ca[i];
+		while (c.charAt(0)==' ') c = c.substring(1, c.length);
+		if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+	}
+	return null;
+}
+var display_linked_list = ReadCookie('displayLinkedList');
+var li_linked = '<a href="/linked/" title="The Linked List.">Linked List<\/a>';
+if (display_linked_list == "hide") {
+	// Linked List is off on home page, so show it in menu:
+	document.write(li_linked + "<\/li>\n<li>");
+}
+else {
+	// Default to not putting separate LL item in sidebar:
+}
+// ]]>
+</script></li>
+<li><a href="/thetalkshow/" title="America’s favorite 3-star podcast.">The Talk Show</a></li>
+<li><a href="https://dithering.fm/" title="Two episodes per week, 15 minutes per episode. Not a minute less, not a minute more.">Dithering</a></li>
+<li><a href="/projects/" title="Software projects, including SmartyPants and Markdown.">Projects</a></li>
+<li><a href="/contact/" title="How to send email or feedback regarding Daring Fireball.">Contact</a></li>
+<li><a href="/colophon/" title="About this site and the tools used to produce it.">Colophon</a></li>
+<li><a href="/feeds/">Feeds / Social</a></li>
+<!-- 
+<li><a href="https://twitter.com/daringfireball">Twitter</a></li>
+ -->
+<li><a href="/feeds/sponsors/">Sponsorship</a></li>
+</ul>
+
+<div id="SidebarMartini">
+<a href="https://workos.com/?utm_source=daringfireball&utm_medium=newsletter&utm_campaign=q22026">
+	<img alt="WorkOS" src="/martini/images/workos.png" height="90">
+</a>
+<p>OpenAI, Anthropic, Cursor, and Perplexity chose <a href="https://workos.com/?utm_source=daringfireball&utm_medium=newsletter&utm_campaign=q22026">WorkOS</a> over building it themselves.</p>
+</div>
+
+</div> <!-- Sidebar -->
+
+<div id="Main">
+
+<dl class="linkedlist">
+<dt>
+<a href="https://www.macrumors.com/2026/05/05/apple-mac-studio-mac-mini-ram-cuts/">Apple Cuts More Mac Studio and Mac Mini RAM Options as Memory Shortage Worsens</a>&nbsp;<a class="permalink" title="Permanent link to ‘Apple Cuts More Mac Studio and Mac Mini RAM Options as Memory Shortage Worsens’" href="https://daringfireball.net/linked/2026/05/05/apple-cuts-mac-studio-and-mac-mini-options">&#9733;</a>
+</dt>
+<dd>
+<p>Juli Clover, MacRumors:</p>
+
+<blockquote>
+  <p>Apple has removed more desktop Macs from its online store as the
+global memory shortage continues. Mac mini models with 32GB and
+64GB of RAM are no longer available for purchase, nor is the M3
+Ultra Mac Studio with 256GB RAM.</p>
+
+<p>The M3 Ultra Mac Studio is now available only in a 96GB RAM
+configuration, with higher-tier options eliminated. Both M3 Mac
+Studio and M4 Max Mac Studio models have delivery estimates of 9
+to 10 weeks.</p>
+</blockquote>
+
+</dd>
+
+
+<dt>
+<a href="https://9to5mac.com/2026/05/05/apple-reaches-250m-settlement-over-siri-delays-users-could-get-up-to-95-per-device/">Apple Settles Class Action Lawsuit Over AI Features That Were Advertised but Didn’t Ship for $250 Million</a>&nbsp;<a class="permalink" title="Permanent link to ‘Apple Settles Class Action Lawsuit Over AI Features That Were Advertised but Didn’t Ship for $250 Million’" href="https://daringfireball.net/linked/2026/05/05/apple-intelligence-lawsuit-settlement">&#9733;</a>
+</dt>
+<dd>
+<p>Chance Miller, 9to5Mac:</p>
+
+<blockquote>
+  <p>Last March, Apple was <a href="https://9to5mac.com/2025/03/20/apple-intelligence-lawsuit-advertising/">hit with a class action lawsuit</a>
+after <a href="https://9to5mac.com/2025/03/07/apple-intelligence-personal-siri-delayed/">delaying</a> the launch of the “more personalized Siri”
+that was first announced at WWDC 2024. Apple agreed to settle the
+case in December, and the full settlement terms are now available.
+Apple is set to pay $250 million to settle the lawsuit, equating
+to an estimated $25 per device. That number could reach up to $95
+per device, depending on how many users submit claims. [...]</p>
+
+<p>As part of the settlement, Apple is not admitting any wrongdoing.
+The company continues to assert that “it acted in good faith and
+in a manner reasonably believed to be in accordance with all
+applicable rules, regulations, and laws.” In a statement to
+9to5Mac, an Apple spokesperson said:</p>
+
+<blockquote>
+  <p>Since the launch of Apple Intelligence, we have introduced dozens
+of features across many languages that are integrated across
+Apple’s platforms, relevant to what users do every day, and built
+with privacy protections at every step. These include Visual
+Intelligence, Live Translation, Writing Tools, Genmoji, Clean Up
+and many more.</p>
+
+<p>Apple has reached a settlement to resolve claims related to the
+availability of two additional features. We resolved this matter
+to stay focused on doing what we do best, delivering the most
+innovative products and services to our users.</p>
+</blockquote>
+</blockquote>
+
+<p>A $25/device settlement sounds about right. Apple ran ads showing features that <em>still</em> haven’t shipped. That they honestly intended to somehow ship those features, as promised, doesn’t mean the ads didn’t wind up being false.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://politicalwire.com/2026/04/29/iran-war-has-cost-25-billion-so-far/">The Pentagon Pegs the Cost of the Iran War, So Far, at $25 Billion</a>&nbsp;<a class="permalink" title="Permanent link to ‘The Pentagon Pegs the Cost of the Iran War, So Far, at $25 Billion’" href="https://daringfireball.net/linked/2026/05/05/pentagon-cost-of-iran-war">&#9733;</a>
+</dt>
+<dd>
+<p>Taegan Goddard, quoting the Financial Times last week:</p>
+
+<blockquote>
+  <p>The Pentagon said President Trump’s Iran war has cost the United
+States at least $25 billion, driven primarily by the military’s
+use of munitions, <a href="https://www.ft.com/content/1414942a-b314-443e-8bbc-8c13fa011d8e?syn-25a6b1a6=1">the Financial Times reports</a>.</p>
+</blockquote>
+
+<p>The New York Times had <a href="https://www.nytimes.com/interactive/2026/04/29/upshot/iran-war-cost-comparison.html?unlocked_article_code=1.gFA.uSGv.B8uoh3YLHCbZ">an interesting piece trying to put that number in context</a> (gift link):</p>
+
+<blockquote>
+  <p>$25 billion is similar to:</p>
+
+<ul>
+<li>The annual budget of NASA.</li>
+<li>Spending on military aid to Israel after Oct. 7.</li>
+<li>Spending by U.S.A.I.D. before it was disbanded.</li>
+<li>The cost to expand Obamacare subsidies for one year.</li>
+</ul>
+</blockquote>
+
+<p>These are all comparisons to other aspects of the U.S. federal budget. It’s interesting also to use this in comparison with the current moment in tech:</p>
+
+<ul>
+<li><a href="https://openai.com/index/accelerating-the-next-phase-ai/">OpenAI’s latest valuation</a> of $852 billion (I love the 2) equals 34 Iran Wars.</li>
+<li><a href="https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation">Anthropic’s $380 billion valuation</a> equals 15 Iran Wars.</li>
+<li>Apple’s <a href="https://daringfireball.net/linked/2026/05/01/tim-cooks-clever-solution-to-the-tariff-refund-puzzle">current four-year U.S. manufacturing commitment</a> of “more than $500 billion” equals 20 Iran Wars.</li>
+<li><a href="https://www.wsj.com/tech/google-earnings-alphabet-q3-2025-goog-stock-c202d18a">Google expects to spend between $91–93 billion</a> in capital expenditures this calendar year, mostly related to AI infrastructure. That’s a little over 3 Iran Wars this year.</li>
+<li><a href="https://theplutoproject.org/person/larry-ellison">Larry Ellison currently has a net worth of $220 billion</a>. That’s just short of 9 Iran Wars. But since the start of the war on February 28, his net worth has grown $46 billion. That’s about 2 Iran Wars during the time of the actual Iran War thus far.</li>
+</ul>
+
+</dd>
+
+
+</dl>
+
+<hr class="ookiaks" />
+
+
+<div class="article">
+<h1><a href="https://daringfireball.net/2026/05/software_as_the_product_of_obsession_times_voice" title="Permanent link to ‘Software as the Product of Obsession Times Voice’">Software as the Product of Obsession Times Voice</a></h1>
+<h6 class="dateline">Tuesday,  5 May 2026</h6>
+
+<p>Back in 2009, Merlin Mann and I jointly gave a talk at SxSW titled “<a href="https://daringfireball.net/2009/03/obsession_times_voice">Obsession Times Voice</a>”. Regarding how it turned out, <a href="https://daringfireball.net/2009/03/obsession_times_voice">I wrote</a>:</p>
+
+<blockquote>
+  <p>My muse for the session was this quote from Walt Disney: <em>“We
+don’t make movies to make money; we make money to make more
+movies.”</em> To me, that’s it. That’s the thing.</p>
+</blockquote>
+
+<p>Merlin and I were talking about independent writers and podcasters, because that’s what we were (and remain), but the concept applies just as perfectly to independent developers. This came to my mind after reading (<a href="https://daringfireball.net/linked/2026/05/05/pedometer-plus-plus-8">and linking to</a>) David Smith’s description of the new Pedometer++ today. Not just what it does, but why he spent <a href="https://david-smith.org/blog/2026/04/29/maps-on-watchos/">six years making it</a>. That’s the sort of productive obsession that fascinates me.</p>
+
+<p>Ice water is always refreshing, but it tastes better when you’re on a road trip to hell. It feels like the world of software is bifurcating quality-wise. This <a href="https://daringfireball.net/linked/2026/05/04/photoshop-modern-user-interface">whole</a> <a href="https://daringfireball.net/linked/2026/05/04/adobe-modern-webpages">thing</a> about <a href="https://mjtsai.com/blog/2026/04/30/photoshops-modern-spectrum-user-interface/">Adobe’s new craptacular “modern” UI language</a> (a.k.a. “<a href="https://spectrum.adobe.com/">Spectrum</a>”) exemplifies one side of that bifurcation — the bad-and-getting-worse side. Software that is the product not just of an ignorance of <a href="https://asktog.com/atc/principles-of-interaction-design/">long-established principles of interaction design</a>, but of a <a href="https://daringfireball.net/2025/12/bad_dye_job#:~:text=the%20key%20window">willful disdain for those principles</a>. What Adobe is now shipping is just inexplicably bad UI, ignoring literally decades of great work and long-mastered concepts — a lot of which work was <a href="https://daringfireball.net/linked/2026/05/04/adobe-modern-webpages">pioneered by Adobe itself</a>!</p>
+
+<p>The <a href="https://daringfireball.net/linked/2026/04/13/tahoe-reduce-transparency">whole</a> <a href="https://daringfireball.net/2026/03/what_to_do_about_those_menu_item_icons_in_macos_26_tahoe">thing</a> with <a href="https://daringfireball.net/2025/12/bad_dye_job">MacOS 26 Tahoe</a> is similar. To be clear, the UI crimes in Tahoe are deeply worrisome, but they are nowhere near as severe as those in Adobe’s Spectrum. But the problems with Tahoe are steps down the same fork in the road that Adobe took years ago. Spectrum is where Tahoe suggests that MacOS was headed under Alan Dye’s leadership: cross-platform sameness for the sake of sameness, with a complete disregard for longstanding platform nuances and idioms. In Spectrum’s case those platforms are MacOS and Windows and <a href="https://helpx.adobe.com/account/individual/subscriptions-and-plans/plan-types-and-eligibility/cc-app-web-mobile-access.html">the web</a>. In Tahoe’s case it’s MacOS and iOS.<sup id="fnr1-2026-05-05"><a href="#fn1-2026-05-05">1</a></sup></p>
+
+<p>The other side of the software fork is not deserted. It’s just populated, more than ever, by the products of small independent developers who obsess, first and foremost, over quality and artistic vision. Remarkable new software gems exhibiting spectacular UI design <a href="https://www.currentreader.app/">appear</a> <a href="https://daringfireball.net/linked/2026/05/04/chess-peace">all</a> the <a href="https://daringfireball.net/linked/2026/04/15/so-close-to-getting-it">time</a>. They’re just not coming from the biggest companies, the ones whose apps, <a href="https://daringfireball.net/linked/2026/03/28/netflix-wrecked-their-tvos-video-player">alas</a>, dominate not just our desktops and pockets but our entire culture today.<sup id="fnr2-2026-05-05"><a href="#fn2-2026-05-05">2</a></sup></p>
+
+<p>There’s always been software with poorly designed user interfaces. Much of it has been successful financially, sometimes spectacularly so. I’d argue, in all seriousness, that that’s the story of Microsoft in a nutshell. What’s new today is poorly designed software from developers <a href="https://daringfireball.net/linked/2026/04/16/miller-netflix-tvos">from whom we expect better</a>. In the old days there were people who would argue that prioritizing good user interface design was a waste of time — like spending hours decorating cupcakes destined for kindergarteners who are simply going to mash them into their mouths. (Again: cf. Microsoft’s undeniable market success.) What’s new today is people holding up objectively bad interaction design and proclaiming it to be good, and the product of teams that purportedly prioritize “design”, when it’s clear they have no idea what they’re talking about. It’s one thing to make something poorly designed and shrug on the grounds that it doesn’t matter. It’s another thing to make something poorly designed and hold it up as good design.</p>
+
+<p>We are justified to expect nothing short of <a href="https://www.folklore.org/How_to_Hire_Insanely_Great_Employees.html">insane greatness</a> from Apple, and solidly good design from Adobe. In principle, all software ought to have well-designed user interfaces. That’s never going to be the case. But software for designers — Adobe’s <em>raison d’être</em> — absolutely demands to be well-designed itself, like how <a href="https://daringfireball.net/linked/2009/03/31/zinsser">a book on writing</a> must itself <a href="https://daringfireball.net/linked/2009/03/23/strunk-and-white">be well-written</a>.</p>
+
+<p>Perhaps I was wrong, though, to describe Adobe’s new UI as inexplicable. It’s just indefensible. The explanation for so much software going so rotten from a UI-design perspective is, the more I think about it, related to <a href="https://www.theverge.com/podcast/917029/software-brain-ai-backlash-databases-automation">Nilay Patel’s “Software Brain”</a> theory, which I’ve commented on both <a href="https://daringfireball.net/linked/2026/04/23/patel-software-brain">directly</a> and <a href="https://daringfireball.net/2026/04/we_dont_serve_their_kind_here">indirectly</a>. Here’s Patel’s definition of “software brain”:</p>
+
+<blockquote>
+  <p>The simplest definition I’ve come up with is that it’s when you
+see the whole world as a series of databases that can be
+controlled with the structured language of software code. Like I
+said, this is a powerful way of seeing things. So much of our
+lives run through databases, and a bunch of important companies
+have been built around maintaining those databases and providing
+access to them.</p>
+
+<p>Zillow is a database of houses. Uber is a database of cars and
+riders. YouTube is a database of videos. The Verge’s website is a
+database of stories. You can go on and on and on. Once you start
+seeing the world as a bunch of databases, it’s a small jump to
+feeling like you can control everything if you can just control
+the data.</p>
+
+<p>But that doesn’t always work.</p>
+</blockquote>
+
+<p>You might think it counterintuitive that a movement obsessed with software would be spearheading a severe decline in the design quality of software, but in Patel’s definition, there’s no concept of software as art, as a practice, as a craft. Software brain is purely an obsession with software as a medium in and of itself. A means with no consideration for the end.</p>
+
+<p>Framed in Walt Disney’s adage, software brain makes software only to make more money. The idea of making money in order to make more software — to afford the time and talent to <em>craft</em> it — does not compute. Framed in the metaphor that Steve Jobs used to <a href="https://www.youtube.com/watch?v=OesY-denV8k">close his introduction of the original iPad</a>, and returned to again <a href="https://www.youtube.com/watch?v=sUCpuaqlISQ">to close his final keynote at WWDC 2011</a>, software brain is nowhere near the intersection of technology and the liberal arts. Software brain is so far down Technology Street that it’s no longer in the same zip code as Liberal Arts Avenue. Another way, perhaps, to define <em>software brain</em> is that it’s the utter rejection of Jobs’s maxim that “technology is not enough”. With software brain, technology is all there is.&nbsp;<a class="permalink" title="Permanent link to ‘Software as the Product of Obsession Times Voice’" href="https://daringfireball.net/2026/05/software_as_the_product_of_obsession_times_voice">&#9733;</a></p>
+
+<div class="footnotes">
+<hr />
+<ol>
+
+<li id="fn1-2026-05-05">
+<p>I don’t want to belabor the similarities between Adobe’s Spectrum UI system and Apple’s Liquid Glass, because there are significant differences. Foremost, <a href="https://unsung.aresluna.org/photoshops-challenges-with-focus-pt-2/">what’s wrong with Spectrum</a> is wrong everywhere. Photoshop with Adobe’s new “modern” UI is, I suspect, just as bad a Windows app as it is a Mac app. Whereas the usability problems with Liquid Glass are lopsided platform-wise. It’s a litany of disasters on MacOS 26 Tahoe, but actually pretty good on Apple’s other version 26 OSes, especially iOS. There are aspects of Liquid Glass on iOS 26 that some people don’t like, but they’re literally skin-deep. Cosmetic details. Functionally, iOS 26 is pretty strong, and Apple made some very nice changes regarding the placement of things like search fields to improve consistency system-wide. I still have iOS 18 running on my year-old iPhone 16 Pro, and there are very few things I prefer in iOS 18 versus iOS 26. Whereas I’d be sick if I had to work in MacOS 26 Tahoe every day.</p>
+
+<p>That’s my point here. iOS 26 doesn’t suffer in any way — not even one teensy little single way — from MacOS UI idioms being inappropriately applied to the iPhone. On the iPad, maybe there’s a little of that, like, say, the weird way iPadOS 26 uses Mac-style red / yellow / green window control buttons but makes them too small to use, so before you use them, <a href="https://sixcolors.com/post/2025/09/ipados-26-review-a-computer/">you need a gesture to embiggen them temporarily first</a>. But the implementation of “Liquid Glass” on MacOS Tahoe is just riddled with iOS-isms that aren’t appropriate on MacOS. So many decades-old Mac UI nuances and idioms were just ignored. They weren’t changed, they weren’t updated, they were just ignored. You either see that this is true or you don’t, and if you don’t see it, you shouldn’t be designing the Mac user interface.&nbsp;<a href="#fnr1-2026-05-05"  class="footnoteBackLink"  title="Jump back to footnote 1 in the text.">&#x21A9;&#xFE0E;︎</a></p>
+</li>
+
+
+<li id="fn2-2026-05-05">
+<p>Consider the age of television. Television is the broadcast of motion pictures with sound. Cinema is an artform. But at the peak of television’s hegemony over western culture and mass media, the artistic quality of almost everything on TV was terrible. It was slop. It wallowed in its own sloppiness. This, despite the fact that cinematic artists had largely mastered the artform in the decades preceding TV. TV became popular in the 1950s and culturally dominant in the 1960s. But <em>Citizen Kane</em> came out in 1941. The network executives with “TV brain” in the second half of the 20th century didn’t even consider TV as a medium for art. They just cared that it was watched. It was judged only by ratings and ad revenue, not artistic merit. That’s what’s happening with software right now. But remember too, that as dreadful television programming rocketed to stratospheric popularity in the 1970s, that same decade saw <a href="https://www.imdb.com/list/ls000335086/">a remarkable explosion in innovative filmmaking</a> in movie theaters. Keep the faith.&nbsp;<a href="#fnr2-2026-05-05"  class="footnoteBackLink"  title="Jump back to footnote 2 in the text.">&#x21A9;&#xFE0E;︎</a></p>
+</li>
+
+</ol>
+</div>
+
+</div> <!-- article -->
+
+<hr class="ookiaks" />
+
+
+<h2 class="dateline">Tuesday,  5 May 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://david-smith.org/blog/2026/04/29/maps-on-watchos/">Pedometer++ 8.0 </a>&nbsp;<a class="permalink" title="Permanent link to ‘Pedometer++ 8.0 ’" href="https://daringfireball.net/linked/2026/05/05/pedometer-plus-plus-8">&#9733;</a>
+</dt>
+<dd>
+<p>David Smith, “Six Years Perfecting Maps on watchOS”:</p>
+
+<blockquote>
+  <p>I love going on wilderness adventures. I am rarely happier than
+when I am far off into the mountains without a soul in sight. As a
+result, I have spent a lot of time learning how to safely explore
+and navigate when I’m away from civilization. The most important
+habit I’ve found for not getting lost is to be <em>very</em> regular in
+checking your location as you go, and the best way I’ve found to
+do that is to have a map on my wrist.</p>
+
+<p>For more than <em>six</em> years I’ve been working towards creating the
+best possible mapping experience on the Apple Watch. With
+yesterday’s <a href="https://david-smith.org/blog/2026/04/28/pedometer-v8/">launch of Pedometer++ 8</a>, I feel like this
+design journey has reached a meaningful destination. I would
+contend that Pedometer++’s watchOS mapping support is the absolute
+best available on the App Store.</p>
+
+<p>So I wanted to walk through the journey it took to get here.</p>
+</blockquote>
+
+<p>“I love going on wilderness adventures” is how you start a post about an app update. Or at least my type of update to my type of app. I don’t have any desire for maps on my watch, but reading this makes me want it anyway. Enthusiasm is contagious. (See also: <a href="https://pedometer.app/blog/v8-new-watch-app">the Pedometer++ blog</a>, and <a href="https://512pixels.net/2026/04/pedometer-v8-new-watch-app/">Stephen Hackett at 512 Pixels</a>.)</p>
+
+</dd>
+
+
+</dl>
+
+<h2 class="dateline">Monday,  4 May 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://chesspeace.app/">Chess Peace</a>&nbsp;<a class="permalink" title="Permanent link to ‘Chess Peace’" href="https://daringfireball.net/linked/2026/05/04/chess-peace">&#9733;</a>
+</dt>
+<dd>
+<p>Chess Peace — a new iOS game by Sam Shepherd — is my kind of logic puzzle. Each puzzle is a board with a few unplaced chess pieces. To solve you need to place all the pieces so that none of them attack each other. There’s a timer if you care, but I don’t. (And you can hide the clock.) Clever name too: the pieces need to be ... at peace with each other. You can download Chess Peace and try it out free of charge, and it’s just a one-time payment of $7 to unlock everything. Great simple premise, really well implemented.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://pxlnv.com/linklog/adobe-modern-user-interface/">Adobe’s ‘Modern’ User Interface Is Just Webpages</a>&nbsp;<a class="permalink" title="Permanent link to ‘Adobe’s ‘Modern’ User Interface Is Just Webpages’" href="https://daringfireball.net/linked/2026/05/04/adobe-modern-webpages">&#9733;</a>
+</dt>
+<dd>
+<p>Nick Heer:</p>
+
+<blockquote>
+  <p>If you do a little poking around in Adobe’s application bundles, a
+key reason for the jankiness of these user interfaces becomes
+apparent: it is because they are little webpages. These dialog
+boxes are HTML files that reference a chunky CSS file and oodles
+of JavaScript, and appear to be built with React. [...]</p>
+
+<p>I was going to write about how this stuff should have been tried
+with people who actually use Adobe’s apps in a high-pressure
+environment, but I am sure it was and, also, it does not matter.
+Wichary has it right. These are fundamental principles of user
+interface design that Adobe is ignoring because its internal
+tooling has taken precedence.</p>
+</blockquote>
+
+<p>I will quibble only with this line from Heer’s post:</p>
+
+<blockquote>
+  <p>Also, Adobe’s interface has always been unique and not quite at
+home on either MacOS or Windows.</p>
+</blockquote>
+
+<p>You have to go back to the 1990s and classic Mac OS, but Adobe’s best apps used to have exemplary native UIs. Apps like Photoshop helped push the state of the art in Mac UI forward. Tabbed palettes were a revelation. Fire up, say, <a href="https://infinitemac.org/1997/Mac%20OS%207.6">Photoshop 3.0 on MacOS 7.6</a>  and see what I mean.</p>
+
+<p>Also worth noting is how much this new “modern” UI isn’t just subjectively ugly, it’s objectively <a href="https://pdx.social/@louie/116496889426680429">breaking the habits</a> and expectations of users with <a href="https://sixcolors.com/link/2026/04/adobe-out-of-photoshop/">literally decades of experience</a> with Photoshop — users who, like me, remember when Adobe’s UI wasn’t just merely tolerable but actually good. It’s insane when you think about it.</p>
+
+<p>How did Adobe lose that good sense of yore? <a href="https://www.goodreads.com/quotes/102579-how-did-you-go-bankrupt-two-ways-gradually-then-suddenly">Two ways</a>. Gradually, then suddenly.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.thurrott.com/paul/334577/the-markdown-book-on-writing?utm_source=dlvr.it&amp;utm_medium=mastodon">Paul Thurrott Might Write a Book on Markdown</a>&nbsp;<a class="permalink" title="Permanent link to ‘Paul Thurrott Might Write a Book on Markdown’" href="https://daringfireball.net/linked/2026/05/04/thurrott-markdown-book">&#9733;</a>
+</dt>
+<dd>
+<p>Paul Thurrott:</p>
+
+<blockquote>
+  <p>I may or may not write and publish a short e-book about Markdown
+sometime this year, most likely as part of a monthly focus. But
+l’ve written small parts of it already, as I do, and I figured it
+might be interesting for at least some readers. And so here’s an
+early draft of an introductory chapter that may or may not be
+called “On writing.” We’ll see.</p>
+</blockquote>
+
+<p>It’s odd how things turn out in life. Thurrott’s and my careers are almost uniquely parallel, but have seldom intersected. This book would have been a very surprising outcome to me, if you’d told me about it 20 years ago. Sort of a fun outcome, though, and I must admit to being curious what comes of it.</p>
+
+</dd>
+
+
+</dl>
+
+<hr class="ookiaks" />
+
+
+<div class="article">
+<h1><a href="https://daringfireball.net/2026/05/y_combinators_stake_in_openai" title="Permanent link to ‘Y Combinator’s Stake in OpenAI’">Y Combinator’s Stake in OpenAI</a></h1>
+<h6 class="dateline">Monday,  4 May 2026</h6>
+
+<p>Speaking of companies with <a href="https://daringfireball.net/linked/2026/05/04/google-owns-a-big-chunk-of-anthropic">valuable minority stakes in AI companies</a>, there’s one thing that stuck in my craw about the blockbuster <a href="https://www.newyorker.com/magazine/2026/04/13/sam-altman-may-control-our-future-can-he-be-trusted">Ronan Farrow / Andrew Marantz investigative piece on Sam Altman and OpenAI</a> last month for The New Yorker. It didn’t come up during <a href="https://www.theverge.com/podcast/911753/sam-altman-openai-ronan-farrow-new-yorker-feature-trust-liar-ai-industry">Nilay Patel’s excellent interview with Farrow on Decoder</a>, either.</p>
+
+<p>Sam Altman was the president of Y Combinator for several years, and left to become the full-time CEO of OpenAI. The New Yorker quotes Y Combinator co-founder Paul Graham multiple times, in the context of Altman’s trustworthiness. (Some of those quotes are firsthand, others secondhand.) Graham’s role in the story — particularly his public remarks <em>after</em> publication — comprised an entire section in <a href="https://daringfireball.net/2026/04/when_he_is_alive_and_not_after_he_is_dead">my own take on the New Yorker piece</a>, wherein I concluded:</p>
+
+<blockquote>
+  <p>I would characterize Graham’s tweets re: Altman this week as
+emphasizing only that Altman was not fired or otherwise forced
+from YC, and could have stayed as CEO at YC if he’d found another
+CEO for OpenAI. But for all of Graham’s elucidating engagement on
+Twitter/X this week regarding this story, he’s dancing around the
+core question of the Farrow/Marantz investigation, the one right
+there in The New Yorker’s headline: Can Sam Altman be trusted?
+“<em>We didn’t ‘remove’ Sam Altman</em>” and “<em>We didn’t want him to
+leave</em>” are not the same things as saying, say, “<em>I think Sam
+Altman is honest and trustworthy</em>” or “<em>Sam Altman is a man of
+integrity</em>”. If Paul Graham were to say such things, clearly and
+unambiguously, those remarks would carry tremendous weight. But — rather conspicuously to my eyes — he’s not saying such things.</p>
+</blockquote>
+
+<p>The thing that stuck in my craw is this: <em>Does Y Combinator own a stake in OpenAI? And if they do, given OpenAI’s sky-high valuation, isn’t that stake worth billions of dollars?</em></p>
+
+<p>OpenAI was seeded by an offshoot of Y Combinator <a href="https://web.archive.org/web/20160611042811/https://ycr.org/">called YC Research</a> in 2016 — when Altman was running YC. In December 2023, the well-known AI expert (and AI-hype skeptic) <a href="https://garymarcus.substack.com/p/not-consistently-candid">Gary Marcus wrote the following</a>, in a piece on Altman’s trustworthiness in the wake of the OpenAI board saga that saw Altman fired, re-hired, and the board purged in the course of a tumultuous week:</p>
+
+<blockquote>
+  <p>After poking around, I found out that “I have no equity in OpenAI”
+was only half the truth; while Altman to my knowledge holds no
+<em>direct</em> equity in OpenAI, he does have an <em>indirect</em> stake in
+OpenAI, and that fact should have been disclosed.</p>
+
+<p>In particular, he owns a stake of Y Combinator, and Y Combinator
+owns a stake in OpenAI. It may well be worth tens of millions of
+dollars; even for Altman, that’s not trivial. Since he was
+President of Y Combinator, and CEO of OpenAI; he surely was
+aware of this.</p>
+</blockquote>
+
+<p>So it’s well known that Y Combinator owns <em>some</em> stake in OpenAI. But how big is that stake? This seems like devilishly difficult information to obtain. I asked around and a little birdie who knows several OpenAI investors came back with an answer: Y Combinator owns about 0.6 percent of OpenAI. At OpenAI’s current <a href="https://openai.com/index/accelerating-the-next-phase-ai/">$852 billion valuation</a>, that’s worth over $5 billion.</p>
+
+<p>Graham <a href="https://www.youtube.com/watch?v=6u4JVz7iQTY">and his wife Jessica Livingston</a> are two of Y Combinator’s four founding partners. The fact that Paul Graham personally has billions of dollars at stake with OpenAI doesn’t mean that his public opinion on Sam Altman’s trustworthiness and leadership is invalid. But it certainly seems like the sort of thing that ought to be disclosed when quoting Graham as an Altman character reference. A billion dollars here, a billion there — that adds up to the sort of money that <em>might</em> skew a fellow’s opinion.&nbsp;<a class="permalink" title="Permanent link to ‘Y Combinator’s Stake in OpenAI’" href="https://daringfireball.net/2026/05/y_combinators_stake_in_openai">&#9733;</a></p>
+
+</div> <!-- article -->
+
+<hr class="ookiaks" />
+
+
+<h2 class="dateline">Monday,  4 May 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://www.nytimes.com/2025/03/11/technology/google-investment-anthropic.html?unlocked_article_code=1.f1A.eSTf.D5ECvk6f4DZ7">Google Owns a Big Chunk of Anthropic</a>&nbsp;<a class="permalink" title="Permanent link to ‘Google Owns a Big Chunk of Anthropic’" href="https://daringfireball.net/linked/2026/05/04/google-owns-a-big-chunk-of-anthropic">&#9733;</a>
+</dt>
+<dd>
+<p>The New York Times, back in March last year (gift link):</p>
+
+<blockquote>
+  <p>To win the artificial intelligence race, Google not only has
+<a href="https://www.nytimes.com/2024/12/11/technology/google-ai-agent-gemini.html">developed its own technologies</a>, but has also <a href="https://www.nytimes.com/2024/02/20/technology/anthropic-funding-ai.html">pumped
+money into prominent A.I. start-ups</a>. And to preserve its
+competitive edge, Google has kept its ownership stakes in those
+start-ups a secret.</p>
+
+<p>Court documents recently obtained by The New York Times reveal
+Google’s stake in one of those start-ups, Anthropic, as well as
+how its investment in the young company is set to change. Google
+owns 14 percent of Anthropic, according to legal filings that the
+A.I. start-up submitted as part of a Google antitrust case. But
+that investment gives Google little control over the company. The
+internet giant can own only up to 15 percent of Anthropic,
+according to the filings, and Google holds no voting rights, no
+board seats and no board observer rights at the start-up.</p>
+
+<p>Still, Google is set to invest an additional $750 million in
+Anthropic in September through a type of loan known as convertible
+debt, according to the filings. The companies agreed to the
+convertible note in 2023. In total, Google has invested more than
+$3 billion in the A.I. company.</p>
+</blockquote>
+
+<p>Anthropic’s latest funding round — a rare Series G — <a href="https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation">valued the company at $380 billion</a>. So let’s say Google has invested $4 billion to date, and Anthropic really is worth $380 billion. Google’s slice of that would be worth a little north of $50 billion, quite the return on investment. And competitively, there’s a heads-they-win (with Gemini), tails-they-don’t-lose (with Claude) aspect. Maybe that’s not the best metaphor, since OpenAI would make it a three-sided coin, but still.</p>
+
+<p>(Via <a href="https://stratechery.com/2026/google-earnings-meta-earnings/">today’s subscriber-only Stratechery update</a>, where Ben Thompson noted this in the context of Google last week reporting a 30% increase in operating profit year-over-year, but an eye-popping 81% increase in <em>overall</em> profit. The difference was the growth in their investments, almost certainly Anthropic in particular.)</p>
+
+</dd>
+
+
+<dt>
+<a href="https://blog.thinktapwork.com/post/812803664980967425/ios-app-store-search-is-rotten">App Store Search Ads and the Slippery Slope</a>&nbsp;<a class="permalink" title="Permanent link to ‘App Store Search Ads and the Slippery Slope’" href="https://daringfireball.net/linked/2026/05/04/ios-app-store-slippery-slope">&#9733;</a>
+</dt>
+<dd>
+<p>Jeremy Provost, on the blog for Think Tap Work, his mobile app development company:</p>
+
+<blockquote>
+  <p>iOS App Store search is no longer about relevance. It’s about ad
+inventory. With Apple’s introduction of a second search ad, for
+any query where we weren’t #1, we’ve effectively moved down one
+position. [...] If you’re counting at home, roughly 70% of the
+interface is covered in ads. A casino ad, to boot.</p>
+</blockquote>
+
+<p>That was a month ago. Two weeks later, <a href="https://blog.thinktapwork.com/post/813892238778286080/ios-app-store-search-is-rotten-follow-up">he posted a follow-up</a>, showing the effect on Think Tap Work’s apps in the App Store:</p>
+
+<blockquote>
+  <p>I wanted to share some updated numbers from our own apps. To
+isolate the impact, these numbers only include App Store Search
+<em>impressions</em> from <em>iOS devices</em>, comparing Mar 26–Apr 8 to the
+prior two weeks. In other words: how much visibility we’ve lost
+in search.</p>
+
+<ul>
+<li><a href="https://apps.apple.com/app/id1494942612">Morpho Converter</a>: 26% decrease</li>
+<li><a href="https://apps.apple.com/us/app/pop-out-timer-stopwatch-clock/id1352722326">Pop Out Timer</a>: 23% decrease</li>
+<li><a href="https://apps.apple.com/app/id1511771853">Attendant for Zoom</a>: 30% decrease</li>
+<li><a href="https://apps.apple.com/app/id1532789823">Participant</a>: 3% increase. As previously mentioned, we advertise
+Participant using Search Ads. It’s not surprising that it might
+be getting a bump from this change.</li>
+</ul>
+</blockquote>
+
+<p>The screenshot in his follow-up shows <em>another</em> casino ad, this time in a search for “Roblox”. Kinda gross.</p>
+
+<p>Here’s Wikipedia on the “<a href="https://en.wikipedia.org/wiki/Zero-one-infinity_rule">Zero-One-Infinity Rule</a>”:</p>
+
+<blockquote>
+  <p>The zero-one-infinity (ZOI) rule is a rule of thumb in software
+design proposed by early computing pioneer <a href="https://en.wikipedia.org/wiki/Willem_van_der_Poel">Willem van der Poel</a>.
+It argues that arbitrary limits on the number of instances of a
+particular type of data or structure should not be allowed.
+Instead, an entity should either be forbidden entirely, only one
+should be allowed, or any number of them should be allowed.</p>
+</blockquote>
+
+<p>In Apple Notes, you can only have one main window open. In Apple Mail, however, you can open as many Viewer Windows as you want. Both are compliant with the Zero-One-Infinity rule. An app that allowed you to open multiple viewer windows — but no more than some arbitrary limit — would not be. ZOI is a very good rule of thumb.</p>
+
+<p>I feel like a variation of Zero-One-Infinity is a good rule of thumb for ads, too. From the perspective of users — and probably developers — zero was the best number of ads for Apple to show in App Store search results. One was worse but acceptable. But now that they’re showing more than one, they’re on their way to infinity. They’ve started down the slippery slope. Remember when Google only showed one ad in search results?</p>
+
+<p>Anyway, who’s looking forward to <a href="https://daringfireball.net/linked/2026/03/27/apple-announces-ads-are-coming-to-apple-maps">ads in Apple Maps this summer</a>?</p>
+
+</dd>
+
+
+<dt>
+<a href="https://tokyopaladin.substack.com/p/the-japanese-oreo-noir-kills-the">‘Noir, Japan’s Hard-Boiled Bittersweet Answer to Oreos’</a>&nbsp;<a class="permalink" title="Permanent link to ‘‘Noir, Japan’s Hard-Boiled Bittersweet Answer to Oreos’’" href="https://daringfireball.net/linked/2026/05/04/noir-japanese-cookies">&#9733;</a>
+</dt>
+<dd>
+<p>Jake Adelstein (author of <em>Tokyo Vice</em>) on his blog Tokyo Paladin:</p>
+
+<blockquote>
+  <p>For decades, Japan’s Oreos weren’t made by Nabisco at all. They
+were produced domestically by Yamazaki Biscuits, under a licensing
+arrangement with what eventually became Mondelez International.
+This was, by most accounts, a reasonable arrangement. The cookies
+were local. The quality was consistent. Nobody was complaining.</p>
+
+<p>Then Mondelez did what corporations do when things are working
+fine. The license expired, and Mondelez moved production of the
+Oreos it sells in Japan to China, exporting them to Japanese
+wholesalers and retailers. A cost decision. A spreadsheet
+decision. The kind of decision made in a room with no windows and
+a very good projector.</p>
+
+<p>Sensitive Japanese consumers noticed quickly — the taste had
+changed. Into that opening stepped the Noir, inheriting the flavor
+the old Oreo had left behind.</p>
+
+<p>Yamazaki Biscuits launched Noir in December 2017 as the successor
+nobody had officially asked for and everybody apparently wanted.</p>
+</blockquote>
+
+<p>I have a great affinity for <a href="https://newmansown.com/product/original-newman-os/">Newman-O’s</a>, which I’ve <a href="https://daringfireball.net/linked/2017/08/21/android-oreo">previously described</a> as “the cookies Oreos pretend to be”. Turns out though I’ve mostly sung the praises of Newman-O’s <a href="https://podsearch.david-smith.org/episodes/4994#segment647">on my podcast</a> and <a href="https://x.com/search?q=newman-o%20(from%3Agruber)&amp;src=typed_query">social media</a>, not here on Daring Fireball. I love Newman-O’s, never tire of them, and will fight any man who argues that Oreos taste better. In fact, late last night, when a friend texted me with a link to this story from Adelstein, I was by sheer happenstance eating a few Newman-O’s. True story.</p>
+
+<p>But now I’m fascinated by the existence of these Japanese rivals. A <em>spite</em> Oreo called Noir. They look and sound delicious, but they seem difficult to obtain in the U.S.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://unsung.aresluna.org/photoshops-challenges-with-focus-pt-2/">Photoshop’s ‘Modern User Interface’ Sucks (and Doesn’t Feel Modern)</a>&nbsp;<a class="permalink" title="Permanent link to ‘Photoshop’s ‘Modern User Interface’ Sucks (and Doesn’t Feel Modern)’" href="https://daringfireball.net/linked/2026/05/04/photoshop-modern-user-interface">&#9733;</a>
+</dt>
+<dd>
+<p>Marcin Wichary at Unsung:</p>
+
+<blockquote>
+  <p>I’m angry. (Clearly.) We should all be angry in face of stuff like
+this. This is how people get fed up with software — because it
+feels unstable and deteriorates on its own <a href="https://unsung.aresluna.org/i-trust-in-textedit/">without needing
+to</a>.</p>
+
+<p>I know I <a href="https://unsung.aresluna.org/decentralization-does-not-always-equal-delight/">brought up</a> that an existing power user base can be
+a huge pain in the ass, and I am a decades-old Photoshop power
+user. But this is different than other examples where the product
+needs or at least wants to evolve past its core audience or toward
+a different market. For Photoshop here, nothing I see indicates
+any change in course or clientele — and yet all of these good
+moments in UI that used to help me out no longer exist.</p>
+
+<p>Plus, all those transgressions are solved problems. Those issues
+are not buried in pages of heavily litigated patents, or in seven
+collective brains of world-class interface designers whose
+driveways are presently occupied by cash-filled trucks sent over
+by frontier companies. This isn’t some long lost art that requires
+archaeologists to decipher. This feels like carelessness and
+laziness in face of basic UI engineering; in a likely
+internally-motivated effort to refresh the interface, the team
+threw an entire nursery worth of babies with the bathwater.</p>
+</blockquote>
+
+<p>The before-and-after screenshots look like examples from a lecture on user interface design — if you swap them around make the new ones “before” and the old ones “after”. Better balance, better focus behavior, appropriate platform-native typography.</p>
+
+<p>(Shades of <a href="https://daringfireball.net/2026/01/thoughts_and_observations_regarding_apple_creator_studio">Héliographe’s devastating critique</a> of the history of the app icon for Pages: “If you put the Apple icons in reverse it looks like the portfolio of someone getting really really good at icon design.”)</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.axios.com/2025/04/22/ai-anthropic-virtual-employees-security">Anthropic Executive, One Year Ago: Fully AI Employees Are a Year Away</a>&nbsp;<a class="permalink" title="Permanent link to ‘Anthropic Executive, One Year Ago: Fully AI Employees Are a Year Away’" href="https://daringfireball.net/linked/2026/05/04/anthropic-prediction-fully-ai-employees">&#9733;</a>
+</dt>
+<dd>
+<p>Sam Sabin, writing for Axios one year ago:</p>
+
+<blockquote>
+  <p>Anthropic expects AI-powered virtual employees to begin roaming
+corporate networks in the next year, the company’s top security
+leader told Axios in an interview this week. [...] Virtual
+employees could be the next AI innovation hotbed, Jason Clinton,
+the company’s chief information security officer, told Axios.</p>
+
+<p>Agents typically focus on a specific, programmable task. In
+security, that’s meant having autonomous agents respond to
+phishing alerts and other threat indicators. Virtual employees
+would take that automation a step further: These AI identities
+would have their own “memories,” their own roles in the company
+and even their own corporate accounts and passwords.</p>
+</blockquote>
+
+<p>Unlike Anthropic’s ambitious prediction <a href="https://daringfireball.net/linked/2026/05/04/commits-on-github-are-up-14x-year-over-year">regarding the vertiginous rise in AI code generation</a>, this one, I think we can say, has fallen flat on its face. This isn’t how companies are using AI — or <a href="https://daringfireball.net/linked/2026/04/29/playing-with-fire">at least they shouldn’t</a>. But contra Axios’s year-ago headline (“Exclusive: Anthropic Warns Fully AI Employees Are a Year Away”), this wasn’t a warning. It was an advertisement — and exactly the sort of <em>wink-wink-nudge-nudge</em> <a href="https://daringfireball.net/linked/2026/04/23/patel-software-brain">software-brain</a> “warning” that has tanked public sentiment regarding AI. It wasn’t an indication that Anthropic actually believed there would exist “fully AI employees” today, but rather that they wanted to build enthusiasm amongst the sort of ghoulish “let them eat cake” executives who really wish that they <em>could</em> “hire” fully AI employees.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://daringfireball.net/linked/2026/03/13/amodei-ai-code-claim-chowder">Commits on GitHub Are Up 14× Year-Over-Year</a>&nbsp;<a class="permalink" title="Permanent link to ‘Commits on GitHub Are Up 14× Year-Over-Year’" href="https://daringfireball.net/linked/2026/05/04/commits-on-github-are-up-14x-year-over-year">&#9733;</a>
+</dt>
+<dd>
+<p><a href="https://daringfireball.net/linked/2026/03/13/amodei-ai-code-claim-chowder">Two months ago</a>, revisiting Anthropic CEO Dario Amodei’s year-prior prediction that AI would soon be writing 90+ percent of all programming code, I wrote:</p>
+
+<blockquote>
+  <p>But where I think Amodei’s remarks, quoted above, are facile is
+that it hasn’t played out as simply that lines of code that would
+have been written by human programmers are now generated by AI
+models. That’s part of it, for sure. But what’s revolutionary — a
+topic I’ve been posting about <a href="https://daringfireball.net/linked/2026/03/13/software-bonkers">twice</a> <a href="https://daringfireball.net/linked/2026/03/13/grief-and-the-ai-split">already</a> today — is that AI code generation tools are being used to create
+services and apps and libraries that simply would not have been
+written at all before. It may well be that the total number of
+lines of code that will be written by people today isn’t much
+different from the number of lines of code that were written by
+people a year ago. But there might be 10× more code generated by
+AI than is written by people today. Maybe more. Maybe a lot more?
+And a year or two or three from now, that might be 100× or 1,000×
+or 100,000×.</p>
+
+<p>In that near future, human programmers are likely still to be
+writing — or at least line-by-line reviewing and approving — code. But as a percentage of all code being generated, that will
+only be a sliver.</p>
+</blockquote>
+
+<p>Early in April we kind of got a number we can assign to this: 14×. GitHub COO Kyle Daigle <a href="https://x.com/kdaigle/status/2040164759836778878">posted on Twitter/X</a> (<a href="https://xcancel.com/kdaigle/status/2040164759836778878">alternative link</a>):</p>
+
+<blockquote>
+  <p>Yup, platform activity is surging. There were 1 billion commits in
+2025. Now, it’s 275 million per week, on pace for 14 billion this
+year if growth remains linear (spoiler: it won’t.)</p>
+
+<p>GitHub Actions has grown from 500M minutes/week in 2023 to 1B
+minutes/week in 2025, and now 2.1B minutes so far this week.</p>
+</blockquote>
+
+<p>No one at Apple is talking about it publicly (yet?), but judging by response times, App Store review is facing a similar deluge. And as for GitHub, <a href="https://www.dayswithoutgithubincident.com/">yeah</a>.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.prnewswire.com/news-releases/sightmds-dr-eric-rosenberg-becomes-first-surgeon-in-the-world-to-perform-cataract-surgery-using-apple-vision-pro-mixed-reality-302754311.html">ScopeXR — Cataract Surgery Using Apple Vision Pro Mixed Reality</a>&nbsp;<a class="permalink" title="Permanent link to ‘ScopeXR — Cataract Surgery Using Apple Vision Pro Mixed Reality’" href="https://daringfireball.net/linked/2026/05/04/scopexr">&#9733;</a>
+</dt>
+<dd>
+<p>Press release last week:</p>
+
+<blockquote>
+  <p>SightMD, a leading ophthalmology practice in the greater New
+England area, today announced a historic milestone in surgical
+innovation. Dr. Eric Rosenberg, DO, MSE, has become the first
+surgeon in the world to successfully perform cataract surgery
+using the Apple Vision Pro, powered by ScopeXR, a groundbreaking
+mixed reality surgical platform co-developed by Dr. Rosenberg.</p>
+
+<p>The initial procedure was successfully completed in October 2025,
+and since that time, Dr. Rosenberg and his team have performed
+hundreds of additional cases using the platform, demonstrating
+both its scalability and real-world clinical impact.</p>
+</blockquote>
+
+<p>Not being ready for mass-market popularity is such a different thing from not being ready for niche practical use cases. Would be a weird thing indeed if Apple “<a href="https://daringfireball.net/2026/04/on_the_future_of_apples_vision_platform">gave up</a>” on this platform.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.mlb.com/news/john-sterling-passes-away">John Sterling, Beloved Longtime Yankees Radio Voice, Passes at&#160;87</a>&nbsp;<a class="permalink" title="Permanent link to ‘John Sterling, Beloved Longtime Yankees Radio Voice, Passes at 87’" href="https://daringfireball.net/linked/2026/05/04/sterling-rip">&#9733;</a>
+</dt>
+<dd>
+<p>Bryan Hoch, reporting for MLB.com:</p>
+
+<blockquote>
+  <p>A colorful personality who engaged and entertained fans with a
+distinct conversational style, Sterling called 5,426
+regular-season Yankees games and 225 more in the postseason from
+1989 until his retirement in 2024. After initially stepping away
+from the microphone in April of that year, Sterling returned to
+call selected games late in the ’24 season, including each contest
+of the World Series.</p>
+
+<p>At the time of his initial retirement, Sterling said that he
+considered himself to be “a very blessed human being,” noting that
+he had lived out a childhood dream of broadcasting on the radio
+for more than 64 years.</p>
+
+<p>“It’s your medium. You do what you want,” Sterling once said. “You
+have to paint the picture, which I love doing.”</p>
+</blockquote>
+
+<p>That’s baseball, Suzyn.</p>
+
+</dd>
+
+
+</dl>
+
+<h2 class="dateline">Sunday,  3 May 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://bsky.app/profile/gilduran.com/post/3mky5taqg3222">X, the Platform of Free Speech</a>&nbsp;<a class="permalink" title="Permanent link to ‘X, the Platform of Free Speech’" href="https://daringfireball.net/linked/2026/05/03/x-the-platform-of-free-speech">&#9733;</a>
+</dt>
+<dd>
+<p>Gil Durán, posting on Bluesky:</p>
+
+<blockquote>
+  <p>It’s official! I’m <em>permanently</em> banned from X for tweeting “TLDR:
+Fascism.” (appeal denied)</p>
+</blockquote>
+
+<p>“TLDR: Fascism” was Durán’s two-word response to <a href="https://x.com/PalantirTech/status/2045574398573453312">this 1,000-word essay</a> from Palantir describing their vision for a “Technological Republic”. (<a href="https://xcancel.com/PalantirTech/status/2045574398573453312">Alternative link to essay</a> if you don’t want to visit x.com.)</p>
+
+<p>Getting perma-banned from Twitter/X by Elon Musk gives Durán a nice Streisand-effect boost to promote his upcoming new book, <em><a href="https://www.simonandschuster.com/books/The-Nerd-Reich/Gil-Duran/9781668221402">The Nerd Reich</a></em>. If the book is even half as good as its title it should be a bestseller.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://davidgelphman.wordpress.com/2013/03/29/2-letters-from-steve/">‘2 Letters From Steve’</a>&nbsp;<a class="permalink" title="Permanent link to ‘‘2 Letters From Steve’’" href="https://daringfireball.net/linked/2026/05/03/2-letters-from-steve">&#9733;</a>
+</dt>
+<dd>
+<p>I don’t want to spoil any of this story from David Gelphman, which he wrote back in 2013, but which I <s>only came across this week</s> <a href="https://daringfireball.net/linked/2013/03/29/ok">had read so long ago</a> I’d forgotten it. Go read it. But before you do, one bit of context you should keep in mind is that the original iPad was <em>unveiled</em> at a special Apple event <a href="https://www.apple.com/newsroom/2010/01/27Apple-Launches-iPad/">on 27 January 2010</a>, but it didn’t <em>ship</em> until <a href="https://daringfireball.net/2010/04/the_ipad">early April</a>. Gelphman’s story takes place in that interregnum.</p>
+
+</dd>
+
+
+</dl>
+
+<hr class="ookiaks" />
+
+
+<div class="article">
+<h1><a href="https://daringfireball.net/2026/05/crimes_against_decency_need_as_much_cover-up_as_crimes_against_the_law" title="Permanent link to ‘Crimes Against Decency Need as Much Cover-Up as Crimes Against the Law’">Crimes Against Decency Need as Much Cover-Up as Crimes Against the&#160;Law</a></h1>
+<h6 class="dateline">Sunday,  3 May 2026</h6>
+
+<p>A follow-up point to <a href="https://daringfireball.net/linked/2026/05/01/meta-solved-their-problem">Friday’s post</a> about Meta unceremoniously shitcanning its entire contract with Sama, the Kenyan contractor that employed over 1,100 contractors to serve as Mechanical Turks for Meta’s AI efforts, after a few of the contractors told investigative reporters about the incredibly private things they witnessed from footage captured by users of Meta’s AI Glasses.</p>
+
+<p>There is no point getting <a href="https://pxlnv.com/linklog/meta-sama-contract-dispute/">any more</a> outraged or disgusted at Meta for firing these contractors than you already were in the first place. They had to fire them. The moment <a href="https://www.svd.se/a/K8nrV4/metas-ai-smart-glasses-and-data-privacy-concerns-workers-say-we-see-everything">this investigative report was published in late February</a>, the fate of Sama’s Kenyan operation was sealed. They were toast. The key to understanding this is that Meta runs a criminal enterprise. Most of the organized crimes Meta commits aren’t crimes against the legal code (although <a href="https://www.reuters.com/legal/government/meta-faces-new-mexico-trial-that-could-force-changes-facebook-other-platforms-2026-05-02/">some</a> <a href="https://www.reuters.com/sustainability/boards-policy-regulation/italy-court-allows-class-action-against-meta-over-facebook-data-scraping-2026-04-14/">are</a>), but rather crimes against public perception and human decency. Remember <a href="https://daringfireball.net/linked/2024/03/29/meta-onavo-snapchat">what they did with Onavo</a>, their VPN product? Was that illegal? Dunno. Was it outrageous? Hell yes.</p>
+
+<p>Let’s just concede for the sake of argument that there’s nothing illegal about the way Meta was sending video footage from users’ AI Glasses to contractors in Kenya to review. I presume they’re still doing it today, just with different contractors, in a different computer cubicle sweatshop, perhaps in a different country. Nothing to cover up legally. But just the plain description of what they’re doing fills people with a visceral repulsion. However, people only have that visceral reaction <em>if they know what’s going on</em>. Part of the whole premise is that the whole thing has to be kept on the q.t.</p>
+
+<p>If it said right on the box that when you use Meta AI Glasses, the footage might be reviewed by third-party contractors, and when that footage is reviewed, you — the user whose footage is being reviewed — won’t know it’s happening and won’t get prompted first for permission (because you’ve actually OK’d it in advance just by hitting the “Accept” button on the long dense <a href="https://www.facebook.com/legal/ai-terms">terms of service</a> that literally almost <em>no one</em> reads because such terms are written in impenetrable legalese), almost no one would buy them. And if it were more widely known that this is how these glasses work, there’d be more of a social stigma surrounding those who wear them.<sup id="fnr1-2026-05-03"><a href="#fn1-2026-05-03">1</a></sup></p>
+
+<p>That, I think, is the primary reason why the contractors were in Kenya in the first place, and their replacements (now that Meta has terminated its contract with Sama) are surely still in some third-world country. It’s not about the lower wages (but that doesn’t hurt). It’s about the fact that the entire <em>existence</em> of the operation is easier to keep quiet when it’s literally on the other side of the planet. It’s a goddamn marvel that the investigative reporters from those two Swedish newspapers found them.</p>
+
+<p>Most illegal acts are scandalous, but many scandalous acts are perfectly legal. But all scandalous acts need to be covered up. The operation has to be kept quiet, has to be covered up, because it’s unacceptable. It’s outrageous. If this were more widely publicized, Meta would suffer on two fronts. First, it would become better known that there’s nothing artificial about some of what they call “AI” — it’s in fact powered by human intelligence, just in another hemisphere. Second, and related to the first, some of the interactions you have with Meta AI — including images and video you send it, and images and video captured by Meta AI Glasses — are reviewed by human contractors. People write things and show things to AI, thinking it’s kept private between them and a computer program, that they would never share if they knew it might be seen by human beings paid by the AI provider to refine the training and correct its mistakes. A lot of people only use these “AI” products because they have no idea what’s actually going on.</p>
+
+<p>“Three may keep a secret, if two of them are dead.” <br />
+—Benjamin Franklin, <em>Poor Richard’s Almanack</em></p>
+
+<p>Anyway, enjoy the Meta AI built into WhatsApp and Instagram. And maybe keep a link to that <a href="https://www.svd.se/a/K8nrV4/metas-ai-smart-glasses-and-data-privacy-concerns-workers-say-we-see-everything">report on Meta’s contractors in Kenya</a> handy for anyone you meet who wears AI Glasses.&nbsp;<a class="permalink" title="Permanent link to ‘Crimes Against Decency Need as Much Cover-Up as Crimes Against the Law’" href="https://daringfireball.net/2026/05/crimes_against_decency_need_as_much_cover-up_as_crimes_against_the_law">&#9733;</a></p>
+
+<div class="footnotes">
+<hr />
+<ol>
+
+<li id="fn1-2026-05-03">
+<p>It’s a fascinating mystery what becomes a scandal and what doesn’t. One flaw in our news media culture is that stories from other countries, especially countries where English is not the primary language, tend never to gain traction here. You’d think the Internet, and the rise of very good automated language translation, would change this. But that doesn’t seem to be the case. After this story came out in February — a joint investigation <a href="https://www.svd.se/a/K8nrV4/metas-ai-smart-glasses-and-data-privacy-concerns-workers-say-we-see-everything">co-published by the Swedish publications Svenska Dagbladet</a> and Göteborgs-Posten — it just faded away after a few days. I remember thinking <a href="https://daringfireball.net/linked/2026/03/09/kenya-meta-contractors">when I linked to it</a>, “<em>Man, this feels potentially explosive — this might blow up into a big scandal.</em>” But it didn’t. I didn’t forget about it, but I hadn’t thought about it in weeks, until I happened to catch this news — <a href="https://pxlnv.com/linklog/meta-sama-contract-dispute/">via Nick Heer</a> — that Meta had severed ties with Sama, the contracting firm.</p>
+
+<p>I can’t help but think that if the exact same original report had been published by, say, The New York Times or The New Yorker, or in video form by 60 Minutes, that it might have blown up into a sizable scandal and public relations disaster for Meta. But as it stands, it largely passed without note. In addition to the fact that the original story was published in Sweden, the other missing factor is they didn’t publish leaked images or footage from users of Meta AI Glasses. We read testimony from these Kenyans that as part of their jobs, they watched AI Glasses owners having sex and going to the toilet, but we never see footage of AI Glasses owners having sex or going to the toilet. That shouldn’t make a huge difference, but human nature is such that it does.&nbsp;<a href="#fnr1-2026-05-03"  class="footnoteBackLink"  title="Jump back to footnote 1 in the text.">&#x21A9;&#xFE0E;</a></p>
+</li>
+
+</ol>
+</div>
+
+</div> <!-- article -->
+
+<hr class="ookiaks" />
+
+
+<h2 class="dateline">Friday,  1 May 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://daringfireball.net/linked/2026/05/01/tim-cooks-clever-solution-to-the-tariff-refund-puzzle">More on Apple’s Logically Elegant Tariff Refund Puzzle Solution</a>&nbsp;<a class="permalink" title="Permanent link to ‘More on Apple’s Logically Elegant Tariff Refund Puzzle Solution’" href="https://daringfireball.net/linked/2026/05/01/more-on-cooks-tariff-refund-puzzle-solution">&#9733;</a>
+</dt>
+<dd>
+<p>Regarding <a href="https://daringfireball.net/linked/2026/05/01/tim-cooks-clever-solution-to-the-tariff-refund-puzzle">my earlier post about the cleverness of Tim Cook’s solution</a> to Apple’s dilemma regarding how to apply for, and accept, a potential tariff refund check without  drawing the ire of Donald “<a href="https://youtu.be/tR6oh6c__p0?si=zZtFdHt672vu8O5e&amp;t=15">Tariff Is My Favorite Word</a>” Trump, at least one reader asked why Tim Cook committing to spending the refund check on “U.S. innovation and advanced manufacturing” doesn’t mean that Apple would — <em>if</em> they get a tariff refund — be spending more than they had previously committed to. Cook even <a href="https://sixcolors.com/post/2026/04/this-is-tim-and-john-and-kevin-transcript-of-apples-q2-2026-financial-call/">said yesterday</a>, “These would be new investments and would be in addition to our prior commitments in the U.S.” But there’s never been any precise accounting for these commitments. Apple committed to spend “more than $500 billion”. “More than $500 billion” <em>plus</em> their tariff refund check would still be “more than $500 billion”.</p>
+
+<p>Here’s what I wrote when Apple first made this current commitment in February 2025, <a href="https://daringfireball.net/linked/2025/02/24/apple-500-billion-american-manufacturing-plan">just weeks after Trump’s second term started</a>:</p>
+
+<blockquote>
+  <p>Apple announced a similar plan four years ago — $430 billion and
+20,000 jobs. <a href="https://www.apple.com/newsroom/2021/04/apple-commits-430-billion-in-us-investments-over-five-years/">In the announcement of that 2021 plan, Apple
+said</a>, “Over the past three years, Apple’s contributions in the
+US have significantly outpaced the company’s original five-year
+goal of $350 billion set in 2018.”</p>
+
+<p>So I don’t think this announcement is bullshit, at all. But I also
+don’t think <em>what</em> Apple has announced today is much, if any,
+different from what they’d be doing if Kamala Harris had gotten
+1–2 percent more of the vote in a handful of states in November.
+The difference is that everyone is looking for quid pro quo with
+President Transactional back in office.</p>
+</blockquote>
+
+<p><a href="https://www.apple.com/newsroom/2018/01/apple-accelerates-us-investment-and-job-creation/">Apple first announced a plan in 2018</a>, during Trump 1.0, to spend $350 billion over the next five years. Then in 2021 — midway through those five years, at the start of the Biden administration — they said spending was above that previously promised pace but <a href="https://www.apple.com/newsroom/2021/04/apple-commits-430-billion-in-us-investments-over-five-years/">they were announcing a new five-year plan to spend $430 billion</a>. That plan would have run through 2026 (this year). But, again, right after Trump was re-inaugurated last year, before the period covered by the 2021 five-year plan was up, <a href="https://www.apple.com/newsroom/2025/02/apple-will-spend-more-than-500-billion-usd-in-the-us-over-the-next-four-years/">they announced the current $500 billion plan</a>. The only difference is that this latest spending commitment is a four-year plan, not a five-year one (probably because they know Trump doesn’t give one shit what they do after he leaves office).</p>
+
+<p>This isn’t a shell game or a scam. I believe Apple really has spent what they’ve said they were going to spend, and really plans to spend what they’ve committed to spend in the coming three years. If anything, as they said in 2021, their actual spending has probably exceeded what they committed to, during each of these periods, and will continue to. It’s very Tim Cook-ian and very Apple-like to underpromise and overdeliver. So I’d say it’s a shoo-in that when Apple announced the current plan to spend “more than $500 billion” in the U.S. from 2026–2030, they actually planned to hit that target with room to spare. So <em>saying</em> that they’ll throw the proceeds from any potential tariff refund check into the same fund doesn’t actually change a damn thing about their plans.</p>
+
+<p>And if the pattern holds, they’ll announce a <em>new</em> four- or five-year plan for $600 billion (give or take) after the 2028 election, regardless who wins. There’s never any sort of accounting where they show that they spent exactly, say, $447 billion between 2021 and 2026, or $389 billion from 2018 to 2023. And there’s never going to be any exact accounting like that for what they’ll spend in this current “more than $500 billion” plan covering 2026 to 2030. There’s also no accounting for how much Apple spent last year on Trump’s invalid tariffs. Presumably, if they eventually get a refund check from the Treasury, we will know the exact number. But given that whatever they spent on Trump’s tariffs had only a negligible effect on their earnings last year, we can presume that the money they’re committed to spending on U.S. manufacturing and job creation from 2026 to 2030 remains <em>about</em> $500 billion, and it’s really all just projects that they would have spent the exact same amount of money on if Kamala Harris were now in the White House — just like how they committed to spending $430 billion when Biden was president.</p>
+
+<p>The whole thing is just presented in such a way to make it look like they’re doing what Donald Trump would like them to do, when in fact it’s just exactly what Apple wants to do anyway. That’s what makes it genius. It’s win-win-win. It’s what Apple wanted to do anyway, it pleases Trump, and it’s actually good for the American economy.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.bbc.com/news/articles/c5y7yvgy0w6o">Meta Solved Their Problem With Kenyan Contractors Seeing Footage of AI Glasses Wearers on the Toilet </a>&nbsp;<a class="permalink" title="Permanent link to ‘Meta Solved Their Problem With Kenyan Contractors Seeing Footage of AI Glasses Wearers on the Toilet ’" href="https://daringfireball.net/linked/2026/05/01/meta-solved-their-problem">&#9733;</a>
+</dt>
+<dd>
+<p><a href="https://daringfireball.net/linked/2026/03/09/kenya-meta-contractors">Remember the appalling but utterly-unsurprising story</a> two months ago where a team of investigative reporters in Sweden uncovered a company in Kenya contracted by Meta to review video content captured by Meta’s “smart” glasses? <a href="https://www.svd.se/a/K8nrV4/metas-ai-smart-glasses-and-data-privacy-concerns-workers-say-we-see-everything">They spoke to some of the workers</a>, who told tales of reviewing footage of Meta glasses users getting undressed, having sex, and taking dumps. This is a rather seedy job, and a big surprise to most of the people wearing Meta’s AI glasses, who are under the impression that “AI” does not involve human beings in Kenya seeing what their glasses capture.</p>
+
+<p>Well, Meta has fixed the problem. <a href="https://www.bbc.com/news/articles/c5y7yvgy0w6o">Chris Vallance reports for BBC News</a>:</p>
+
+<blockquote>
+  <p>Meta is under pressure to explain why it cancelled a major
+contract with a company it was using to train AI, shortly after
+some of its Kenya-based workers alleged they had to view graphic
+content captured by Meta smart glasses.</p>
+
+<p>In February, workers at the company, Sama, told two Swedish
+newspapers they had <a href="https://www.svd.se/a/K8nrV4/metas-ai-smart-glasses-and-data-privacy-concerns-workers-say-we-see-everything">witnessed glasses users going to the toilet,
+and having sex</a>.</p>
+
+<p>Less than two months later, Meta ended its contract with Sama,
+which Sama said would result in 1,108 workers being made
+redundant.</p>
+
+<p>Meta says it’s because Sama did not meet its standards, a
+criticism Sama rejects. A Kenyan workers’ organisation alleges
+Meta’s decision was caused by the staff speaking out.</p>
+</blockquote>
+
+<p>There’s no mystery here. The “standard” that Sama didn’t meet was keeping their mouths shut about the dignity-shredding nature of the entire operation. Like that fact that it even existed, let alone the gross privacy-invasive footage they witnessed. The deal wasn’t just for Sama’s workers to do the work, it was to do the work <em>and</em> keep it on the down-low. Go to <a href="https://www.meta.com/ai-glasses/">Meta’s AI glasses website</a> and try to find the part where they warn you that footage is subject to review by teams of contractors in third-world countries, <a href="https://en.wikipedia.org/wiki/History_of_chess_engines">Mechanical Turk</a>-style. If you look hard enough, you’ll find oblique allusion to “review may be automated or manual (human)” in their <a href="https://www.facebook.com/legal/ai-terms">legal small print</a>, but their large-scale human review of video footage and recordings isn’t part of the brand or marketing image for their glasses.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://sixcolors.com/post/2026/04/apple-results-analysis-net-net-over-the-moon/">Tim Cook’s Clever Solution to the Tariff Refund Puzzle</a>&nbsp;<a class="permalink" title="Permanent link to ‘Tim Cook’s Clever Solution to the Tariff Refund Puzzle’" href="https://daringfireball.net/linked/2026/05/01/tim-cooks-clever-solution-to-the-tariff-refund-puzzle">&#9733;</a>
+</dt>
+<dd>
+<p>One more from Jason Snell, from his analysis of Apple’s quarterly results:</p>
+
+<blockquote>
+  <p>During a complicated question from J.P. Morgan analyst Samik
+Chatterjee about product margins, Parekh unusually half-answered
+the question and then stopped and “turned it over to Tim” so that
+Cook could read an obviously prepared statement about tariffs,
+which included this bit:</p>
+
+<blockquote>
+  <p>In terms of applying for a refund of tariffs paid, we’re
+following the established processes, and we plan to reinvest any
+amount we receive back into U.S. innovation and advanced
+manufacturing. These would be new investments and would be in
+addition to our prior commitments in the U.S.</p>
+</blockquote>
+
+<p>This is the sort of politics Cook will continue to be plying from
+the boardroom. Sure, Apple’s going to try to get its tariff money
+back. But it’s going to do so using the perfectly normal and
+established process, and if it <em>does</em> get billions back from the
+U.S. government, it double-promises to reinvest that money in the
+United States, above and beyond its already stated commitments.
+Trump Administration, take note.</p>
+</blockquote>
+
+<p>The kind of logic puzzles I enjoy most are ones where, when the puzzle is posed, there’s no obvious solution. But once you see the solution, it seems profoundly obvious. Jason Kottke <a href="https://kottke.org/26/04/0048772-1d-chess-you-might-initia">last week linked</a> to <a href="https://rowan441.github.io/1dchess/chess.html">1D-Chess</a>, a game from Rowan Monk that’s like that. Once you find the solution you can’t unsee it. (Don’t give up and peek at the posted answer!)</p>
+
+<p>The question of tariff refunds is like that. Two months ago <a href="https://www.scotusblog.com/2026/02/supreme-court-strikes-down-tariffs/">the Supreme Court ruled 6-3</a> that Trump’s obviously illegal tariffs last year, were, in fact, illegal. They left as an open question, however, whether importers who paid those tariffs should get refunds from the federal government. Apple, obviously, is one of those importers. The logic puzzle is this: if it turns out that Apple is eligible for a refund, how do they collect it without infuriating the petulant Donald Trump? Cook just spelled out the answer. Take the money but commit it all to their longstanding plan to spend $500 billion over the next few years to U.S. manufacturing efforts, a program they’ve maintained through the Trump 1, Biden, and now Trump 2 administrations, but which Cook has made dog-and-pony shows out of during <a href="https://daringfireball.net/2019/11/cook_trump_campaign_ad">both</a> Trump <a href="https://daringfireball.net/2025/08/gold_frankincense_and_silicon">terms</a> to, as Trump himself describes it, “<a href="https://daringfireball.net/linked/2026/04/21/trump-on-tim-apple">kiss his ass</a>”.</p>
+
+<p>That’s so obvious, now that Cook spelled it out, that it doesn’t even seem like a puzzle.</p>
+
+<p><strong>Update:</strong> “<a href="https://daringfireball.net/linked/2026/05/01/more-on-cooks-tariff-refund-puzzle-solution">More on Apple’s Logically Elegant Tariff Refund Puzzle Solution</a>”.</p>
+
+</dd>
+
+
+</dl>
+
+<h2 class="dateline">Thursday, 30 April 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://daringfireball.net/thetalkshow/2026/04/30/ep-446">The Talk Show: ‘Food and Beverage Director’</a>&nbsp;<a class="permalink" title="Permanent link to ‘The Talk Show: ‘Food and Beverage Director’’" href="https://daringfireball.net/linked/2026/04/30/the-talk-show-446">&#9733;</a>
+</dt>
+<dd>
+<p>MG Siegler returns to the show to discuss Apple’s announcement that Tim Cook is stepping aside (into the role of executive chairman) and John Ternus will become CEO.</p>
+
+<p><audio
+    src = "https://traffic.libsyn.com/secure/daringfireball/thetalkshow-446-mg-siegler.mp3"
+    controls
+    preload = "none"
+/></p>
+
+<p><strong>Sponsored by:</strong></p>
+
+<ul>
+<li><a href="https://squarespace.com/talkshow">Squarespace</a>: Save 10% off your first purchase of a website or domain using code <strong>TALKSHOW</strong>.</li>
+<li><a href="https://getdrafts.com/thetalkshow">Drafts</a>: The Swiss Army knife for text on all your Apple devices. Act now to get your first year of Drafts Pro for 50% off.</li>
+<li><a href="https://finalist.works/talkshow">Finalist</a>: A daily planner for iPhone, iPad and Mac, built on proven paper-based planning methods. Use this link to get six months free.</li>
+</ul>
+
+</dd>
+
+
+<dt>
+<a href="https://www.theguardian.com/us-news/2026/apr/30/hollywood-church-of-scientology-speed-runs?CMP=bsky_gu">Scientology ‘Speed Running’ Trend</a>&nbsp;<a class="permalink" title="Permanent link to ‘Scientology ‘Speed Running’ Trend’" href="https://daringfireball.net/linked/2026/04/30/scientology-speed-running-trend">&#9733;</a>
+</dt>
+<dd>
+<p>Uwa Ede-Osifo, reporting for The Guardian:</p>
+
+<blockquote>
+  <p>On any given day, Los Angeles’s Hollywood Boulevard teems with
+tourists and street performers clustered near the area’s many
+landmarks. But in recent months, the strip has been set abuzz for
+a new reason.</p>
+
+<p>Throngs of mostly adolescent boys and young men have been rushing
+the Church of Scientology’s international headquarters on the
+famed street.</p>
+
+<p>The so-called “speed runs” appear to be bids for social media
+valor — clips of the raids have amassed millions of views on
+TikTok — as much as they are an outgrowth of public intrigue
+surrounding the church, which has previously drawn accusations of
+being a cult. Some users have developed blueprints for the
+building based on information gathered from videos of the raids.</p>
+</blockquote>
+
+<p>I’m not condoning it, of course, but <a href="https://www.threads.com/@raefabllc/post/DXsSGP3EoqD">this video of one guy doing it</a> sure was fun to watch.</p>
+
+<p><strong>Update:</strong> Now the kids are <a href="https://www.youtube.com/shorts/Xf-47O9qWt0">speed running Palantir too</a>.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.apple.com/newsroom/2026/04/apple-reports-second-quarter-results/">Apple Q2 2026 Results</a>&nbsp;<a class="permalink" title="Permanent link to ‘Apple Q2 2026 Results’" href="https://daringfireball.net/linked/2026/04/30/apple-q2-2026-results">&#9733;</a>
+</dt>
+<dd>
+<p>Apple Newsroom:</p>
+
+<blockquote>
+  <p>“Today Apple is proud to report our best March quarter ever, with
+revenue of $111.2 billion and double-digit growth across every
+geographic segment,” said Tim Cook, Apple’s CEO. “iPhone achieved
+a March quarter revenue record, fueled by such extraordinary
+demand for the iPhone 17 lineup. During the quarter, Services
+achieved yet another all-time record, and we were excited to
+introduce remarkable new products to our strongest lineup ever.
+That included the addition of the iPhone 17e and the M4-powered
+iPad Air, along with the launch of MacBook Neo, which is
+captivating customers all around the world.”</p>
+</blockquote>
+
+<p>Record results for the January–March quarter for revenue, profit, and iPhone revenue in particular. And iPhones were constrained by supply. Tim Cook led the analyst conference call because he’s still CEO, but John Ternus joined for the first time. Worth a listen to just their opening remarks.</p>
+
+<p>Over at Six Colors, <a href="https://sixcolors.com/post/2026/04/apple-announces-record-fiscal-second-quarter/">Jason Snell has the usual assortment of graphs</a> charting Apple’s numbers. Spoiler: up, up, up. And he has his usual <a href="https://sixcolors.com/post/2026/04/this-is-tim-and-john-and-kevin-transcript-of-apples-q2-2026-financial-call/">transcript of the analyst call</a>. From that transcript, this bit from Ternus’s prepared statement made me smile:</p>
+
+<blockquote>
+  <p>I want to echo Tim’s sentiment about our shareholders, especially
+those who have been with us for many years. Thank you so much for
+your confidence in our company. As you know, one of the hallmarks
+of Tim’s tenure has been a deep thoughtfulness, deliberateness,
+and discipline when it comes to the financial decision-making of
+the company, and I want you to know that is something Kevan and I
+intend to continue when I transition into the role in September.</p>
+</blockquote>
+
+<p>Translation: “<em>In case you were worried, we intend to keep making money hand over fist when I become CEO. I’m not coming into the job to spend the company’s money like a drunken sailor.</em>”</p>
+
+</dd>
+
+
+</dl>
+
+<hr class="ookiaks" />
+
+
+<div class="article">
+<h1><a href="https://daringfireball.net/2026/04/on_the_future_of_apples_vision_platform" title="Permanent link to ‘On the Future of Apple’s Vision Platform’">On the Future of Apple’s Vision Platform</a></h1>
+<h6 class="dateline">Thursday, 30 April 2026</h6>
+
+<p>Juli Clover, writing at MacRumors under the rather incendiary headline “<a href="https://www.macrumors.com/2026/04/29/apple-vision-pro-m5-flop/">Apple Has Given Up on the Vision Pro After M5 Refresh Flop</a>”:</p>
+
+<blockquote>
+  <p>Apple has all but given up on the Vision Pro after the M5 model
+failed to revitalize interest in the device, MacRumors has
+learned. Apple updated the Vision Pro with a faster M5 chip and a
+more comfortable band in October 2025, but there were no other
+hardware changes, and consumers still weren’t interested. [...]</p>
+
+<p>The Vision Pro has been unpopular since it first launched, and
+Apple only sold around 600,000 units in total. Insider sources
+told MacRumors that Apple has received an unusually high
+percentage of returns, far exceeding any other modern Apple
+product.</p>
+
+<p>Apple has apparently stopped work on the Vision Pro and the Vision
+Pro team has been redistributed to other teams within Apple. Some
+former Vision Pro team members are working on Siri, which is not a
+surprise as Vision Pro chief Mike Rockwell has been leading the
+Siri team since March 2025.</p>
+</blockquote>
+
+<p>This report comes as news to everyone at Apple working in the Vision Product Group (VPG). Nothing about the future of the platform has changed recently. When it was a secret project, prior to unveiling, it was called the Technology Development Group (TDG) inside Apple. Then, when Vision Pro was unveiled, it became VPG. And then at some point the hardware went under Apple’s hardware group (led by John Ternus) and the software under the software group (led by Craig Federighi). So there have been changes, yes, but only the sort of changes that are natural when a product shifts from being a secret to being one of Apple’s regular non-secret platforms.</p>
+
+<p>As for poor sales, I think it’s unquestionable that Vision Pro sales — and general enthusiasm — have been a disappointment. What momentum they had out of the gate <a href="https://www.techmeme.com/260101/p1#a260101p1">has seemingly petered out</a>. But the <em>optimistic</em> scenario inside Apple was not all that high. The best-case scenario was surely a bigger number of units than they’ve actually sold, but not <em>that</em> much more. There’s no realistic scenario where Vision Pro was an out-of-the-gate hit like, say, the iPad was. It’s an all-new device in an all-new product category that starts at $3,500 and costs more like $4,000 if you need corrective lenses. Before it debuted, <a href="https://daringfireball.net/2024/10/vision_pro_bites_dog">there were multiple reports from multiple sources</a> that suggested (a) that Sony could only manufacture <a href="https://www.thelec.net/news/articleView.html?idxno=4559">a maximum of 900,000 displays per year</a>, capping dual-display Vision Pro headsets at 450,000 per year; and (b) that Apple itself “expected to ship fewer than half a million headsets in the first year of its release, according to people involved in its supply chain” (<a href="https://www.theinformation.com/articles/apples-learning-curve-how-headsets-design-caused-production-challenges">per Wayne Ma at The Information</a>).</p>
+
+<p>Look at <a href="https://www.apple.com/newsroom/2025/10/apple-vision-pro-upgraded-with-the-m5-chip-and-dual-knit-band/">how Apple unveiled the second-gen Vision Pro with M5</a> — it was the definition of “low key”. I don’t think there was a single person in Cupertino — not one — who looked at first-generation Vision Pro sales and thought, “<em>I know what will turn this around in a big way: a second-generation speed bump where the M2 chip is upgraded to an M5!</em>” That speed bump <a href="https://www.apple.com/newsroom/2025/10/apple-vision-pro-upgraded-with-the-m5-chip-and-dual-knit-band/">in October</a> was not intended to make a huge difference. It was just a signal that they’re still at it. <a href="https://daringfireball.net/2026/03/the_iphone_17e">Speed bumps are good</a>. (And it probably helps, not hurts, margins because the M5 is used on Macs and iPads too, and no other product still in production uses the M2.) Rather than anyone — literally anyone — at Apple being surprised that the October second-gen M5 update did not meaningfully change the sales trajectory, I think the entire company would have been flabbergasted (and caught flat-footed on supply) if it had.</p>
+
+<p>This sentence from Clover’s report is doing a lot of work:</p>
+
+<blockquote>
+  <p>Apple has apparently stopped work on the Vision Pro and the Vision
+Pro team has been redistributed to other teams within Apple. </p>
+</blockquote>
+
+<p>There’s only one Vision hardware product to date, and that product, through two generations, is named Vision Pro. If Clover is saying that no one is working on a third-generation revision of the Vision Pro product we know today, maybe that’s correct. I don’t know. I certainly hope it’s correct. I think it was fine for Apple to do one new-generation speed bump of the original hardware. But going forward, they clearly need to do something significant for the <em>next</em> hardware. Ideally, two things: a much more appealing “Vision Pro” <em>and</em> a lower-priced “Vision Air” or just plain “Vision” or, hell, a “Vision Neo”. Take a new crack at the high end with a lighter-weight higher-resolution Vision Pro and open up new markets with something starting at under $2,000.</p>
+
+<p>But I don’t think anyone is reading that sentence from Clover’s report that way. It implies — along with the headline — that Apple is just giving up on the whole platform. <a href="https://bsky.app/profile/carnage4life.bsky.social/post/3mkoaloygjc25">That’s how everyone is reading it</a>, and it’s clearly what the article, and especially headline, implies.</p>
+
+<p>I don’t think that’s true, at all. There’s a VisionOS 27 update coming at WWDC and new hardware in the works. Not just AR glasses, but immersive Vision headsets. There are, I believe, as many people at Apple working on VisionOS software and immersive content today as there ever have been. It’s full steam ahead. The pressure is on, I’m sure, but there’s no doom and gloom. The Apple folks in the Vision group aren’t oblivious.<sup id="fnr1-2026-04-30"><a href="#fn1-2026-04-30">1</a></sup> They actually know the roadmap, and they know just how much work is between where the platform is today and where it needs to be for it to be a meaningful contributor to Apple’s bottom line. But they’re there, working on it. I don’t know who told MacRumors what (and their sourcing is just “MacRumors has learned”), but I know for a fact that it is not true that the teams working on the Vision platform have “been redistributed to other teams within Apple.”</p>
+
+<p>It’s a strange thing for MacRumors to state so categorically something I believe has no truth to it whatsoever. And if there is <em>some</em> truth to it, it’s not what the article implies, which is that the whole thing has been shut down, somehow without the world knowing until now. Just two weeks ago John Ternus and Greg Joswiak were interviewed by Mark Spoonauer at Tom’s Guide, and <a href="https://www.youtube.com/watch?v=kkBudtxgor0&amp;t=746s">both spoke of a bright future for spatial computing</a>. Joz describing Vision Pro as a product pulled into the present from the future is a good way of emphasizing the <em>yet</em> regarding a product — and category — that’s not there yet. Apple executives know how to give a non-answer answer to a question they don’t want to answer honestly. (Exhibit A: <a href="https://daringfireball.net/2026/03/squashing">Tim Cook “squashing” rumors that he was about to retire</a> ... one month before he announced he was stepping aside as CEO.) The way Ternus and Joz were talking about the platform, and immersive content, <em>this month</em> was not lacking in enthusiasm. It was asking for patience.</p>
+
+<p>It’s certainly possible that this Vision thing ultimately isn’t going to work out and Apple <em>will</em> throw in the towel on it. But that hasn’t happened, and if it does, it’s not going to come out of nowhere as a story on MacRumors for the people in VPG working on it. When Apple threw in the towel on Project Titan (the car project) in February 2024, <a href="https://techcrunch.com/2024/02/27/apple-cancels-electric-car-project-titan/">an all-hands was held to break the news</a>, led by then-COO Jeff Williams and Titan project lead Kevin Lynch. The team didn’t learn it from a fucking leak.&nbsp;<a class="permalink" title="Permanent link to ‘On the Future of Apple’s Vision Platform’" href="https://daringfireball.net/2026/04/on_the_future_of_apples_vision_platform">&#9733;</a></p>
+
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1-2026-04-30">
+<p>No one on the planet is more keenly aware of how few people own a Vision Pro than the people who work on the Vision platform. If you work at Apple and work on the iPhone, and you meet someone who asks what you do, and you tell them you work on the iPhone at Apple, there’s a good chance they’ll say “<em>Hey, I have an iPhone!</em>” and they’ll take it out of their pocket to show you. If you work on the Mac, you’ll meet a lot of people who will say “<em>Hey, I’ve been a Mac user for a long time!</em>” Tell people you work on Vision Pro, and the best answer you’re likely to get is “<em>Oh, nice, uh, I think I’ve heard about that.</em>“&nbsp;<a href="#fnr1-2026-04-30"  class="footnoteBackLink"  title="Jump back to footnote 1 in the text.">&#x21A9;&#xFE0E;</a></p>
+</li>
+</ol>
+</div>
+
+</div> <!-- article -->
+
+<hr class="ookiaks" />
+
+
+<h2 class="dateline">Thursday, 30 April 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://www.macrumors.com/2026/04/29/apple-questioning-iphone-magsafe/">I’m Starting to Wonder What They’re Smoking Over There at MacRumors</a>&nbsp;<a class="permalink" title="Permanent link to ‘I’m Starting to Wonder What They’re Smoking Over There at MacRumors’" href="https://daringfireball.net/linked/2026/04/30/what-theyre-smoking-over-there-at-macrumors">&#9733;</a>
+</dt>
+<dd>
+<p>600 words from Hartley Charlton at MacRumors expounding upon a wacko post on Weibo suggesting that Apple is debating dropping MagSafe from all iPhones (<a href="https://weibo.com/5143897135/5292368381346169">which post</a>, translated to English, is only 70-some words). Given that last year’s 16e didn’t have MagSafe and this year’s 17e does, you don’t need a pseudonymous Chinese weatherman to know which way the MagSafe wind is blowing in Cupertino.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.instagram.com/reel/DXwf7pis6KT/">New Banksy in London</a>&nbsp;<a class="permalink" title="Permanent link to ‘New Banksy in London’" href="https://daringfireball.net/linked/2026/04/30/new-banksy-in-london">&#9733;</a>
+</dt>
+<dd>
+<p>Brilliant statue, hilarious intro video. The greatest artist of our age.</p>
+
+</dd>
+
+
+</dl>
+
+<h2 class="dateline">Wednesday, 29 April 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://sfstandard.com/2026/04/28/oak-sfo-reach-naming-settlement/">Oakland’s Airport Is Now Officially ‘Oakland San Francisco Bay Airport’</a>&nbsp;<a class="permalink" title="Permanent link to ‘Oakland’s Airport Is Now Officially ‘Oakland San Francisco Bay Airport’’" href="https://daringfireball.net/linked/2026/04/29/oakland-san-francisco-bay-airport">&#9733;</a>
+</dt>
+<dd>
+<p>Max Harrison-Caldwell, reporting for The San Francisco Standard:</p>
+
+<blockquote>
+  <p>In 2024, the port — which manages the Oakland airport — changed
+the name from Oakland International Airport to San Francisco Bay
+Oakland International Airport, hoping to entice travelers by
+emphasizing the hub’s proximity to SF. At the time, the number of
+people flying into Oakland was declining after a brief
+post-pandemic rebound, and the airport was losing routes.</p>
+
+<p>The effort <a href="https://sfstandard.com/2025/12/14/oakland-airport-s-san-francisco-rebrand-has-failed-reverse-plunging-passenger-numbers/">largely failed</a>, while having the secondary
+impact of annoying San Francisco leaders, who swiftly sued,
+arguing that the name would <a href="https://sfstandard.com/2024/09/17/oakland-airport-renaming-confuses-travelers-sanfrancisco-says-in-lawsuit/">confuse travelers.</a> In 2025,
+the port <a href="https://sfstandard.com/2025/06/27/oakland-san-francisco-bay-airport-new-name/">swapped the two cities</a> within the name to
+produce “Oakland San Francisco Bay Airport.”</p>
+
+<p>San Francisco didn’t like that either, but the parties entered
+mediation in December and have now settled. The new name is fine,
+as long as “Oakland” always appears before “San Francisco” in all
+materials and the airport does not add the letters SF to its
+code, OAK.</p>
+</blockquote>
+
+<p>The Standard ran this under the cheeky headline “Little-Known Bay Area City Will Keep San Francisco in Its Airport’s Name”, which is a little funny, but I don’t see the need to punch down like this. Nobody calls the city “San Francisco” anyway. Everyone just calls it “San Fran” or “<a href="https://www.buzzfeednews.com/article/mathonan/17-reasons-why-its-okay-to-call-it-frisco">Frisco</a>”, either of which names are acceptable.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.theverge.com/ai-artificial-intelligence/920191/elon-musk-sam-altman-trial-day-one?view_token=eyJhbGciOiJIUzI1NiJ9.eyJpZCI6InBrV1FGdGtlcEEiLCJwIjoiL2FpLWFydGlmaWNpYWwtaW50ZWxsaWdlbmNlLzkyMDE5MS9lbG9uLW11c2stc2FtLWFsdG1hbi10cmlhbC1kYXktb25lIiwiZXhwIjoxNzc3OTA1NDgxLCJpYXQiOjE3Nzc0NzM0ODF9.FkMZ8-YRv8q3d7n6p8q_scJaERWtNumD9pK7kONpTE4">‘Elon Musk Appeared More Petty Than Prepared’</a>&nbsp;<a class="permalink" title="Permanent link to ‘‘Elon Musk Appeared More Petty Than Prepared’’" href="https://daringfireball.net/linked/2026/04/29/musk-more-petty-than-prepared">&#9733;</a>
+</dt>
+<dd>
+<p>Elizabeth Lopatto, reporting on <em>Musk v. Altman</em> from the courtroom in Oakland (gift link):</p>
+
+<blockquote>
+  <p>Today the first witness was sworn in in <em>Musk v. Altman</em>: Elon
+Musk. I was surprised by how flat he seemed.</p>
+
+<p>This is not the first time I’ve seen Musk in court. During his
+defamation suit, <a href="https://www.theverge.com/2019/12/4/20994895/elon-musk-testimony-vernon-unsworth-tweet-negligence-la-courthouse">he turned on the charm</a> and the jury
+responded by <a href="https://www.theverge.com/2019/12/6/20998821/elon-musk-wins-loses-twitter-defamation-trial-testimony-caver-vernon-unsworth-cave-rescue">finding him not guilty.</a> Today he looked
+adrift and unprepared. The only times he showed real animation
+were when he was <a href="https://www.theverge.com/ai-artificial-intelligence/920048/elon-musk-testimony-save-humanity">bragging about how much he’d done for
+OpenAI</a>. [...]</p>
+
+<p>What did Musk do at OpenAI? “I came up with the idea, the name,
+recruited the key people, taught them everything I know, provided
+all the initial funding. Besides that, nothing.” He paused for
+laughter, and one or two people obligingly chuckled. But most of
+the courtroom was silent. I thought he sounded petulant. “I could
+have started it as a for-profit and I chose not to,” Musk said.</p>
+</blockquote>
+
+<p>Elon Musk petty, petulant, smug, awkward, and unprepared? Where’s my fainting couch?</p>
+
+<blockquote>
+  <p>At another point, Musk was asked to explain who former OpenAI
+board member Shivon Zilis was. “Shivon was the, um, my chief of
+staff and, uh, you know,” Musk said. One person in the gallery — presumably familiar with the fact that Zilis is the mother of a
+few of Musk’s kids — burst out in loud laughter. But the jury
+looked puzzled.</p>
+</blockquote>
+
+<p>In <a href="https://daringfireball.net/linked/2026/04/29/openai-trial-starts">an earlier post today</a>, I pointed out that it’s at least slightly awkward that NYT reporter Mike Isaac is live-tweeting the proceedings on Twitter/X, a platform owned by Musk (and where he famously has rigged the algorithm in his own favor), but, well, when you own an empire as sprawling as Musk’s, pieces of it are bound to collide.</p>
+
+<p>It’s the same with women who are the mothers of Musk’s children.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.theatlantic.com/technology/2026/04/openai-trial-elon-musk-sam-altman/686984/?gift=iWa_iB9lkw4UuiWbIbrWGYJmg9p-llxzEAgykQekDFA">‘Sordid and Small’</a>&nbsp;<a class="permalink" title="Permanent link to ‘‘Sordid and Small’’" href="https://daringfireball.net/linked/2026/04/29/wong-musk-v-altman-sordid-and-small">&#9733;</a>
+</dt>
+<dd>
+<p>Matteo Wong, covering <em>Musk v. Altman</em> for The Atlantic (gift link):</p>
+
+<blockquote>
+  <p>Musk is asking that Altman be removed from OpenAI’s board, that
+the company convert back to a nonprofit, and for the return of
+allegedly “ill-gotten gains” — some $150 billion — which Musk
+says would go to OpenAI’s charitable trust. <a href="https://www.wsj.com/tech/elon-musk-is-an-underdog-in-his-180-billion-fight-against-openai-32a74332">Outside legal
+experts</a> say that Musk is unlikely to win all or even much
+of this. His argument is confusing: OpenAI has certainly evolved
+from a nonprofit lab to a revenue-chasing, consumer behemoth, and
+a chorus of critics has alleged that it has deviated from its
+original mission of ensuring that AGI benefits humanity. But Musk
+himself appears to have insisted that OpenAI couldn’t keep up as a
+nonprofit — for instance, in early 2018, he wrote an
+<a href="https://openai.com/index/openai-elon-musk/">email</a> to OpenAI leadership saying that merging the firm
+with Tesla “is the only path that could even hope to hold a candle
+to Google.” And even before he sued, Musk launched a rival
+for-profit company, xAI. “Mr. Musk’s lawsuit is a pageant of
+hypocrisy,” William Savitt, a lawyer for OpenAI, told the jury
+today, later adding that Musk had “sour grapes.” [...]</p>
+
+<p>The trial makes the AI boom seem sordid and small. In his sworn
+<a href="https://www.courtlistener.com/docket/69013420/379/76/musk-v-altman/">deposition</a>, Altman wrote that Musk used to message him
+complaints that he wanted more credit for the success of OpenAI
+and took offense at not being included in an anniversary photo.
+[...] Musk, for his part, has said that he would drop his lawsuit
+if OpenAI changed its name to “ClosedAI.” Yesterday, as jury
+selection began, Musk began furiously posting on X and repeatedly
+called his co-founder “Scam Altman.” Before the start of opening
+arguments today, Gonzalez Rogers admonished Musk and Altman for
+their social-media use, asking them to limit their “propensity” to
+post about the trial; both meekly assented, “Yes.”</p>
+</blockquote>
+
+<p>It all seems so petty and spiteful, but this is a real federal lawsuit with the entire future of the biggest startup in history at stake.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.nytimes.com/2026/04/28/technology/openai-trial-elon-musk-sam-altman.html?unlocked_article_code=1.elA.u75G.-STmUe_pILOO">OpenAI Trial Starts With Two Very Different Tales of a Company’s Early Years</a>&nbsp;<a class="permalink" title="Permanent link to ‘OpenAI Trial Starts With Two Very Different Tales of a Company’s Early Years’" href="https://daringfireball.net/linked/2026/04/29/openai-trial-starts">&#9733;</a>
+</dt>
+<dd>
+<p>Cade Metz and Mike Isaac, reporting for The New York Times from the Ronald V. Dellums U.S. Courthouse in Oakland (gift link):</p>
+
+<blockquote>
+  <p>On the first day of testimony in a landmark trial between Elon
+Musk and OpenAI’s Sam Altman, two notably different tales were
+offered of how OpenAI evolved from a nonprofit artificial
+intelligence lab into one of the most influential tech companies
+in the world.</p>
+
+<p>In Mr. Musk’s telling, OpenAI’s shift was one of the greatest
+heists in history — a nonprofit ripped from its promise of
+altruism by the greed of Mr. Altman, who founded OpenAI with Mr.
+Musk and a group of A.I. researchers more than 10 years ago. In
+OpenAI’s recounting of those early days, however, it was Mr. Musk
+who was the voracious capitalist. And when the lab’s other
+founders refused to go along with his plans, he left in a huff.</p>
+
+<p>“This lawsuit is very simple: It is not OK to steal a charity,”
+Mr. Musk said Tuesday on the witness stand in an Oakland, Calif.,
+courtroom. If Mr. Altman and OpenAI are allowed to continue with
+their plans, he added, “It will give license to looting every
+charity in America.”</p>
+
+<p>A nine-member jury, seated a day earlier in federal court by Judge
+Yvonne Gonzalez Rogers, will hear from tech moguls, former OpenAI
+board members and employees in what is expected to be a monthlong
+trial. The jurors’ decision could shift the balance of power among
+A.I. companies, with Mr. Musk seeking $150 billion in damages and
+an order that OpenAI, now valued at about $730 billion, unwind its
+for-profit plans.</p>
+</blockquote>
+
+<p>Gonzales Rogers, you will <a href="https://daringfireball.net/search/gonzales+rogers">surely remember</a>, presided over the <em>Epic v. Apple</em> case.</p>
+
+<p>Isaac is live-tweeting the testimony and goings-on <a href="https://x.com/MikeIsaac/">on Twitter/X</a>. Here’s <a href="https://x.com/MikeIsaac/status/2049128294839357447">his thread of posts yesterday</a>. Isaac is a terrific reporter, and I enjoy following his extemporaneous notes. It’s a <em>little</em> weird though that he’s posting these on Twitter/X, a site that is privately owned by one of the parties in the lawsuit. Musk’s empire is so sprawling that separate pieces inevitably collide.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://x.com/lifeof_jer/status/2048103471019434248?s=12">Playing With Fire</a>&nbsp;<a class="permalink" title="Permanent link to ‘Playing With Fire’" href="https://daringfireball.net/linked/2026/04/29/playing-with-fire">&#9733;</a>
+</dt>
+<dd>
+<p>Jer Crane, in an article earlier this week posted on Twitter/X:</p>
+
+<blockquote>
+  <p>I’m Jer Crane, founder of PocketOS. We build software that
+rental businesses — primarily car rental operators — use to
+run their entire operations: reservations, payments, customer
+management, vehicle tracking, the works. Some of our customers
+are five-year subscribers who literally cannot operate their
+businesses without us.</p>
+
+<p>Yesterday afternoon, an AI coding agent — Cursor running
+Anthropic’s flagship Claude Opus 4.6 — deleted our production
+database and all volume-level backups in a single API call to
+Railway, our infrastructure provider.</p>
+
+<p>It took 9 seconds.</p>
+
+<p>The agent then, when asked to explain itself, produced a written
+confession enumerating the specific safety rules it had violated.</p>
+</blockquote>
+
+<p>A day later, Crane posted <a href="https://x.com/lifeof_jer/status/2048576568109527407">an update with good news</a>: “Railway CEO just DM’d me with update: They have recovered the data (thank God!).” I sincerely hope that works out.</p>
+
+<p>That said, my sympathy for his plight is minimal. If you play with fire, recklessly even, don’t act outraged when you get burned. You don’t get the benefits of driving a race car at 200 MPH without the associated risks. You don’t get the benefits of running a business with AI coding agents running loose on your production environment without the associated risks. Put that race car on a track, with no access to public roads. Keep that AI coding agent sandboxed away from your production database. Otherwise you get what you deserve. The difference with my fire analogy is that every mammal understands the basic dangers with fire; a lot of people letting AI coding agents run amok have no idea whatsoever what they’re actually doing.</p>
+
+<p><a href="https://mastodon.social/@scalzi/116478192063186637">John Scalzi, on Mastodon</a>:</p>
+
+<blockquote>
+  <p>I wouldn’t say that I enjoy these stories but I will say they
+certainly encourage me NOT to let “AI” anywhere anything I
+consider to be sensitive and/or valuable.</p>
+</blockquote>
+
+<p>Same thing goes for <a href="https://daringfireball.net/linked/2026/04/14/fraudulent-cryptocurrency-app-in-mac-app-store">cryptocurrency crime victims</a>.</p>
+
+</dd>
+
+
+</dl>
+
+<h2 class="dateline">Monday, 27 April 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://recleague.com/?lyr_campaign=df">Rec League</a>&nbsp;<a class="permalink" title="Permanent link to ‘Rec League’" href="https://daringfireball.net/linked/2026/04/27/rec-league">&#9733;</a>
+</dt>
+<dd>
+<p>My thanks to Rec League for sponsoring last week at DF. Rec League is a new app/social network for sharing what you’re into. (Get it? The “rec” in “Rec League” is for recommendations. It’s a damn clever name, and sometimes a clever name is half the battle.) It’s really well done, with a great simple brand aesthetic and obvious navigation and mechanics. You can easily use Rec League just to catalog your own collections: restaurants, books, movies, gadgets, whatever. The social aspects are totally low key. You find people whose taste you dig and you follow them. When you see something you like you can favorite or just save it. That’s it. It’s an old-school social network where the point is just fun and surprise and sharing.</p>
+
+<p>Rec League was featured as the “Best New App” in the App Store, and one of their users called it “the only social media I feel better after using”, which feels like a perfect description. It’s just cool people recommending things they think are cool. I’ve already bought some stuff and added some movies to my watch list from using it, and I’ve started a little list of <a href="https://gruber.recleague.com/collections/philadelphia">restaurants I recommend</a> in Philadelphia. <a href="https://recleague.com/?lyr_campaign=df">Download Rec League and check it out</a>. I, uh, recommend it.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://daringfireball.net/feeds/sponsors/">Sponsor The Talk Show</a>&nbsp;<a class="permalink" title="Permanent link to ‘Sponsor The Talk Show’" href="https://daringfireball.net/linked/2026/04/27/sponsor-the-talk-show">&#9733;</a>
+</dt>
+<dd>
+<p>Weekly “sponsor the whole week at DF” spots are <a href="https://daringfireball.net/feeds/sponsors/">sold out until August 24</a>. That’s a great sign that sponsorships here work. But it’s not so great if you have a product or service that you’d like to promote now, or soon, to the DF audience — savvy listeners and readers obsessed with high quality and good design.</p>
+
+<p>The good news on that front is that the sponsorship schedule for The Talk Show has openings, including for the next few episodes, starting this week and into next month. The general rule of thumb is that sponsorship spots on The Talk Show cost one-third the rate for the weekly spots on DF. I’m happy to work out deals a little lower than that for first-time sponsors. If you’ve got a product or service you’d like to hear pitched on America’s favorite three-star podcast, <a href="/cdn-cgi/l/email-protection#671417080914081514270306150e0900010e150205060b0b49090213581412050d0204135a341708091408150e0900425557330f0242555733060b0c425557340f0810">get in touch</a>.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.theverge.com/podcast/917965/apple-ceo-cook-ternus-transition">Yours Truly on The Vergecast</a>&nbsp;<a class="permalink" title="Permanent link to ‘Yours Truly on The Vergecast’" href="https://daringfireball.net/linked/2026/04/27/yours-truly-on-the-vergecast">&#9733;</a>
+</dt>
+<dd>
+<p>David Pierce:</p>
+
+<blockquote>
+  <p>On <a href="https://pod.link/vergecast">this episode of The Vergecast</a>, David and Nilay are
+joined by <a href="https://daringfireball.net/">Daring Fireball</a>’s John Gruber to talk about their
+reactions to the news, the (<a href="https://www.theverge.com/tech/916228/tim-cook-i-am-healthy-my-energy-is-high-and-i-plan-to-be-in-this-new-role-for-a-long-time">mostly</a>) smooth transition Apple
+seems to have pulled off, and what we should really make of Tim
+Cook’s <a href="https://www.theverge.com/tech/916172/tim-cook-apple-legacy-supply-chain-ceo">legacy as a product person</a>. Really, the question is:
+Do we blame Cook for the Touch Bar, or do we blame him for not
+trying hard enough to make the Touch Bar great?</p>
+</blockquote>
+
+<p>I know that sounds like a joke but I really do think the biggest problem with the Touch Bar wasn’t that the first crack at it wasn’t good enough, but that they never took a second crack at it. Going back to dumb fiddly F-keys with functional icons printed on them was uncharacteristically lazy for Apple.</p>
+
+</dd>
+
+
+</dl>
+
+<h2 class="dateline">Sunday, 26 April 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://store.daringfireball.net/">DF Paraphernalia: Last Call for This Round of T-Shirts and Hoodies</a>&nbsp;<a class="permalink" title="Permanent link to ‘DF Paraphernalia: Last Call for This Round of T-Shirts and Hoodies’" href="https://daringfireball.net/linked/2026/04/26/df-t-shirts-and-hoodies-20-years">&#9733;</a>
+</dt>
+<dd>
+<p>[<strong>Update:</strong> The store is now closed. Thanks to everyone who ordered — you should start getting shipping notices very soon.]</p>
+
+<p>It’s really just a coincidence, but it was 20 years ago this week that I went full-time writing Daring Fireball (after writing the site in my spare time for 4 years). That feels like a long time ago. But it feels like yesterday, too. <a href="https://daringfireball.net/2006/04/initiative">In my announcement, I wrote</a>:</p>
+
+<blockquote>
+  <p>Daring Fireball is what I love to do.</p>
+</blockquote>
+
+<p>That remains as true today than it was then. Whether you’re a longtime reader or a relatively new one, you might enjoy reading that piece from 20 years ago. So far, so good. (I’ve got some readers who were only small children when I wrote that. I occasionally hear from some who weren’t even born then.)</p>
+
+<p>There might be other ways you can support my work directly in the future. But for now, the best way is to buy t-shirts and hoodies from my periodic sales. The current sale is going to end sometime tomorrow. If you’re seeing this post Sunday night and thinking about making a purchase, <a href="https://store.daringfireball.net/">act now</a>. If you’re seeing this Monday morning, you should <em>really</em> act now.</p>
+
+<p><a href="https://store.daringfireball.net/" class="no_underlines">
+<img
+    class="roundrect"
+    src="/members/images/2024/classic-976.png"
+    alt="Thumbnail of a classic Daring Fireball logo t-shirt."
+    height="445"
+    width="445"
+/>
+</a></p>
+
+</dd>
+
+
+</dl>
+
+<hr class="ookiaks" />
+
+
+<div class="article">
+<h1><a href="https://daringfireball.net/2026/04/nyt_wrong_crossword_grid" title="Permanent link to ‘The New York Times Printed the Wrong Crossword Grid Last Sunday, and I Find That Timing Serendipitous’">The New York Times Printed the Wrong Crossword Grid Last Sunday, and I Find That Timing Serendipitous</a></h1>
+<h6 class="dateline">Sunday, 26 April 2026</h6>
+
+<p>The New York Times PR account, <a href="https://x.com/NYTimesPR/status/2045652833022673210">on Twitter/X a week ago</a>:</p>
+
+<blockquote>
+  <p>Sunday’s crossword puzzle in the print edition of The New York
+Times Magazine contains a grid that does not match the clues. The
+correct version of the puzzle can be found in the news section of
+Sunday’s print edition of The Times. The puzzle on our app is
+correct.</p>
+</blockquote>
+
+<p><a href="https://www.vulture.com/article/new-york-times-crossword-error-reactions.html">Maggie Duffy, writing for Vulture</a>:</p>
+
+<blockquote>
+  <p>Some solvers who, like Wegener’s wife, complete the Sunday puzzle
+in the print magazine (often with pen) complained on crossword
+forums and social media, saying they were “nearly in tears,” some
+with fears of “sudden onset dementia” or, worse yet, ineptitude.</p>
+
+<p>For Irene Papoulis, a former writing instructor at Trinity
+College, the puzzle is typically a source of pride. “It didn’t
+even occur to me that it could be their mistake,” she told me. “I
+just blamed myself.” When Mike McFadden, in New Jersey, couldn’t
+crack it, he had a similar reaction. “I thought something was
+wrong with me,” he told me. “I didn’t think that they would have
+an error.” It nagged at him all day. At a function on Saturday, he
+couldn’t bring himself to mention it to his brother-in-law, a
+fellow solver; he was still too upset.</p>
+
+<p>Some had such trust in the crossword that they believed the
+erroneous grid was purposeful. “I’m saying to myself, ‘Okay, maybe
+there’s some sort of scientific or mathematical trick,’” McFadden
+said. When I spoke with Will Shortz, the Times’ crossword editor,
+he said the Times does “so many tricks with the puzzles” that he
+could see how someone’s first thought would be “<em>I wonder what
+they’re up to now?</em>”</p>
+</blockquote>
+
+<p>This is the first such mistake the Times has made in the 84 years that they’ve been printing a crossword puzzle. I came of age doing work in print — writing and editing <a href="https://www.thetriangle.org/">The Triangle</a>, the student newspaper at Drexel, and then spending a few years as a working graphic designer, at a time when print still ruled. There’s an inherent stress about going to press. Mistakes are forever. We once ran a headline at The Triangle that read “Headline Goes Here”. Once. Going to press is stressful but exhilarating. There’s an adrenaline rush that comes with giving the go-ahead to start a very expensive large-scale full-color press run. The stress focuses the mind.</p>
+
+<p>Print, effectively, is hardware. Atoms, not bits. The web is literally software. If you make a mistake in software that results in incorrect mathematical results, you ship an update. If you make a mistake in a CPU such that it results in incorrect floating-point math, perhaps only in 1 out of every 9 billion calculations, <a href="https://en.wikipedia.org/wiki/Pentium_FDIV_bug">people will remember the mistake 30 years later</a>.</p>
+
+<p>If The New York Times had run the wrong crossword grid on the web or in their app, they would have corrected the error quickly, few people would have encountered it, and fewer still would remember it. But by <em>printing</em> the wrong grid in the Sunday magazine last week, they made a mistake that some people will never forget (and some will never forgive).</p>
+
+<p>Hardware brain is different from <a href="https://daringfireball.net/linked/2026/04/23/patel-software-brain">software brain</a>. Software brain says <em>Go faster; do more; the only mistake you can’t fix is having gone too slow.</em> Hardware brain says <em>Slow down; do less; focus; strive for perfection and never settle for less than excellence; mistakes are forever.</em> </p>
+
+<p>If his background in hardware means that incoming Apple CEO John Ternus has hardware brain, and will lead Apple accordingly, that suggests Apple will double down on <em>zigging</em> in the midst of a still-escalating AI hype cycle that has the rest of the industry <em>zagging</em> ever more frenetically. That feels right to me.&nbsp;<a class="permalink" title="Permanent link to ‘The New York Times Printed the Wrong Crossword Grid Last Sunday, and I Find That Timing Serendipitous’" href="https://daringfireball.net/2026/04/nyt_wrong_crossword_grid">&#9733;</a></p>
+
+</div> <!-- article -->
+
+<hr class="ookiaks" />
+
+
+<h2 class="dateline">Sunday, 26 April 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://9to5google.com/2026/04/22/samsung-is-increasingly-worried-about-first-ever-mobile-division-loss-in-ram-crisis-report/">Report Claims Samsung Might Post Its First-Ever Mobile Division Loss This Year, Blaming RAM Crisis</a>&nbsp;<a class="permalink" title="Permanent link to ‘Report Claims Samsung Might Post Its First-Ever Mobile Division Loss This Year, Blaming RAM Crisis’" href="https://daringfireball.net/linked/2026/04/26/samsung-mobile-division-possible-loss">&#9733;</a>
+</dt>
+<dd>
+<p>Ben Schoon, 9to5Google:</p>
+
+<blockquote>
+  <p>In March, <a href="https://9to5google.com/2026/03/12/samsung-mobile-division-loss-report/">a report revealed</a> some of the internal cuts
+Samsung has been making for its mobile division, with the company
+initially concerned it could post an operating loss for the first
+time ever. It’s a big deal, as Samsung’s mobile (MX) division has
+historically always turned a profit.</p>
+
+<p>A new <a href="https://www.mt.co.kr/industry/2026/04/22/2026042115433622701">report out of Korea</a> (via <a href="https://x.com/jukan05/status/2046888729743356344">Jukan</a>) makes this
+seem all but certain.</p>
+
+<p>Apparently, Samsung’s TM Roh, the head of the company’s mobile
+division, has expressed concerns of the “possibility of an annual
+deficit for the MX business unit.” Previously, those concerns came
+from speculation and outside parties, but with such a high figure
+in Samsung’s organization worried, it’s clear things are looking
+pretty bleak.</p>
+</blockquote>
+
+<p><a href="https://daringfireball.net/linked/2013/02/07/apple-samsung-profits">Back in 2013</a> analysts pegged the profit share of the handset industry at 70 percent for Apple and 30 percent for Samsung. A lot of other smaller companies sold a lot of other phones, but, so that analysis went, none of them made any profits. A lot of them were losing money. I linked to <a href="https://daringfireball.net/linked/2016/11/04/iphone-profit-share-104">another such analysis in 2016</a> that pegged Apple’s share of phone profits at 104 percent, estimating that all other handset makers combined accounted for a 4% percent loss.</p>
+
+<p>Doesn’t seem like much has changed since then. I prompted ChatGPT and Gemini today with this request: “Create a table of the world’s mobile device makers, ranked by profit and profit share of the industry.” <a href="https://chatgpt.com/share/69ee4cb5-b0a0-83ea-ae95-5c06cff872f2">ChatGPT pegs Apple’s profit share</a> at 75–85%, Samsung’s at 10–20%, Huawei and Xiaomi in “low single digits”, and everyone else negligible. <a href="https://gemini.google.com/share/69df6828659f">Gemini pegs Apple’s share</a> at 85–90%, Samsung’s at 7–10%, Xiaomi at 1-2%, and everyone else negligible. This, despite both ChatGPT and Gemini agreeing that iPhones comprise only 20 percent of sales <em>by unit</em>. (Are ChatGPT and Gemini correct about the current profit share split of the mobile industry? I don’t know. But both cite sources in their answers, and it strikes me as very unlikely that their estimates are very far off.)</p>
+
+<p>If Samsung posts a mobile division loss this year, it could be the case that Apple will capture 100 percent of the profits in the phone industry with just 20 percent of the sales.</p>
+
+</dd>
+
+
+</dl>
+
+<hr class="ookiaks" />
+
+
+<div class="article">
+<h1><a href="https://daringfireball.net/2026/04/delicious_claim_chowder_regarding_the_cook-ternus_ceo_transition" title="Permanent link to ‘Time to Serve Some Delicious Claim Chowder Regarding the Cook-Ternus CEO Transition’">Time to Serve Some Delicious Claim Chowder Regarding the Cook-Ternus CEO Transition</a></h1>
+<h6 class="dateline">Friday, 24 April 2026</h6>
+
+<p>In May 2024, Bloomberg ran a feature story by Mark Gurman under the headline, “<a href="https://www.bloomberg.com/news/articles/2024-05-08/apple-s-next-ceo-list-of-aapl-insiders-who-could-succeed-tim-cook">Tim Cook Can’t Run Apple Forever. Who’s Next?</a>” The subhead: “John Ternus, the head of hardware engineering, is emerging as a potential successor to the CEO.” The nut grafs from that piece:</p>
+
+<blockquote>
+  <p>There’s no reason to assume that a change at the helm is imminent.
+Cook may be older than the CEOs of the other tech companies at the
+top of the S&amp;P 500, but he’s hardly the oldest person running a
+major corporation. “If Trump or Biden can be president at 80, Tim
+Cook can be CEO of Apple for many more years. It used to be
+automatic that CEOs are moved out at 65,” says someone who knows
+him. “The world has changed.”</p>
+
+<p>While Cook hasn’t given any indication how long he’ll remain in
+charge — other than telling Dua Lipa it would be “a while” — people close to him believe he’ll be CEO at least another three
+years. After that, they say, he’ll start a charitable foundation
+to donate the wealth he accumulated at Apple.</p>
+
+<p>If Cook were to stay that long, people within Apple say, the most
+likely successor would be John Ternus, the hardware engineering
+chief. In a company whose success has always come from building
+category-defining gadgets, the ascension of a hardware engineering
+expert to the CEO job would seem logical. Ternus, who’s not yet
+50, would also be more likely than other members of the executive
+team to stick around for a long time, potentially providing
+another decade or more of Cook-esque stability.</p>
+
+<p>Ternus is well-liked inside Apple, and he’s earned the respect of
+Cook, Williams and other leaders. “Tim likes him a lot, because he
+can give a good presentation, he’s very mild-mannered, never puts
+anything into an email that is controversial and is a very
+reticent decision-maker,” says one person close to Apple’s
+executive team. “He has a lot of managerial characteristics like
+Tim.” Christopher Stringer, a former top Apple hardware designer,
+called Ternus a “trustworthy hand” who’s “never failed with any
+role he’s been elevated to.” Eddy Cue, the Apple executive known
+as Cook’s closest confidant, has privately told colleagues that
+Ternus should be the next CEO, according to a person with
+knowledge of the matter.</p>
+</blockquote>
+
+<p>Linking to Gurman’s report, <a href="https://daringfireball.net/linked/2024/05/08/ternus-gurman">I wrote</a>:</p>
+
+<blockquote>
+  <p>I wouldn’t have linked to this if not for the above line about
+Eddy Cue. If Cue is telling people that, that means a lot. No
+executive at Apple is more juiced-in company-wide than Cue. Cook’s
+first action as CEO <a href="https://9to5mac.com/2011/09/01/itunes-chief-eddy-cue-gets-promoted-to-senior-vice-president-of-internet-software-and-services/">was to promote Cue</a>, and Cue was arguably
+just as tight with and trusted by Steve Jobs.</p>
+</blockquote>
+
+<p>It was two more years, not three, but Gurman was the first to report that Ternus was the guy at the top of the list.</p>
+
+<p>There was no significant additional reporting between Gurman’s May 2024 Bloomberg report until November 15 last year, when the Financial Times published a blockbuster story under the headline “<a href="https://www.ft.com/content/0d424625-f4f8-4646-9f6e-927c8cbe0e3e">Apple Intensifies Succession Planning for CEO Tim Cook</a>”, with four bylines: “Tim Bradshaw, Stephen Morris and Michael Acton in San Francisco and Daniel Thomas in London”. Bradshaw is the FT’s lead Apple reporter, and it’s no coincidence his name was first among the four. The article gets right to the point at the start:</p>
+
+<blockquote>
+  <p>Apple is stepping up its succession planning efforts, as it
+prepares for Tim Cook to step down as chief executive as soon as
+next year. Several people familiar with discussions inside the
+tech group told the Financial Times that its board and senior
+executives have recently intensified preparations for Cook to hand
+over the reins at the $4tn company after more than 14 years.</p>
+
+<p>John Ternus, Apple’s senior vice-president of hardware
+engineering, is widely seen as Cook’s most likely successor,
+although no final decisions have been made, these people said.</p>
+
+<p>People close to Apple say the long-planned transition is not
+related to the company’s current performance, ahead of what is
+expected to be a blockbuster end-of-year sales period for the
+iPhone. [...]</p>
+
+<p>The company is unlikely to name a new CEO before its next earnings
+report in late January, which covers the critical holiday period.
+An announcement early in the year would give its new leadership
+team time to settle in ahead of its big annual keynote events, its
+developer conference in June and its iPhone launch in September,
+the people said. These people said that although preparations have
+intensified, the timing of any announcement could change.</p>
+</blockquote>
+
+<p>So, per the FT in November, Apple’s plan was to name Ternus as the company’s next CEO “early in the year”, after their Q1 results (January 29) but ahead of WWDC (June 8). The halfway point between those dates was April 4; <a href="https://www.apple.com/newsroom/2026/04/tim-cook-to-become-apple-executive-chairman-john-ternus-to-become-apple-ceo/">Apple announced Ternus as the company’s next CEO on April 20</a>. Every single word of the FT report, in hindsight, was exactly correct. I can’t think of a way that their November story could have been more prescient. It was a home run. A report for the ages, like when CNet and The Wall Street Journal <a href="https://daringfireball.net/2005/06/see_you_intel">scooped the Mac’s transition to Intel processors on the eve of WWDC 2005</a>.</p>
+
+<p><a href="https://daringfireball.net/linked/2025/11/15/ft-apple-tim-cook-succession">My own take</a>, back in November when the FT report dropped, was that it had the distinct aroma of a deliberate expectations-setting <a href="https://daringfireball.net/linked/2026/04/13/john-martellaro-rip">leak</a>, and was almost certainly accurate:</p>
+
+<blockquote>
+  <p>That “several people” spoke to the FT about this says to me that
+those sources (members of the board?) did so with Cook’s blessing,
+and they want this announcement to be no more than a little
+surprising. [...]</p>
+
+<p>I would also bet that Cook moves into the role of executive
+chairman, and will still play a significant, if not leading, role
+for the company when it comes to domestic and <a href="https://daringfireball.net/2024/01/vestager_cook">international</a>
+<a href="https://daringfireball.net/linked/2025/05/27/cook-trump-middle-east">politics</a>. <a href="https://www.wsj.com/politics/elections/tim-cook-ceo-trump-relationship-ad106f36?st=KRSbZa&amp;reflink=desktopwebshare_permalink">Especially</a> with <a href="https://daringfireball.net/linked/2025/01/04/consider-cook-as-a-tragic-figure">regard</a> to
+<a href="https://daringfireball.net/linked/2025/09/10/trump-hosts-dinner-humiliating-tech-ceos">Trump</a>.</p>
+</blockquote>
+
+<p>Cook moving into the position of executive chairman and continuing to play a leading role as the company’s political ambassador was my own speculation, and that proved out. Easy money, making that prediction.</p>
+
+<p>One week after the FT’s report, in his Bloomberg “Power On” newsletter on November 23, <a href="https://www.bloomberg.com/news/newsletters/2025-11-23/apple-ios-27-snow-leopard-like-quality-focus-ai-features-tim-cook-retirement-mibq7jv8">Gurman wrote</a>:</p>
+
+<blockquote>
+  <p>In October, I wrote that the <a href="https://www.bloomberg.com/news/newsletters/2025-10-05/who-will-be-apple-s-next-ceo-after-tim-cook-apple-shelves-vision-air-m5-ipad">internal spotlight on Ternus was
+“intensifying,”</a> and that barring unforeseen circumstances
+he would be the leading candidate. But I didn’t put a date on when
+a change might happen. Then, around midnight two Fridays ago, the
+Financial Times published a report with three central claims:
+Apple is “intensifying” succession planning; Ternus is likely the
+next CEO; and Cook is expected to step down between late January
+and June.</p>
+
+<p>The first two points are anything but revelations if you’ve read
+Bloomberg coverage and Power On, or have simply been paying
+attention to the realities of Cook’s age and tenure. The timing,
+however, is another matter entirely. It’s a huge deal that the FT
+did this: A respected publication should only predict the CEO
+transition date for a company of Apple’s scale with a high level
+of confidence — based on people legitimately in the know.</p>
+
+<p>This is where I have concerns. Based on everything I’ve learned in
+recent weeks, I don’t believe a departure by the middle of next
+year is likely. In fact, I would be shocked if Cook steps down in
+the time frame outlined by the FT. Some people have speculated
+that the story was a “test balloon” orchestrated by Apple or
+someone close to Cook to prepare Wall Street for a change, but
+that isn’t the case either. I believe the story was simply false.</p>
+</blockquote>
+
+<p>Gurman must be well and truly “shocked” by this week’s announcements, because as it turns out, Cook is stepping aside exactly “in the time frame outlined by the FT”. The FT’s report was not “simply false”. It was, in fact, completely true. The Financial Times, which truly is a respected publication (with no black marks on its record, like, say, Bloomberg’s to-this-day-still-uncorrected <a href="https://daringfireball.net/search/the+big+hack+bloomberg">“The Big Hack” fiasco</a>), obviously did have a high level of confidence in Apple’s plans, because they were, in fact, briefed by people “legitimately in the know”. Gurman’s reading comprehension is questionable as well, because the FT did <em>not</em> report that Cook would “step down” between January and June. The FT report spoke only of “naming a new CEO” and making an “announcement” between January and June. That’s exactly what happened. Nor is anyone “departing” — but a change in leadership will occur in the middle of the year.</p>
+
+<p>In January, <a href="https://www.macrumors.com/2026/01/25/when-will-tim-cook-step-down-as-apple-ceo/">Gurman reiterated his stance that the FT was wrong</a>:</p>
+
+<blockquote>
+  <p>It’s just a question of timing. The Financial Times <a href="https://www.ft.com/content/0d424625-f4f8-4646-9f6e-927c8cbe0e3e">reported last
+year</a> that the change would happen as early as the beginning
+of 2026. But let me be clear: This seems unlikely.</p>
+</blockquote>
+
+<p>By <a href="https://daringfireball.net/linked/2025/12/01/gurman-pooh-poohs-ft-on-cook">pooh-poohing</a> the FT’s completely accurate reporting as “simply false”, Gurman wound up poo-pooing the bed. Calibrate the grains of salt with which you take his <a href="https://daringfireball.net/linked/2025/12/08/srouji">other reporting</a> on Apple executive goings-on accordingly. A humble correction and sincere apology to the Financial Times — and Tim Bradshaw personally — are surely forthcoming in this weekend’s edition of Power On.<sup id="fnr1-2026-04-24"><a href="#fn1-2026-04-24">1</a></sup>&nbsp;<a class="permalink" title="Permanent link to ‘Time to Serve Some Delicious Claim Chowder Regarding the Cook-Ternus CEO Transition’" href="https://daringfireball.net/2026/04/delicious_claim_chowder_regarding_the_cook-ternus_ceo_transition">&#9733;</a></p>
+
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1-2026-04-24">
+<p>And the check, I’m sure, is in the mail.&nbsp;<a href="#fnr1-2026-04-24"  class="footnoteBackLink"  title="Jump back to footnote 1 in the text.">&#x21A9;&#xFE0E;</a></p>
+</li>
+</ol>
+</div>
+
+</div> <!-- article -->
+
+<hr class="ookiaks" />
+
+
+<h2 class="dateline">Friday, 24 April 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://xoxofest.com/blog/2026-launching-xoxo-explore/">XOXO Explore</a>&nbsp;<a class="permalink" title="Permanent link to ‘XOXO Explore’" href="https://daringfireball.net/linked/2026/04/24/xoxo-explore">&#9733;</a>
+</dt>
+<dd>
+<p>Andy McMillan and Andy Baio:</p>
+
+<blockquote>
+  <p>Today, over 10 years later, and almost two full years after we
+retired the festival for good, we’re finally launching that
+website. Named after what we thought would be a throwaway title
+for a short-lived GitHub repo, allow us to introduce <a href="https://xoxofest.com/">XOXO
+Explore</a>. [...]</p>
+
+<p>And, for the first time ever (!) on an XOXO website, we now have
+an actual <a href="https://xoxofest.com/about/">About</a> page, where we’ve attempted to explain what XOXO
+actually was, documenting the 12-year history of the festival and
+its related projects, and featuring a bunch of our favorite quotes
+from press and attendees over the years.</p>
+
+<p>You’ll also notice the entire site is littered with floating
+visual ephemera: design artifacts, illustrations, animations,
+photos, and videos, all pulled from our vast archive of
+commissions and collaborations.</p>
+</blockquote>
+
+<p>Conferences come and conferences go. But when they go, they tend to disappear. What a remarkable library, a record, XOXO Explore is.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.theguardian.com/world/2023/nov/27/new-zealand-scraps-world-first-smoking-generation-ban-to-fund-tax-cuts">New Zealand Passed a Generational Smoking Ban in 2022, But Repealed It Before It Went Into Effect</a>&nbsp;<a class="permalink" title="Permanent link to ‘New Zealand Passed a Generational Smoking Ban in 2022, But Repealed It Before It Went Into Effect’" href="https://daringfireball.net/linked/2026/04/24/new-zealand-smoking-ban">&#9733;</a>
+</dt>
+<dd>
+<p>Eva Corlett, reporting for The Guardian in 2023:</p>
+
+<blockquote>
+  <p>New Zealand’s new government will scrap the country’s
+world-leading law to ban smoking for future generations to help
+pay for tax cuts — a move that public health officials believe
+will cost thousands of lives and be “catastrophic” for Māori
+communities.</p>
+
+<p>In 2022 the country <a href="https://www.theguardian.com/world/2022/dec/13/new-zealand-passes-world-first-tobacco-law-to-ban-smoking-by-2025">passed pioneering legislation</a> which introduced
+a steadily rising smoking age to stop those born after January
+2009 from ever being able to legally buy cigarettes. The law was
+designed to prevent thousands of smoking-related deaths and save
+the health system billions of dollars. [...]</p>
+
+<p>The laws were due to be implemented from July 2024. But as part of
+its coalition agreement with populist New Zealand First, National
+agreed to repeal the amendments, including “removing requirements
+for de-nicotisation, removing the reduction in retail outlets and
+the generation ban”.</p>
+</blockquote>
+
+<p>It’s interesting that this law passed in the first place, but I would argue that there are no lessons to be learned from it given that it was repealed before it ever went into effect. And it seemingly was repealed solely along left/right political lines after a change in the country’s parliament, not because the public had turned against this specific not-yet-in-effect law.</p>
+
+</dd>
+
+
+</dl>
+
+<h2 class="dateline">Thursday, 23 April 2026</h2>
+<dl class="linkedlist">
+<dt>
+<a href="https://www.nytimes.com/2026/04/21/world/europe/uk-smoking-ban-2009.html?unlocked_article_code=1.dVA.f9yJ.YMVg9N8QOlio">United Kingdom to Enact Smoking Ban Only for Those Who Are Not Yet Legal Adults</a>&nbsp;<a class="permalink" title="Permanent link to ‘United Kingdom to Enact Smoking Ban Only for Those Who Are Not Yet Legal Adults’" href="https://daringfireball.net/linked/2026/04/23/united-kingdom-smoking-ban">&#9733;</a>
+</dt>
+<dd>
+<p>Ephrat Livni, reporting for The New York Times (gift link):</p>
+
+<blockquote>
+  <p>Britain aims to raise a “smoke-free generation” by permanently
+banning the sale or supply of tobacco to anyone born in 2009 or
+after, with a bill that was approved by Parliament on Tuesday.</p>
+
+<p>The bill applies to people currently 17 years old or younger and
+aims to keep them from ever picking up the habit in their
+lifetime. The proposal is expected to soon go into law after the
+final formality of approval by King Charles III.</p>
+
+<p>Lawmakers say that in practice, the measure means the age of sale
+for tobacco products will rise over time as the targeted
+demographic group grows older and could lead to a smoke-free
+society. The law will apply in England, Scotland, Wales and
+Northern Ireland.</p>
+</blockquote>
+
+<p>I’ve never smoked and I’m strongly in favor of most — maybe all? — of the smoking bans and tobacco-related public health measures that have been passed in my lifetime. I can’t imagine going back to when smoking was permitted in restaurants, bars, airplanes, and public spaces. I’m also strongly in favor of stiff taxes on tobacco products to discourage their use.</p>
+
+<p>But this U.K. law seems bonkers to me. To me, something ought to be either legal for adults or not. The idea that if you’re <em>already</em> 18 years old you can buy tobacco products for the rest of your life, but if you were born in 2009 or later, you’ll never be permitted to, is so contrary to my sense of fairness that I’m finding it hard to put my objection into words. All adults should be equals under the law. That’s my take in a nut. If smoking should be illegal, it should be illegal for everyone. I’ve never heard of a law like this anywhere in the world. It’s like they’re enshrining in law that everyone in the U.K. who is today a child is forever a child when it comes to tobacco. If there are examples of similar laws I’m unaware of, I’d love to hear about them. [<strong>Update:</strong> Brookline Massachusetts <a href="https://www.bostonmagazine.com/news/2025/07/29/nicotine-free-massachusetts/">passed a town ordinance like this in 2021</a>, and <a href="https://apnews.com/article/tobacco-ban-21st-century-brookline-massachusetts-e9d54d60ddfe23f9d7e06eb724f5449a">after it was upheld by the state supreme court in 2024</a>, a few other MA towns <a href="https://www.boston.com/news/local-news/2025/01/23/newton-passes-generational-ban-on-tobacco-products/">have too</a>. My cynical guess is that the only effect of this law is to annoy young Brookline smokers by making them drive a few miles to buy smokes, but if the actual effect is that fewer young Brooklinites (sp?) smoke, that’s great. But I also doubt that anyone in Brookline’s municipal government is going to commission a study to see if the law had any practical effect on smoking rates.]</p>
+
+<p>Maybe the British are different, but there’s no way this law would work in America. First, I don’t think such a law would ever gain popular traction. But even if it did, it would just create a black market. At least <a href="https://daringfireball.net/2022/06/the_new_prohibition">when we banned booze</a>, we banned it for everyone.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.motherjones.com/politics/2026/04/truth-social-ceo-out-after-1-1-billion-in-losses/">Trump’s Blog Has Somehow Lost $1.1 Billion</a>&nbsp;<a class="permalink" title="Permanent link to ‘Trump’s Blog Has Somehow Lost $1.1 Billion’" href="https://daringfireball.net/linked/2026/04/23/nunes-out-truth-social">&#9733;</a>
+</dt>
+<dd>
+<p>Russ Choma, reporting for Mother Jones:</p>
+
+<blockquote>
+  <p>Devin Nunes was not an obvious choice to run a fledgling social
+media network, but after $1.1 billion in losses, the former dairy
+farmer and congressman is out as the head of Truth Social.</p>
+
+<p>Donald Trump Jr., a board member at Trump Media + Technology, the
+parent company of Truth Social, said on <a href="https://www.pressviewer.com/profiles/investor/NewsPrint.asp?v=7&amp;b=2660&amp;ID=164128&amp;m=rl&amp;g=1953">Tuesday night</a> that
+Nunes would be replaced by another executive who formerly worked
+at Hulu. Nunes confirmed the move in a Truth Social <a href="https://truthsocial.com/@DevinNunes/116444770954674159">post</a>
+of his own.</p>
+
+<p>The company, which is majority owned by Donald Trump, has seen its
+stock plummet 84 percent under Nunes’ leadership, from its debut
+price of $58 back in 2024. The current share price of around $9.80
+is arguably still optimistic for a company that has lost $1.1
+billion since it went public, and recorded just over $10.6 million
+in revenue in the same time.</p>
+</blockquote>
+
+<p>Like a well-oiled Atlantic City casino.</p>
+
+<blockquote>
+  <p>When Trump Media was first announced as a concept, the Trump
+family said it would include: Truth Social, streaming television
+services to rival Netflix and Amazon and web-hosting that would
+rival Amazon’s AWS business. And all of it would be devoted to
+fighting the “woke” media and corporate culture that Trump said
+had blacklisted him following Jan. 6. Truth Social would be a
+redoubt for freedom of speech, the streaming services would have
+wholesome non-“woke” content that America craved and the
+web-hosting would provide a home for any company that dared to
+challenge Amazon’s alleged anti-free speech motivations.</p>
+</blockquote>
+
+<p>I’m sure the rest of that has merely been delayed, temporarily, while Trump Media’s best and brightest minds continue working on <a href="https://www.theverge.com/gadgets/843498/trump-phone">the cell phone they started selling last summer but still haven’t shipped</a>.</p>
+
+</dd>
+
+
+<dt>
+<a href="https://www.theverge.com/podcast/917029/software-brain-ai-backlash-databases-automation">Nilay Patel: ‘Beware Software Brain’</a>&nbsp;<a class="permalink" title="Permanent link to ‘Nilay Patel: ‘Beware Software Brain’’" href="https://daringfireball.net/linked/2026/04/23/patel-software-brain">&#9733;</a>
+</dt>
+<dd>
+<p>Nilay Patel, in a terrific essay (and Decoder one-sider) at The Verge:</p>
+
+<blockquote>
+  <p>In fact, the polling on this is so strong, I think it’s fair to
+say that a lot of people <em>hate</em> AI, and that <a href="https://www.theverge.com/ai-artificial-intelligence/909687/gen-z-doesnt-like-ai-gallup">Gen Z in particular
+seems to hate AI</a> more and more as they encounter it. There’s
+that NBC News poll <a href="https://www.theverge.com/ai-artificial-intelligence/891724/nbc-news-march-2026-poll-ai-ice">showing AI with worse favorability than
+ICE</a> and only a little bit above the war in Iran and the
+Democrats generally. That’s with nearly two thirds of respondents
+saying they used ChatGPT or Copilot in the last month. Quinnipiac
+just found that <a href="https://poll.qu.edu/poll-release?releaseid=3955">over half of Americans think AI will do more harm
+than good</a>, while more than 80 percent of people were either
+very concerned or somewhat concerned about the technology. Only 35
+percent of people were excited about it.</p>
+
+<p>Poll after poll shows that Gen Z uses AI the most and has the most
+negative feelings about it. A <a href="https://www.nytimes.com/2026/04/09/style/gen-z-ai-gallup-study.html">recent Gallup poll</a> found that
+only 18 percent of Gen Z was hopeful about AI, down from an
+already-bad 27 percent last year. At the same time, anger is
+growing: 31 percent of those Gen Z respondents said they feel
+angry about AI, up from 22 percent last year.</p>
+</blockquote>
+
+<p>A good friend texted me a few weeks ago that “the phrase ‘software is eating the world’ sure hits differently now” than when <a href="https://www.wsj.com/articles/SB10001424053111903480904576512250915629460?st=xPUYgp">Marc Andreessen coined the term back in 2011</a>. (Patel, in fact, references Andreessen’s seminal essay.) That same friend texted me a link to this piece by Patel this morning.</p>
+
+<p>Something is profoundly off in the computer industry when it comes to software broadly and AI specifically. It’s up for debate what exactly is off and what should be done about it, but the undeniable proof that something <em>is</em> profoundly off is the deep unpopularity surrounding everything related to AI. You can’t argue that the public always turns against groundbreaking technology. The last two epoch-defining shifts in technology were the smartphone in the 2000s, and the Internet/web in the 1990s. Neither of those moments generated this sort of mainstream popular backlash. I’d say in both of those cases, regular people were optimistically curious. The single most distinctive thing about “AI” today is the vociferous public opposition to it and deeply pessimistic expectations about what it’s going to do.</p>
+
+<blockquote>
+  <p>You can’t advertise people out of reacting to their own
+experiences. This is a fundamental disconnect between how tech
+people with software brains see the world and how regular people
+are living their lives.</p>
+
+<p>So what is software brain? The simplest definition I’ve come up
+with is that it’s when you see the whole world as a series of
+databases that can be controlled with the structured language of
+software code. Like I said, this is a powerful way of seeing
+things. So much of our lives run through databases, and a bunch of
+important companies have been built around maintaining those
+databases and providing access to them.</p>
+
+<p>Zillow is a database of houses. Uber is a database of cars and
+riders. YouTube is a database of videos. The Verge’s website is a
+database of stories. You can go on and on and on. Once you start
+seeing the world as a bunch of databases, it’s a small jump to
+feeling like you can control everything if you can just control
+the data.</p>
+
+<p>But that doesn’t always work.</p>
+</blockquote>
+
+<p>“Software brain” is a good term — a tidy two-word encapsulation of a sprawling worldview that is currently very much in vogue. Take some time to read Patel’s whole piece carefully. It feels important, and it’s really well considered.</p>
+
+</dd>
+
+
+<div id="Footer">
+<form id="SiteSearch" action="https://daringfireball.net/search" method="get" style="margin-bottom: 2.5em;">
+<div>
+<input name="q" type="text" value="" style="margin-right: 8px; width: 66%;" />
+<input type="submit" value="Search" />
+</div>
+</form>
+
+<p class="smallprint">
+<a href="/preferences/" title="Customize the font size and presentation options for this web site.">Display Preferences</a>
+<br /><br />
+Copyright &copy; 2002–2026 The Daring Fireball Company LLC.
+</p>
+</div>
+
+
+<!-- Google Analytics -->
+
+<!-- 
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-593949-1']);
+  _gaq.push (['_gat._anonymizeIp']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+ -->
+
+<!-- Asynchronously load Mint -->
+<!-- No, screw mint
+<script type="text/javascript">
+(function () {
+	var ma = document.createElement('script');
+	ma.type = 'text/javascript';
+	ma.src = '/mint/?js';
+	ma.async = true;
+	var s = document.getElementsByTagName('script')[0];
+	s.parentNode.insertBefore(ma, s);
+})();
+</script>
+-->
+</div> <!-- Main -->
+
+</div> <!-- Box -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f74081528db20b4',t:'MTc3ODAyOTA1NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+<!-- 0.0110 seconds -->

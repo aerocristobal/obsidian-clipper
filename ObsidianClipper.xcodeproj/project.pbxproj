@@ -21,17 +21,23 @@
 		A10000025 /* ShareExtensionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000025 /* ShareExtensionView.swift */; };
 		A10000026 /* WebContentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000026 /* WebContentExtractor.swift */; };
 		A10000027 /* ClipResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000027 /* ClipResult.swift */; };
+		A10000029 /* LaunchBeacon.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000029 /* LaunchBeacon.swift */; };
 		A10000050 /* ClipperExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A70000002 /* ClipperExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A10000060 /* Action.js in Resources */ = {isa = PBXBuildFile; fileRef = A20000060 /* Action.js */; };
 		A10000070 /* HTMLToMarkdownTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000070 /* HTMLToMarkdownTests.swift */; };
 		A10000071 /* FileSaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000071 /* FileSaverTests.swift */; };
 		A10000072 /* ClipResultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000072 /* ClipResultTests.swift */; };
 		A10000028 /* ReadabilityExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000028 /* ReadabilityExtractor.swift */; };
+		A10000300 /* ClippingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000300 /* ClippingPipeline.swift */; };
+		A10000301 /* ClippingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000300 /* ClippingPipeline.swift */; };
 		A10000073 /* ReadabilityExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000073 /* ReadabilityExtractorTests.swift */; };
 		A10000074 /* ImageProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000074 /* ImageProcessorTests.swift */; };
 		A10000075 /* WebContentExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000075 /* WebContentExtractorTests.swift */; };
 		A10000076 /* EvalEntryPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000076 /* EvalEntryPoint.swift */; };
 		A10000077 /* ExtractionEvalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000077 /* ExtractionEvalTests.swift */; };
+		A10000200 /* PipelineRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000200 /* PipelineRegressionTests.swift */; };
+		A10000201 /* FakeExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000201 /* FakeExtensionContext.swift */; };
+		A10000202 /* ShareViewControllerHarnessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000202 /* ShareViewControllerHarnessTests.swift */; };
 		A10000080 /* HTMLToMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000021 /* HTMLToMarkdown.swift */; };
 		A10000081 /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000022 /* ImageProcessor.swift */; };
 		A10000082 /* FileSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000023 /* FileSaver.swift */; };
@@ -93,6 +99,7 @@
 		A20000025 /* ShareExtensionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionView.swift; sourceTree = "<group>"; };
 		A20000026 /* WebContentExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentExtractor.swift; sourceTree = "<group>"; };
 		A20000027 /* ClipResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipResult.swift; sourceTree = "<group>"; };
+		A20000029 /* LaunchBeacon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchBeacon.swift; sourceTree = "<group>"; };
 		A20000030 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20000040 /* ObsidianClipper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ObsidianClipper.entitlements; sourceTree = "<group>"; };
 		A20000041 /* ClipperExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClipperExtension.entitlements; sourceTree = "<group>"; };
@@ -101,11 +108,15 @@
 		A20000071 /* FileSaverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSaverTests.swift; sourceTree = "<group>"; };
 		A20000072 /* ClipResultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipResultTests.swift; sourceTree = "<group>"; };
 		A20000028 /* ReadabilityExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadabilityExtractor.swift; sourceTree = "<group>"; };
+		A20000300 /* ClippingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClippingPipeline.swift; sourceTree = "<group>"; };
 		A20000073 /* ReadabilityExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadabilityExtractorTests.swift; sourceTree = "<group>"; };
 		A20000074 /* ImageProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessorTests.swift; sourceTree = "<group>"; };
 		A20000075 /* WebContentExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentExtractorTests.swift; sourceTree = "<group>"; };
 		A20000076 /* EvalEntryPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvalEntryPoint.swift; sourceTree = "<group>"; };
 		A20000077 /* ExtractionEvalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractionEvalTests.swift; sourceTree = "<group>"; };
+		A20000200 /* PipelineRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineRegressionTests.swift; sourceTree = "<group>"; };
+		A20000201 /* FakeExtensionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support/FakeExtensionContext.swift; sourceTree = "<group>"; };
+		A20000202 /* ShareViewControllerHarnessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewControllerHarnessTests.swift; sourceTree = "<group>"; };
 		A20000078 /* JSONLDExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLDExtractor.swift; sourceTree = "<group>"; };
 		A20000079 /* JSONLDExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLDExtractorTests.swift; sourceTree = "<group>"; };
 		A20000090 /* SwiftSoupAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftSoupAdapter.swift; sourceTree = "<group>"; };
@@ -152,6 +163,8 @@
 				A20000028 /* ReadabilityExtractor.swift */,
 				A20000078 /* JSONLDExtractor.swift */,
 				A20000090 /* SwiftSoupAdapter.swift */,
+				A20000300 /* ClippingPipeline.swift */,
+				A20000029 /* LaunchBeacon.swift */,
 				A20000030 /* Info.plist */,
 				A20000041 /* ClipperExtension.entitlements */,
 				A20000060 /* Action.js */,
@@ -189,6 +202,9 @@
 				A20000076 /* EvalEntryPoint.swift */,
 				A20000077 /* ExtractionEvalTests.swift */,
 				A20000079 /* JSONLDExtractorTests.swift */,
+				A20000200 /* PipelineRegressionTests.swift */,
+				A20000201 /* FakeExtensionContext.swift */,
+				A20000202 /* ShareViewControllerHarnessTests.swift */,
 			);
 			path = ObsidianClipperTests;
 			sourceTree = "<group>";
@@ -346,6 +362,8 @@
 				A10000028 /* ReadabilityExtractor.swift in Sources */,
 				A10000078 /* JSONLDExtractor.swift in Sources */,
 				A10000090 /* SwiftSoupAdapter.swift in Sources */,
+				A10000300 /* ClippingPipeline.swift in Sources */,
+				A10000029 /* LaunchBeacon.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -361,6 +379,9 @@
 				A10000075 /* WebContentExtractorTests.swift in Sources */,
 				A10000076 /* EvalEntryPoint.swift in Sources */,
 				A10000077 /* ExtractionEvalTests.swift in Sources */,
+				A10000200 /* PipelineRegressionTests.swift in Sources */,
+				A10000201 /* FakeExtensionContext.swift in Sources */,
+				A10000202 /* ShareViewControllerHarnessTests.swift in Sources */,
 				A10000080 /* HTMLToMarkdown.swift in Sources */,
 				A10000081 /* ImageProcessor.swift in Sources */,
 				A10000082 /* FileSaver.swift in Sources */,
@@ -369,6 +390,7 @@
 				A10000085 /* ClipResult.swift in Sources */,
 				A10000086 /* ReadabilityExtractor.swift in Sources */,
 				A10000087 /* JSONLDExtractor.swift in Sources */,
+				A10000301 /* ClippingPipeline.swift in Sources */,
 				A10000079 /* JSONLDExtractorTests.swift in Sources */,
 				A10000091 /* SwiftSoupAdapter.swift in Sources */,
 			);
