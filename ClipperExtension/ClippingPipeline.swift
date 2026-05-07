@@ -87,6 +87,8 @@ enum ClippingPipeline {
             // (markedHTML) is released before image processing begins.
             do {
                 if let ld = JSONLDExtractor.tryFastPath(html: html) {
+                    NSLog("[Clipper.pipeline] JSON-LD fast path HIT; isHTML=%d body_len=%d title_len=%d",
+                          ld.articleBodyIsHTML ? 1 : 0, ld.articleBody.count, ld.title.count)
                     onState?("Extracting article…")
                     let bodyHTML = ld.articleBodyIsHTML
                         ? ld.articleBody
@@ -94,11 +96,13 @@ enum ClippingPipeline {
                     let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(bodyHTML, baseURL: rawContent.url)
                     markerMap = markerResult.markerMap
                     markdownBody = HTMLToMarkdown.convert(markerResult.html)
+                    NSLog("[Clipper.pipeline] JSON-LD path: markerMap=%d markdown_len=%d", markerMap.count, markdownBody.count)
                     if !ld.title.isEmpty {
                         articleTitle = ld.title
                     }
                     try Task.checkCancellation()
                 } else {
+                    NSLog("[Clipper.pipeline] JSON-LD fast path MISS; falling through to Readability")
                     let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: rawContent.url)
                     markerMap = markerResult.markerMap
                     let markedHTML = markerResult.html
@@ -152,6 +156,8 @@ enum ClippingPipeline {
             let surviving = HTMLToMarkdown.findMarkerIndices(in: markdownBody)
             let filteredMarkerMap = markerMap.filter { surviving.contains($0.key) }
             let limitedURLs = Array(filteredMarkerMap.values.prefix(20))
+            NSLog("[Clipper.pipeline] image-block: markerMap=%d surviving=%d filtered=%d limited(<=20)=%d",
+                  markerMap.count, surviving.count, filteredMarkerMap.count, limitedURLs.count)
 
             let processor = ImageProcessor()
             onImageProcessor?(processor)
@@ -168,8 +174,14 @@ enum ClippingPipeline {
                     markerToPath[index] = path
                 }
             }
+            NSLog("[Clipper.pipeline] image-block: downloaded=%d urlToPath=%d markerToPath=%d",
+                  images.count, urlToPath.count, markerToPath.count)
             let inlineResult = HTMLToMarkdown.replaceMarkersWithImages(markdownBody, markerToPath: markerToPath)
             markdownBody = inlineResult.markdown
+        } else if settings.saveImages {
+            NSLog("[Clipper.pipeline] image-block: SKIPPED (saveImages=true but no html)")
+        } else {
+            NSLog("[Clipper.pipeline] image-block: SKIPPED (saveImages=false)")
         }
 
         try Task.checkCancellation()

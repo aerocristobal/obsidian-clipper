@@ -85,9 +85,11 @@ actor ImageProcessor {
     /// Download images from the given URLs and optionally run OCR on each.
     /// `prefix` becomes part of each saved filename to avoid collisions across clips.
     func process(urls: [URL], enableOCR: Bool, prefix: String) async -> [ExtractedImage] {
+        NSLog("[Clipper.image] process() entered; urls=%d enableOCR=%d prefix=%@ maxConcurrent=%d",
+              urls.count, enableOCR ? 1 : 0, prefix as NSString, maxConcurrent)
         totalBytesDownloaded = 0
         inFlightCount = 0
-        return await withTaskGroup(of: ExtractedImage?.self) { group in
+        let result = await withTaskGroup(of: ExtractedImage?.self) { group in
             var iterator = urls.enumerated().makeIterator()
 
             // Seed the group up to the current concurrency cap.
@@ -117,12 +119,16 @@ actor ImageProcessor {
             }
             return results.sorted { $0.filename < $1.filename }
         }
+        NSLog("[Clipper.image] process() done; kept=%d totalBytes=%d", result.count, totalBytesDownloaded)
+        return result
     }
 
     /// Process images shared directly (e.g. from Photos, Screenshots) — no download needed.
     /// Runs OCR if enabled and returns ExtractedImage results.
     /// Uses the same concurrency cap as `process()` to stay within the extension memory budget.
     func processSharedImages(_ imageDataList: [Data], enableOCR: Bool, prefix: String) async -> [ExtractedImage] {
+        NSLog("[Clipper.image] processSharedImages() entered; count=%d enableOCR=%d prefix=%@",
+              imageDataList.count, enableOCR ? 1 : 0, prefix as NSString)
         totalBytesDownloaded = 0
         inFlightCount = 0
         // Limit to 10 shared images to stay within the 50MB extension budget
@@ -234,16 +240,28 @@ actor ImageProcessor {
     }
 
     private func downloadAndProcess(url: URL, index: Int, prefix: String, enableOCR: Bool) async -> ExtractedImage? {
-        guard !Task.isCancelled else { return nil }
+        guard !Task.isCancelled else {
+            NSLog("[Clipper.image] download[%d] cancelled before start; url=%@", index, url.absoluteString as NSString)
+            return nil
+        }
 
         // Only fetch over http(s). Blocks file://, javascript:, ftp:, data:, etc.
-        guard Self.isFetchableScheme(url) else { return nil }
+        guard Self.isFetchableScheme(url) else {
+            NSLog("[Clipper.image] download[%d] scheme rejected; url=%@", index, url.absoluteString as NSString)
+            return nil
+        }
+
+        NSLog("[Clipper.image] download[%d] GET %@", index, url.absoluteString as NSString)
 
         // Stream the download straight to a system temp file. This keeps the image
         // bytes out of RAM — only the filesystem URL + URLResponse are held here.
         guard let (downloadedURL, response) = try? await Self.session.download(from: url) else {
+            NSLog("[Clipper.image] download[%d] FAILED (network/timeout); url=%@", index, url.absoluteString as NSString)
             return nil
         }
+        let httpStatus = (response as? HTTPURLResponse)?.statusCode ?? -1
+        NSLog("[Clipper.image] download[%d] status=%d mime=%@", index, httpStatus,
+              ((response as? HTTPURLResponse)?.mimeType ?? response.mimeType ?? "nil") as NSString)
 
         guard !Task.isCancelled else {
             try? FileManager.default.removeItem(at: downloadedURL)
@@ -280,10 +298,14 @@ actor ImageProcessor {
         // still get through.
         let fileSize = (try? fm.attributesOfItem(atPath: destURL.path)[.size] as? Int) ?? 0
         guard shouldAcceptImageSize(fileSize) else {
+            NSLog("[Clipper.image] download[%d] size cap REJECTED; bytes=%d totalSoFar=%d",
+                  index, fileSize, totalBytesDownloaded)
             try? fm.removeItem(at: destURL)
             return nil
         }
         totalBytesDownloaded += fileSize
+        NSLog("[Clipper.image] download[%d] saved; filename=%@ bytes=%d totalSoFar=%d",
+              index, filename as NSString, fileSize, totalBytesDownloaded)
 
         // Verify it's actually an image. Prefer the URLResponse MIME type; if
         // absent, probe with UIImage(contentsOfFile:) inside autoreleasepool.
@@ -291,6 +313,8 @@ actor ImageProcessor {
         if !isImageMime {
             let valid = autoreleasepool { UIImage(contentsOfFile: destURL.path) != nil }
             guard valid else {
+                NSLog("[Clipper.image] download[%d] MIME-validation FAILED; mime=%@",
+                      index, (mimeType ?? "nil") as NSString)
                 try? fm.removeItem(at: destURL)
                 return nil
             }
@@ -305,7 +329,10 @@ actor ImageProcessor {
             }
             if let cg = cgForOCR {
                 ocrText = await recognizeText(in: cg)
+                NSLog("[Clipper.image] download[%d] OCR done; recognized=%d chars",
+                      index, ocrText?.count ?? -1)
             } else {
+                NSLog("[Clipper.image] download[%d] OCR skipped; cgForOCR=nil", index)
                 ocrText = nil
             }
         } else {

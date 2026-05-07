@@ -39,7 +39,9 @@ enum JSONLDExtractor {
     /// Try to extract an article body from JSON-LD. Returns nil when no
     /// substantial body is found.
     static func tryFastPath(html: String, minBodyChars: Int = 500) -> Result? {
+        NSLog("[Clipper.jsonld] tryFastPath() entered; html_len=%d minBodyChars=%d", html.count, minBodyChars)
         let blocks = extractLDBlocks(from: html)
+        NSLog("[Clipper.jsonld] tryFastPath() ld+json blocks=%d", blocks.count)
         if blocks.isEmpty { return nil }
 
         var best: [String: Any]? = nil
@@ -66,7 +68,10 @@ enum JSONLDExtractor {
         guard let article = best,
               let body = article["articleBody"] as? String,
               body.count >= minBodyChars
-        else { return nil }
+        else {
+            NSLog("[Clipper.jsonld] tryFastPath() MISS; bestBodyLen=%d (< minBodyChars=%d or no article)", bestBodyLen, minBodyChars)
+            return nil
+        }
 
         let title = (article["headline"] as? String) ?? ""
         let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -74,6 +79,20 @@ enum JSONLDExtractor {
         let excerpt = article["description"] as? String
         let byline = bylineFrom(article)
         let siteName = siteNameFrom(article)
+
+        // Diagnostic: does this article object expose an `image` field? Useful for the
+        // "no images on Wired/NYT plain-text articleBody" follow-up — if image is
+        // present here, we could pull it even when articleBodyIsHTML=false.
+        let imageShape: String
+        switch article["image"] {
+        case nil:                       imageShape = "absent"
+        case is String:                 imageShape = "string"
+        case let arr as [Any]:          imageShape = "array(\(arr.count))"
+        case is [String: Any]:          imageShape = "object"
+        default:                        imageShape = "other"
+        }
+        NSLog("[Clipper.jsonld] tryFastPath() HIT; title_len=%d body_len=%d isHTML=%d image=%@",
+              title.count, trimmed.count, isHTML ? 1 : 0, imageShape as NSString)
 
         return Result(
             title: decodeEntities(title),
