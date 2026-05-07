@@ -6,6 +6,8 @@ struct SettingsView: View {
     @State private var showFolderPicker = false
     @State private var resolvedPath: String = "Not set"
     @State private var vaultIsAccessible = false
+    @State private var lastExtensionLaunch: String = "Never"
+    @State private var extensionLaunchCount: Int = 0
 
     private var needsOnboarding: Bool {
         settings.vaultBookmark == nil
@@ -117,6 +119,30 @@ struct SettingsView: View {
                     Text("How to Use")
                 }
 
+                // MARK: - Diagnostics
+                Section {
+                    HStack {
+                        Label("Last Extension Launch", systemImage: "clock.arrow.circlepath")
+                        Spacer()
+                        Text(lastExtensionLaunch)
+                            .foregroundStyle(.secondary)
+                            .font(.caption)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                    HStack {
+                        Label("Total Launches", systemImage: "number")
+                        Spacer()
+                        Text("\(extensionLaunchCount)")
+                            .foregroundStyle(.secondary)
+                            .font(.caption.monospacedDigit())
+                    }
+                } header: {
+                    Text("Diagnostics")
+                } footer: {
+                    Text("Updated whenever the share extension reaches user code. \"Never\" means the extension has not been launched since the app was installed — useful for confirming Safari can actually start the extension.")
+                }
+
                 // MARK: - About
                 Section {
                     NavigationLink {
@@ -135,7 +161,22 @@ struct SettingsView: View {
             }
             .onAppear {
                 refreshResolvedPath()
+                refreshDiagnostics()
             }
+        }
+    }
+
+    private func refreshDiagnostics() {
+        let defaults = UserDefaults(suiteName: ClipperSettings.suiteName) ?? .standard
+        extensionLaunchCount = defaults.integer(forKey: "extension_launch_count")
+        if let raw = defaults.string(forKey: "last_extension_launch"),
+           let date = ISO8601DateFormatter().date(from: raw) {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            lastExtensionLaunch = formatter.string(from: date)
+        } else {
+            lastExtensionLaunch = "Never"
         }
     }
 

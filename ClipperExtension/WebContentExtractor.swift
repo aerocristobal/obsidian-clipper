@@ -64,9 +64,14 @@ enum WebContentExtractor {
                     }
                 }
 
-                // 4. Property list (Safari sometimes sends data this way)
-                if provider.hasItemConformingToTypeIdentifier("public.property-list") {
-                    if let dict = try? await provider.loadItem(forTypeIdentifier: "public.property-list") as? [String: Any] {
+                // 4. Property list — the carrier Safari uses to deliver the
+                //    `Action.js` preprocessing dict (NSExtensionJavaScriptPreprocessingResultsKey).
+                //    The correct Apple UTI is `com.apple.property-list`; a previous
+                //    `public.property-list` string here matched nothing on real iOS
+                //    (no public counterpart is declared) so html stayed nil and
+                //    every Safari clip wrote a frontmatter-only file.
+                if provider.hasItemConformingToTypeIdentifier("com.apple.property-list") {
+                    if let dict = try? await provider.loadItem(forTypeIdentifier: "com.apple.property-list") as? [String: Any] {
                         if let results = dict[NSExtensionJavaScriptPreprocessingResultsKey] as? [String: Any] {
                             if let pageTitle = results["title"] as? String {
                                 title = pageTitle

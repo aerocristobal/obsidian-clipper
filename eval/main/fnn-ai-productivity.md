@@ -37,19 +37,3 @@ Three ways agencies can incorporate AI into daily workflows, score quick wins, a
 AI is the mission-critical tool that can drive new levels of efficiency, enabling agencies to do more with fewer workers yet still deliver on the promises made to the American people. AI’s ability to automate routine tasks and streamline workflows can free up workers to focus on higher-value responsibilities. More importantly, with strategic and thoughtful implementation, AI can help fill the gaps left by severe and sudden workforce reduction and ease the burden on our country’s federal workforce.
 
 [Scott Francis](https://www.linkedin.com/in/scott-francis-4540229/)_ is a technology evangelist at _[PFU America, Inc](https://www.pfu-us.ricoh.com/)_. _
-
-_Copyright © 2026 Federal News Network. All rights reserved. This website is not intended for users located within the European Economic Area._ 
-
-#### Rev. 3 is coming – Start preparing for the next CMMC requirement
-
- [Commentary](https://federalnewsnetwork.com/category/commentary/) [Read more](https://federalnewsnetwork.com/commentary/2026/04/rev-3-is-coming-start-preparing-for-the-next-cmmc-requirement/) 
-
-#### What federal leaders need to know about Iran’s cyber campaign
-
- [Commentary](https://federalnewsnetwork.com/category/commentary/) [Read more](https://federalnewsnetwork.com/commentary/2026/04/what-federal-leaders-need-to-know-about-irans-cyber-campaign/) 
-
-#### Quantum readiness: Preparing for a resilient future
-
- [Commentary](https://federalnewsnetwork.com/category/commentary/) [Read more](https://federalnewsnetwork.com/commentary/2026/04/quantum-readiness-preparing-for-a-resilient-future/) 
-
- [Artificial Intelligence](https://federalnewsnetwork.com/category/technology-main/artificial-intelligence/) [Budget](https://federalnewsnetwork.com/category/management/budget/) [Commentary](https://federalnewsnetwork.com/category/commentary/) [Deltek](https://federalnewsnetwork.com/tag/deltek/) [Department of Government efficiency](https://federalnewsnetwork.com/tag/department-of-government-efficiency/) [Federal Agencies Digital Guidelines Initiative](https://federalnewsnetwork.com/tag/federal-agencies-digital-guidelines-initiative/) [Government Accountability Office](https://federalnewsnetwork.com/tag/government-accountability-office/) [Management](https://federalnewsnetwork.com/category/management/) [National Archives and Records Administration](https://federalnewsnetwork.com/tag/national-archives-and-records-administration/) [Office of Personnel Management](https://federalnewsnetwork.com/tag/opm/) [PFU America](https://federalnewsnetwork.com/tag/pfu-america/) [Scott Francis](https://federalnewsnetwork.com/tag/scott-francis/) [Scott Kupor](https://federalnewsnetwork.com/tag/scott-kupor/) [Technology](https://federalnewsnetwork.com/category/technology-main/) [Workforce](https://federalnewsnetwork.com/category/workforce/)

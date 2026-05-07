@@ -1,6 +1,5 @@
 import UIKit
 import SwiftUI
-import CryptoKit
 
 // MARK: - View Model
 
@@ -43,6 +42,10 @@ final class ShareViewController: UIViewController {
     private var memoryWarningObserver: NSObjectProtocol?
 
     override func viewDidLoad() {
+        // First statement on purpose: if the appex hangs in dynamic-load,
+        // this line is never reached and the App Group `last_extension_launch`
+        // stays stale — that absence is the diagnostic signal.
+        LaunchBeacon.emit()
         super.viewDidLoad()
         setupUI()
         registerMemoryWarningObserver()
@@ -120,159 +123,19 @@ final class ShareViewController: UIViewController {
     }
 
     private func performClipping() async throws -> String {
-        let settings = ClipperSettings()
-        let saveConfig = FileSaver.SaveConfig(from: settings)
-
-        // 1. Extract web content from the share extension input
-        viewModel.state = .loading("Extracting content…")
-
-        guard let context = extensionContext,
-              let rawContent = await WebContentExtractor.extract(from: context) else {
-            throw ClipError.noContent
-        }
-
-        try Task.checkCancellation()
-
-        let isImageOnly = rawContent.html == nil && rawContent.url == nil && !rawContent.sharedImages.isEmpty
-
-        // 2. Inject image markers into HTML, run Readability, convert to Markdown
-        var articleTitle = rawContent.title
-        var markdownBody: String
-        var markerMap: [Int: URL] = [:]
-
-        if isImageOnly {
-            // Image-only share: OCR the images, skip HTML pipeline
-            viewModel.state = .loading("Processing images…")
-            markdownBody = ""
-        } else if let html = rawContent.html {
-            // Use a `do` block so the large intermediate HTML string
-            // (markedHTML) is released before image processing.
-            do {
-                // 1. JSON-LD fast path. Many publishers (Wired, NYT, Substack)
-                //    embed the full article body as Schema.org `articleBody`.
-                //    When present, it's the publisher-of-record body — strictly
-                //    cleaner than scoring-based extraction, and 30-40× faster.
-                //    On miss (no `articleBody` >= 500 chars), fall through to
-                //    the marker-injection + Readability pipeline.
-                if let ld = JSONLDExtractor.tryFastPath(html: html) {
-                    viewModel.state = .loading("Extracting article…")
-                    let bodyHTML = ld.articleBodyIsHTML
-                        ? ld.articleBody
-                        : Self.wrapPlainTextAsHTML(ld.articleBody)
-                    let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(bodyHTML, baseURL: rawContent.url)
-                    markerMap = markerResult.markerMap
-                    markdownBody = HTMLToMarkdown.convert(markerResult.html)
-                    if !ld.title.isEmpty {
-                        articleTitle = ld.title
-                    }
-                    try Task.checkCancellation()
-                } else {
-                    // Replace <img> tags with [[IMG:N]] markers before any processing.
-                    let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: rawContent.url)
-                    markerMap = markerResult.markerMap
-                    let markedHTML = markerResult.html
-
-                    try Task.checkCancellation()
-
-                    viewModel.state = .loading("Extracting article…")
-                    let readabilityResult = ReadabilityExtractor.extract(html: markedHTML, url: rawContent.url)
-
-                    if let result = readabilityResult {
-                        // Convert to markdown directly from the DOM subtree — avoids a
-                        // redundant re-parse of the serialized article HTML. Check if
-                        // it has meaningful content; the 100-char threshold catches
-                        // cases where Readability picked a too-narrow container
-                        // (e.g. just the header/title area).
-                        let candidateMarkdown = HTMLToMarkdown.convert(node: result.articleNode)
-                        if candidateMarkdown.filter({ !$0.isWhitespace }).count >= 100 {
-                            markdownBody = candidateMarkdown
-                            if let extractedTitle = result.title, !extractedTitle.isEmpty {
-                                articleTitle = extractedTitle
-                            }
-                        } else {
-                            markdownBody = HTMLToMarkdown.convert(markedHTML)
-                        }
-                    } else {
-                        markdownBody = HTMLToMarkdown.convert(markedHTML)
-                    }
-
-                    try Task.checkCancellation()
-                }
+        let title = try await ClippingPipeline.run(
+            extensionContext: extensionContext,
+            onState: { [weak self] state in
+                self?.viewModel.state = .loading(state)
+            },
+            onImageProcessor: { [weak self] processor in
+                self?.imageProcessor = processor
             }
-        } else if let plain = rawContent.plainText {
-            viewModel.state = .loading("Saving text…")
-            markdownBody = plain
-        } else {
-            markdownBody = ""
-        }
-
-        try Task.checkCancellation()
-
-        // 3. Process images
-        var images: [ExtractedImage] = []
-        let prefix = Self.shortHash(title: rawContent.title, url: rawContent.url)
-
-        if isImageOnly {
-            viewModel.state = .loading("Running OCR…")
-            let processor = ImageProcessor()
-            self.imageProcessor = processor
-            images = await processor.processSharedImages(
-                rawContent.sharedImages,
-                enableOCR: settings.enableOCR,
-                prefix: prefix
-            )
-        } else if settings.saveImages, rawContent.html != nil {
-            viewModel.state = .loading("Processing images…")
-
-            // Only download images whose markers survived Readability's article
-            // extraction. Without this filter, the 20-image cap is consumed by
-            // page chrome (logos, badges, recirc thumbnails) before the actual
-            // article images get a slot, and downloaded-but-unplaced images
-            // dump into the `## Images` / `## Extracted Text (OCR)` fallbacks.
-            let surviving = HTMLToMarkdown.findMarkerIndices(in: markdownBody)
-            let filteredMarkerMap = markerMap.filter { surviving.contains($0.key) }
-            let limitedURLs = Array(filteredMarkerMap.values.prefix(20))
-
-            let processor = ImageProcessor()
-            self.imageProcessor = processor
-            images = await processor.process(urls: limitedURLs, enableOCR: settings.enableOCR, prefix: prefix)
-
-            var urlToPath: [String: String] = [:]
-            for image in images {
-                urlToPath[image.sourceURL.absoluteString] = "images/\(image.filename)"
-            }
-
-            var markerToPath: [Int: String] = [:]
-            for (index, url) in filteredMarkerMap {
-                if let path = urlToPath[url.absoluteString] {
-                    markerToPath[index] = path
-                }
-            }
-            let inlineResult = HTMLToMarkdown.replaceMarkersWithImages(markdownBody, markerToPath: markerToPath)
-            markdownBody = inlineResult.markdown
-        }
-
-        try Task.checkCancellation()
-
-        // 4. Build the ClipResult
-        let clipResult = ClipResult(
-            title: articleTitle,
-            sourceURL: rawContent.url,
-            markdownBody: markdownBody,
-            images: images,
-            clippedDate: Date()
         )
-
-        // 5. Save to the vault
-        viewModel.state = .loading("Saving to vault…")
-
-        try FileSaver.save(clipResult, config: saveConfig)
-
         // Clean up scratch temp files once the vault move is complete.
         await imageProcessor?.cleanup()
         imageProcessor = nil
-
-        return rawContent.title
+        return title
     }
 
     // MARK: - Completion
@@ -306,46 +169,9 @@ final class ShareViewController: UIViewController {
         return true
     }
 
-    /// Short hex hash identifying a single clip, used as an image filename prefix
-    /// so two clips with the same inferred indices do not overwrite each other.
-    private static func shortHash(title: String, url: URL?) -> String {
-        let seed = "\(title)|\(url?.absoluteString ?? "")|\(Date().timeIntervalSince1970)"
-        let digest = SHA256.hash(data: Data(seed.utf8))
-        return digest.prefix(4).map { String(format: "%02x", $0) }.joined()
-    }
-
-    /// Wrap a JSON-LD plain-text `articleBody` in `<p>` tags so it flows
-    /// through `HTMLToMarkdown.convert` cleanly. Splits on `\n\n` when
-    /// available, falls back to single `\n` (Wired emits the latter).
-    fileprivate static func wrapPlainTextAsHTML(_ text: String) -> String {
-        let normalized = text.replacingOccurrences(of: "\r\n", with: "\n")
-        let separator = normalized.contains("\n\n") ? "\n\n" : "\n"
-        let escape: (String) -> String = { s in
-            s.replacingOccurrences(of: "&", with: "&amp;")
-             .replacingOccurrences(of: "<", with: "&lt;")
-             .replacingOccurrences(of: ">", with: "&gt;")
-        }
-        return normalized
-            .components(separatedBy: separator)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-            .map { "<p>\(escape($0))</p>" }
-            .joined(separator: "\n")
-    }
 }
 
-// MARK: - Errors
-
-enum ClipError: LocalizedError {
-    case noContent
-    case cancelled
-
-    var errorDescription: String? {
-        switch self {
-        case .noContent:
-            return "Could not extract content from the shared item. Try sharing a URL, text, or image."
-        case .cancelled:
-            return "Clipping was cancelled."
-        }
-    }
-}
+// `ClipError` lives in `ClippingPipeline.swift` so the pipeline's error type
+// is co-located with its raiser, and the test target (which compiles the
+// pipeline source directly without `ShareViewController.swift`) can resolve
+// it during build.

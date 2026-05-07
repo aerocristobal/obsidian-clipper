@@ -1,0 +1,10 @@
+{
+  "title_contains": "Daring Fireball",
+  "must_contain": [
+    "Daring Fireball"
+  ],
+  "must_not_contain": [],
+  "min_body_chars": 2000,
+  "max_total_images": 20,
+  "ocr_must_not_contain": []
+}

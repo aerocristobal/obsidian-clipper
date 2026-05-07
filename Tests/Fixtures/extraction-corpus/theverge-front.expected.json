@@ -1,0 +1,10 @@
+{
+  "title_contains": "Verge",
+  "must_contain": [
+    "Verge"
+  ],
+  "must_not_contain": [],
+  "min_body_chars": 800,
+  "max_total_images": 60,
+  "ocr_must_not_contain": []
+}
