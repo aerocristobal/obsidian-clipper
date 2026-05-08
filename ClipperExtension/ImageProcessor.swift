@@ -27,6 +27,15 @@ actor ImageProcessor {
     /// Longest edge (in pixels) before downscaling prior to OCR.
     private static let maxOCRDimension: CGFloat = 2048
 
+    /// Minimum fraction of image area that recognized text must cover for
+    /// the OCR result to be kept. Below this, the text is judged
+    /// incidental — name placards, store signs, license plates in
+    /// photos — and discarded. Vision returns bounding boxes in
+    /// normalized coordinates so summing `width*height` per observation
+    /// yields a coverage fraction directly. Overlapping boxes slightly
+    /// over-count, biasing the filter toward keeping borderline cases.
+    private static let textCoverageThreshold: CGFloat = 0.10
+
     /// Maximum cumulative bytes of image data downloaded per clip. Protects the
     /// extension's ~120MB memory budget from pathological pages with huge images.
     private static let maxCumulativeImageBytes = 50 * 1024 * 1024
@@ -368,7 +377,13 @@ actor ImageProcessor {
         return resized.cgImage
     }
 
-    /// Perform OCR on a CGImage using VNRecognizeTextRequest.
+    /// Perform OCR on a CGImage using VNRecognizeTextRequest. Returns
+    /// recognized text only when text appears to be the primary subject
+    /// of the image — gauged by `textCoverageThreshold` summed across
+    /// observation bounding boxes. Photos with incidental text (name
+    /// cards, signage, captions) fall below the threshold and yield nil
+    /// so the OCR section in the output isn't polluted with snippets
+    /// that aren't useful to the reader.
     private func recognizeText(in image: CGImage) async -> String? {
         await withCheckedContinuation { continuation in
             let request = VNRecognizeTextRequest { request, error in
@@ -378,11 +393,18 @@ actor ImageProcessor {
                     return
                 }
 
+                let coverage = observations.reduce(CGFloat(0)) { acc, obs in
+                    acc + (obs.boundingBox.width * obs.boundingBox.height)
+                }
                 let text = observations
                     .compactMap { $0.topCandidates(1).first?.string }
                     .joined(separator: "\n")
 
-                continuation.resume(returning: text.isEmpty ? nil : text)
+                let kept = coverage >= Self.textCoverageThreshold && !text.isEmpty
+                NSLog("[Clipper.image] OCR coverage=%.3f chars=%d threshold=%.3f kept=%d",
+                      Double(coverage), text.count, Double(Self.textCoverageThreshold), kept ? 1 : 0)
+
+                continuation.resume(returning: kept ? text : nil)
             }
 
             request.recognitionLevel = .accurate
