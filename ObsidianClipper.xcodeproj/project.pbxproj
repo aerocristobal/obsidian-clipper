@@ -38,6 +38,7 @@
 		A10000200 /* PipelineRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000200 /* PipelineRegressionTests.swift */; };
 		A10000201 /* FakeExtensionContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000201 /* FakeExtensionContext.swift */; };
 		A10000202 /* ShareViewControllerHarnessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000202 /* ShareViewControllerHarnessTests.swift */; };
+		A1000007A /* WebContentExtractorIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000007A /* WebContentExtractorIntegrationTests.swift */; };
 		A10000080 /* HTMLToMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000021 /* HTMLToMarkdown.swift */; };
 		A10000081 /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000022 /* ImageProcessor.swift */; };
 		A10000082 /* FileSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000023 /* FileSaver.swift */; };
@@ -117,6 +118,7 @@
 		A20000200 /* PipelineRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineRegressionTests.swift; sourceTree = "<group>"; };
 		A20000201 /* FakeExtensionContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support/FakeExtensionContext.swift; sourceTree = "<group>"; };
 		A20000202 /* ShareViewControllerHarnessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewControllerHarnessTests.swift; sourceTree = "<group>"; };
+		A2000007A /* WebContentExtractorIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentExtractorIntegrationTests.swift; sourceTree = "<group>"; };
 		A20000078 /* JSONLDExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLDExtractor.swift; sourceTree = "<group>"; };
 		A20000079 /* JSONLDExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLDExtractorTests.swift; sourceTree = "<group>"; };
 		A20000090 /* SwiftSoupAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftSoupAdapter.swift; sourceTree = "<group>"; };
@@ -205,6 +207,7 @@
 				A20000200 /* PipelineRegressionTests.swift */,
 				A20000201 /* FakeExtensionContext.swift */,
 				A20000202 /* ShareViewControllerHarnessTests.swift */,
+				A2000007A /* WebContentExtractorIntegrationTests.swift */,
 			);
 			path = ObsidianClipperTests;
 			sourceTree = "<group>";
@@ -382,6 +385,7 @@
 				A10000200 /* PipelineRegressionTests.swift in Sources */,
 				A10000201 /* FakeExtensionContext.swift in Sources */,
 				A10000202 /* ShareViewControllerHarnessTests.swift in Sources */,
+				A1000007A /* WebContentExtractorIntegrationTests.swift in Sources */,
 				A10000080 /* HTMLToMarkdown.swift in Sources */,
 				A10000081 /* ImageProcessor.swift in Sources */,
 				A10000082 /* FileSaver.swift in Sources */,
