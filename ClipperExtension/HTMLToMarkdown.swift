@@ -400,6 +400,8 @@ enum HTMLToMarkdown {
     /// The markers survive Readability extraction and tree-based Markdown conversion as plain text,
     /// allowing us to place images inline at their original positions in the final Markdown.
     static func replaceImgTagsWithMarkers(_ html: String, baseURL: URL?) -> (html: String, markerMap: [Int: URL]) {
+        NSLog("[Clipper.markdown] replaceImgTagsWithMarkers() entered; html_len=%d baseURL=%@",
+              html.count, (baseURL?.absoluteString ?? "nil") as NSString)
         var markerMap: [Int: URL] = [:]
         var markerIndex = 0
         var seen: [String: Int] = [:] // URL string -> marker index
@@ -409,10 +411,12 @@ enum HTMLToMarkdown {
 
         let imgPattern = #"<img\s[^>]*/?>"#
         guard let imgRegex = try? NSRegularExpression(pattern: imgPattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) else {
+            NSLog("[Clipper.markdown] replaceImgTagsWithMarkers() img regex compile FAILED; returning input")
             return (html, markerMap)
         }
 
         let matches = imgRegex.matches(in: html, range: fullRange)
+        NSLog("[Clipper.markdown] replaceImgTagsWithMarkers() <img> matches=%d", matches.count)
 
         // Build replacements in forward order so marker indices match document order,
         // then apply in reverse so NSRange offsets remain valid.
@@ -536,7 +540,10 @@ enum HTMLToMarkdown {
     /// Readability's article extraction, so we only download images that
     /// actually appear in the final article body.
     static func findMarkerIndices(in text: String) -> Set<Int> {
-        guard let regex = markerRegex else { return [] }
+        guard let regex = markerRegex else {
+            NSLog("[Clipper.markdown] findMarkerIndices() regex unavailable; returning empty")
+            return []
+        }
         let ns = text as NSString
         var indices = Set<Int>()
         regex.enumerateMatches(in: text, range: NSRange(location: 0, length: ns.length)) { match, _, _ in
@@ -546,6 +553,7 @@ enum HTMLToMarkdown {
                 indices.insert(n)
             }
         }
+        NSLog("[Clipper.markdown] findMarkerIndices() text_len=%d surviving=%d", text.count, indices.count)
         return indices
     }
 
@@ -553,6 +561,8 @@ enum HTMLToMarkdown {
     /// `markerToFilename` maps marker index to the local filename (e.g. "images/abc-1.png").
     /// Returns the processed Markdown and a set of marker indices that were placed inline.
     static func replaceMarkersWithImages(_ markdown: String, markerToPath: [Int: String]) -> (markdown: String, placedIndices: Set<Int>) {
+        NSLog("[Clipper.markdown] replaceMarkersWithImages() entered; markdown_len=%d markerToPath=%d",
+              markdown.count, markerToPath.count)
         var result = markdown
         var placed = Set<Int>()
 
@@ -565,6 +575,8 @@ enum HTMLToMarkdown {
             }
         }
 
+        NSLog("[Clipper.markdown] replaceMarkersWithImages() done; placed=%d unplaced=%d",
+              placed.count, markerToPath.count - placed.count)
         return (result, placed)
     }
 

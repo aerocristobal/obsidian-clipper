@@ -8,6 +8,7 @@
     "OpenAI Backs Bill That Would Limit Liability"
   ],
   "min_body_chars": 1500,
+  "min_total_images": 1,
   "max_total_images": 6,
   "ocr_must_not_contain": ["SUBSCRIBE", "Download on the"]
 }

@@ -26,6 +26,7 @@ final class PipelineRegressionTests: XCTestCase {
         let must_not_contain: [String]
         let min_body_chars: Int
         let max_total_images: Int?
+        let min_total_images: Int?
     }
 
     // MARK: - Paths
@@ -122,6 +123,17 @@ final class PipelineRegressionTests: XCTestCase {
                 got,
                 cap,
                 "[\(slug)] image marker count \(got) exceeds cap \(cap)"
+            )
+        }
+
+        // Image-marker floor — protects against silent regressions like
+        // the JSON-LD plain-text-body case where Wired clips dropped to
+        // zero inline images.
+        if let floor = expected.min_total_images, let got = result.imageMarkerCount {
+            XCTAssertGreaterThanOrEqual(
+                got,
+                floor,
+                "[\(slug)] image marker count \(got) below floor \(floor)"
             )
         }
 

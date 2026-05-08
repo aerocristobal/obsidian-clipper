@@ -87,18 +87,32 @@ enum ClippingPipeline {
             // (markedHTML) is released before image processing begins.
             do {
                 if let ld = JSONLDExtractor.tryFastPath(html: html) {
+                    NSLog("[Clipper.pipeline] JSON-LD fast path HIT; isHTML=%d body_len=%d title_len=%d imageURLs=%d",
+                          ld.articleBodyIsHTML ? 1 : 0, ld.articleBody.count, ld.title.count, ld.imageURLs.count)
                     onState?("Extracting article…")
-                    let bodyHTML = ld.articleBodyIsHTML
-                        ? ld.articleBody
-                        : Self.wrapPlainTextAsHTML(ld.articleBody)
+                    // Build body HTML. For plain-text bodies (Wired, NYT)
+                    // the prose has no <img> markup; prepend the JSON-LD
+                    // `image` field as a real <img> tag so the same
+                    // marker-injection pipeline picks it up. HTML bodies
+                    // already carry their own inline imagery.
+                    let bodyHTML: String
+                    if ld.articleBodyIsHTML {
+                        bodyHTML = ld.articleBody
+                    } else {
+                        let leadImageHTML = Self.leadImageHTML(from: ld.imageURLs)
+                        bodyHTML = leadImageHTML + Self.wrapPlainTextAsHTML(ld.articleBody)
+                    }
                     let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(bodyHTML, baseURL: rawContent.url)
                     markerMap = markerResult.markerMap
                     markdownBody = HTMLToMarkdown.convert(markerResult.html)
+                    NSLog("[Clipper.pipeline] JSON-LD path: markerMap=%d markdown_len=%d",
+                          markerMap.count, markdownBody.count)
                     if !ld.title.isEmpty {
                         articleTitle = ld.title
                     }
                     try Task.checkCancellation()
                 } else {
+                    NSLog("[Clipper.pipeline] JSON-LD fast path MISS; falling through to Readability")
                     let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(html, baseURL: rawContent.url)
                     markerMap = markerResult.markerMap
                     let markedHTML = markerResult.html
@@ -152,6 +166,8 @@ enum ClippingPipeline {
             let surviving = HTMLToMarkdown.findMarkerIndices(in: markdownBody)
             let filteredMarkerMap = markerMap.filter { surviving.contains($0.key) }
             let limitedURLs = Array(filteredMarkerMap.values.prefix(20))
+            NSLog("[Clipper.pipeline] image-block: markerMap=%d surviving=%d filtered=%d limited(<=20)=%d",
+                  markerMap.count, surviving.count, filteredMarkerMap.count, limitedURLs.count)
 
             let processor = ImageProcessor()
             onImageProcessor?(processor)
@@ -168,8 +184,14 @@ enum ClippingPipeline {
                     markerToPath[index] = path
                 }
             }
+            NSLog("[Clipper.pipeline] image-block: downloaded=%d urlToPath=%d markerToPath=%d",
+                  images.count, urlToPath.count, markerToPath.count)
             let inlineResult = HTMLToMarkdown.replaceMarkersWithImages(markdownBody, markerToPath: markerToPath)
             markdownBody = inlineResult.markdown
+        } else if settings.saveImages {
+            NSLog("[Clipper.pipeline] image-block: SKIPPED (saveImages=true but no html)")
+        } else {
+            NSLog("[Clipper.pipeline] image-block: SKIPPED (saveImages=false)")
         }
 
         try Task.checkCancellation()
@@ -220,5 +242,18 @@ enum ClippingPipeline {
             .filter { !$0.isEmpty }
             .map { "<p>\(escape($0))</p>" }
             .joined(separator: "\n")
+    }
+
+    /// Render the publisher-declared lead image (from JSON-LD `image`)
+    /// as a bare `<img>` tag for prepending to a plain-text body. The
+    /// marker-injection pass picks it up exactly as if it had been
+    /// inline. Cap at 1 — publishers commonly list the same hero at
+    /// multiple aspect ratios; one inline reference is enough.
+    private static func leadImageHTML(from urls: [URL]) -> String {
+        guard let lead = urls.first else { return "" }
+        let escaped = lead.absoluteString
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+        return "<img src=\"\(escaped)\">\n"
     }
 }

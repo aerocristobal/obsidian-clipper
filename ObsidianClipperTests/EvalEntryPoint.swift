@@ -69,9 +69,10 @@ enum EvalEntryPoint {
 
     /// Render a JSON-LD body to Markdown and count any image markers.
     /// HTML bodies pass through `HTMLToMarkdown.convert` after marker
-    /// injection; plain-text bodies are wrapped in `<p>` per paragraph
-    /// (split on `\n\n`, then `\n` if no double newline) and pushed through
-    /// the same converter so output style is consistent across branches.
+    /// injection. Plain-text bodies (Wired, NYT) carry no inline markup,
+    /// so we prepend a publisher-declared lead image (from JSON-LD's
+    /// `image` field) before wrapping the prose in `<p>` tags. The same
+    /// marker-injection + downloader handles both cases identically.
     private static func renderJSONLDBody(
         _ ld: JSONLDExtractor.Result,
         baseURL: URL?
@@ -80,11 +81,9 @@ enum EvalEntryPoint {
         if ld.articleBodyIsHTML {
             bodyHTML = ld.articleBody
         } else {
-            bodyHTML = wrapPlainTextAsHTML(ld.articleBody)
+            bodyHTML = leadImageHTML(from: ld.imageURLs) + wrapPlainTextAsHTML(ld.articleBody)
         }
 
-        // Inject image markers on the body HTML (article-only — no recirc
-        // bleed-through).
         let markerResult = HTMLToMarkdown.replaceImgTagsWithMarkers(bodyHTML, baseURL: baseURL)
         let markdown = HTMLToMarkdown.convert(markerResult.html)
         let surviving = HTMLToMarkdown.findMarkerIndices(in: markdown)
@@ -92,9 +91,6 @@ enum EvalEntryPoint {
     }
 
     private static func wrapPlainTextAsHTML(_ text: String) -> String {
-        // Prefer paragraph splits on `\n\n`. If the body has no blank
-        // lines, fall back to single `\n` (still common — Wired emits a
-        // single `\n` between paragraphs).
         let normalized = text.replacingOccurrences(of: "\r\n", with: "\n")
         let separator = normalized.contains("\n\n") ? "\n\n" : "\n"
         let paragraphs = normalized
@@ -104,8 +100,14 @@ enum EvalEntryPoint {
         return paragraphs.map { "<p>\(escapeHTML($0))</p>" }.joined(separator: "\n")
     }
 
-    /// Minimal HTML-escape for plain-text bodies. Only escapes `<` and `&`
-    /// so the markdown converter sees them as text, not tags.
+    private static func leadImageHTML(from urls: [URL]) -> String {
+        guard let lead = urls.first else { return "" }
+        let escaped = lead.absoluteString
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+        return "<img src=\"\(escaped)\">\n"
+    }
+
     private static func escapeHTML(_ s: String) -> String {
         s
             .replacingOccurrences(of: "&", with: "&amp;")
