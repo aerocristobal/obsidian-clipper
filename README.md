@@ -2,7 +2,7 @@
 
 An iOS app + Share Extension that clips web pages, text, and images into your [Obsidian](https://obsidian.md) vault as clean Markdown notes — with image extraction and OCR. No Obsidian plugin required.
 
-> **Status:** v1.0 shipped, v1.1 hardening in progress. See [docs/PRD.md](docs/PRD.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full picture.
+> **Status:** v1.0 shipped, v1.1 hardening + extraction-quality work merged (JSON-LD fast path, SwiftSoup parser, OCR relevance filter, in-process harness tests). See [docs/PRD.md](docs/PRD.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full picture.
 
 ---
 
@@ -10,10 +10,11 @@ An iOS app + Share Extension that clips web pages, text, and images into your [O
 
 - **Share from anywhere.** The extension shows up in every iOS app's Share Sheet, not just Safari.
 - **Capture the live page.** In Safari, a JavaScript preprocessing file (`Action.js`) hands the extension the live DOM — authenticated content and dynamically loaded content included.
-- **Extract the article.** A Mozilla Readability–inspired scorer picks the main content, excluding navigation, ads, sidebars, cookie banners, and related-articles grids.
+- **Take the publisher's word for it when offered.** A JSON-LD fast path checks for Schema.org `Article` / `NewsArticle` blocks and uses the publisher-declared `articleBody` directly when present (Wired, NYT-style sites). Skips the scoring gamble entirely.
+- **Fall through to Readability.** When JSON-LD doesn't fire, a Mozilla Readability–inspired scorer running on a SwiftSoup-parsed DOM picks the main content, excluding navigation, ads, sidebars, cookie banners, and related-articles grids.
 - **Convert to Markdown.** A pure-Swift tree-walking renderer emits headings, lists, code blocks, blockquotes, tables, links, and inline images.
-- **Pull in images.** `srcset`, `data-src`, `data-lazy-src`, `data-original`, and `<picture><source>` are all parsed. Images are streamed to disk to keep the extension under iOS's memory cap.
-- **OCR screenshots.** Apple Vision (`VNRecognizeTextRequest`) extracts text from images and appends it as a blockquote.
+- **Pull in images.** `srcset`, `data-src`, `data-lazy-src`, `data-original`, and `<picture><source>` are all parsed. Plain-text JSON-LD bodies get their publisher-declared lead image prepended so screenshots aren't dropped. Images are streamed to disk to keep the extension under iOS's memory cap.
+- **OCR screenshots — when text is the subject.** Apple Vision (`VNRecognizeTextRequest`) extracts text from images and appends it as a blockquote. A coverage threshold drops OCR output when text is incidental (license plates, signage, name placards in a photo) so the OCR section doesn't fill with noise.
 - **Self-contained clips.** Each clip becomes a folder: `<Vault>/<Target>/<Article Title>/` with its own `images/` subfolder — move it in Obsidian and the images go with it.
 - **Privacy-first.** Everything runs on-device. No server, no analytics, no telemetry.
 
@@ -26,12 +27,16 @@ An iOS app + Share Extension that clips web pages, text, and images into your [O
 - **Share Extension** activated on URLs, plain text, HTML, and images.
 - **URL-in-text detection** — shares from X/Twitter, Reddit, Messages often arrive as plain text containing a URL; the extension auto-detects and fetches the page.
 - **Character encoding detection** — uses Content-Type `charset=`, falls back to HTML `<meta charset>`, then UTF-8. Supports UTF-8, ISO-8859-1/2/15, Windows-1251/1252, ASCII, UTF-16, Shift_JIS, EUC-JP.
-- **Readability-style article extraction** with link-density penalties at both per-element and aggregated scope.
-- **Tree-based HTML → Markdown converter** built on a custom pure-Swift HTML parser that iterates over UTF-8 byte buffers (no `NSAttributedString`, no UIKit dependency, CJK-friendly performance).
-- **Inline image placement** via `[[IMG:N]]` markers injected before Readability runs and swapped for `![alt](path)` after downloads complete.
+- **JSON-LD / Schema.org `articleBody` fast path** — when the publisher embeds an `Article` / `NewsArticle` / `BlogPosting` block with a substantial body (≥500 chars), the pipeline short-circuits Readability and uses the publisher's canonical body. ~30–40× faster than Readability on the hits, byte-identical fall-through on misses.
+- **Lead-image injection for plain-text bodies** — when JSON-LD provides plain prose (no inline `<img>` markup), the publisher-declared `image` URL is prepended as an `<img>` tag so the marker pipeline picks it up identically.
+- **Readability-style article extraction** (fall-through) with link-density penalties at both per-element and aggregated scope. Runs on a SwiftSoup-parsed DOM via the `SwiftSoupAdapter` bridge — same scoring, same `HTMLNode` tree shape, but a spec-compliant tree-builder underneath.
+- **Tree-based HTML → Markdown converter** that walks an `HTMLNode` tree and emits Markdown. The converter still ships the legacy pure-Swift UTF-8 byte parser as the path used when no upstream tree exists; Readability now hands its winning subtree directly to the converter so most clips parse the document only once.
+- **Inline image placement** via `[[IMG:N]]` markers injected before extraction runs and swapped for `![alt](path)` after downloads complete. Markers that didn't survive extraction are filtered out before download to avoid pulling images that weren't part of the chosen article subtree.
+- **OCR relevance filter** — Vision text observation bounding boxes are summed; results below a 10% area-coverage threshold are dropped so the OCR section only contains text that's actually the subject of the image.
 - **YAML frontmatter** with sanitized values (escapes newlines, quotes, backslashes, tabs; collapses title whitespace to prevent YAML key injection).
 - **Per-article subfolders** with a Unix-timestamp suffix on re-clip.
 - **Sanitized filenames** — invalid characters replaced, Windows-reserved names (`CON`, `NUL`, `COM1-9`, `LPT1-9`) suffixed, leading/trailing dots stripped, length capped at 200 chars.
+- **Launch beacon** — first statement of `viewDidLoad` writes a timestamp + counter to App Group `UserDefaults` and the unified system log. The Settings screen surfaces "Last extension launch" + "Total launches" so the user can confirm the appex is actually starting (vs. failing to dynamic-link).
 
 ### Markdown conversion
 
@@ -64,7 +69,7 @@ An iOS app + Share Extension that clips web pages, text, and images into your [O
 - **Task cancellation** checked between every pipeline stage.
 - **Strict-Sendable clean** — `@MainActor` isolation on settings, `actor`-isolated image processor, `Sendable` value types crossing actor boundaries.
 - **Double-completion guard** on the extension context (`NSLock` around `didComplete`).
-- **`~170` unit tests** across 6 test files.
+- **~210 unit tests** across 10 test files, plus an 11-fixture extraction-corpus regression suite that runs the full pipeline against real-world HTML (`PipelineRegressionTests`).
 
 ---
 
@@ -73,6 +78,7 @@ An iOS app + Share Extension that clips web pages, text, and images into your [O
 - iOS 17.0+
 - Xcode 15.4+
 - An Obsidian vault synced via iCloud Drive (or stored locally in Files)
+- One Swift Package dependency: [SwiftSoup](https://github.com/scinfu/SwiftSoup) (≥ 2.7.0). Resolved automatically by Xcode on first open.
 
 ---
 
@@ -156,7 +162,7 @@ xcodebuild -scheme ObsidianClipper \
 obsidian-clipper/
 ├── ObsidianClipper/              # Main app target (settings, onboarding)
 │   ├── ObsidianClipperApp.swift
-│   ├── SettingsView.swift        # Settings form + onboarding banner + vault status
+│   ├── SettingsView.swift        # Settings form + onboarding banner + vault status + diagnostics
 │   ├── FolderPickerView.swift    # UIDocumentPicker wrapper
 │   ├── AboutView.swift
 │   ├── ObsidianClipper.entitlements
@@ -165,10 +171,14 @@ obsidian-clipper/
 ├── ClipperExtension/             # Share Extension (the real work)
 │   ├── ShareViewController.swift     # Entry point; owns clipping Task, memory warnings, cancel
 │   ├── ShareExtensionView.swift      # SwiftUI progress/success/error view
+│   ├── ClippingPipeline.swift        # @MainActor enum: UI-free pipeline orchestrator + ClipError
+│   ├── LaunchBeacon.swift            # Idempotent App Group + os_log launch signal
 │   ├── WebContentExtractor.swift     # URL/HTML/text/image extraction, charset detection
+│   ├── JSONLDExtractor.swift         # Schema.org Article / NewsArticle fast path
+│   ├── SwiftSoupAdapter.swift        # SwiftSoup → HTMLNode tree bridge
 │   ├── ReadabilityExtractor.swift    # DOM scorer, HTMLParser, HTMLNode
 │   ├── HTMLToMarkdown.swift          # Tree-walking renderer, [[IMG:N]] markers
-│   ├── ImageProcessor.swift          # Actor: download + OCR + scratch dir
+│   ├── ImageProcessor.swift          # Actor: download + OCR (with coverage filter) + scratch dir
 │   ├── FileSaver.swift               # Per-article subfolder writer, bookmark refresh
 │   ├── ClipResult.swift              # Frontmatter + body + appendix assembly
 │   ├── Action.js                     # Safari JS preprocessing
@@ -178,13 +188,26 @@ obsidian-clipper/
 ├── Shared/
 │   └── ClipperSettings.swift     # @MainActor App Group UserDefaults
 │
-├── ObsidianClipperTests/         # ~170 unit tests across 6 files
+├── ObsidianClipperTests/         # ~210 unit tests across 10 files
 │   ├── HTMLToMarkdownTests.swift
 │   ├── ReadabilityExtractorTests.swift
 │   ├── WebContentExtractorTests.swift
 │   ├── ImageProcessorTests.swift
 │   ├── FileSaverTests.swift
-│   └── ClipResultTests.swift
+│   ├── ClipResultTests.swift
+│   ├── JSONLDExtractorTests.swift
+│   ├── ShareViewControllerHarnessTests.swift   # in-process pipeline harness
+│   ├── PipelineRegressionTests.swift           # corpus-driven regression suite
+│   ├── ExtractionEvalTests.swift               # non-failing eval harness
+│   ├── EvalEntryPoint.swift                    # eval adapter (helper, not a test class)
+│   └── Support/FakeExtensionContext.swift      # synthetic NSExtensionContext for harness tests
+│
+├── Tests/Fixtures/extraction-corpus/   # 11 real-world fixtures (HTML + .url + .expected.json)
+│
+├── eval/                         # Per-approach eval output (master / B / C / main)
+│   ├── comparison.md             # A/B/C extraction-spike comparison + post-merge result
+│   ├── recommendation.md         # Decision rationale (B+C merged, A deferred)
+│   └── {master,jsonld-fastpath,swiftsoup,main}/  # Per-branch markdown + summary.json
 │
 ├── docs/
 │   ├── PRD.md                    # Product requirements, user stories, success metrics
@@ -200,17 +223,23 @@ obsidian-clipper/
 
 ```
 Share Sheet input
+  → LaunchBeacon.emit           (App Group timestamp + os_log signal — observability)
   → WebContentExtractor         (URL / HTML / text / images; charset detection; URL-in-text)
+  → JSONLDExtractor.tryFastPath (Schema.org Article block? short-circuit Readability)
+       │ HIT  → wrap plain-text body in <p>; prepend lead image; mark; convert
+       │ MISS → fall through ↓
   → HTMLToMarkdown.replaceImgTagsWithMarkers   ([[IMG:N]] markers injected into HTML)
-  → ReadabilityExtractor        (DOM scorer picks the article subtree)
+  → ReadabilityExtractor (SwiftSoupAdapter)    (parse + score; pick article subtree)
+       │ if winning subtree < 100 chars → fall back to full-HTML conversion
   → HTMLToMarkdown.convert      (tree-walking Markdown renderer)
-  → ImageProcessor              (stream-to-disk downloads + Vision OCR, actor-isolated)
-  → HTMLToMarkdown.replaceMarkersWithImages    (swap markers for ![alt](path))
+  → marker-survival filter      (drop URLs whose markers Readability stripped)
+  → ImageProcessor              (stream-to-disk downloads + Vision OCR + coverage filter)
+  → HTMLToMarkdown.replaceMarkersWithImages    (swap surviving markers for ![alt](path))
   → ClipResult                  (frontmatter + body + orphan images + OCR appendix)
   → FileSaver                   (scoped-resource access + per-article subfolder + write .md)
 ```
 
-`Task.checkCancellation()` runs between every stage. On cancel, the image processor's scratch directory is removed and the extension context is cancelled cleanly.
+The pipeline lives in `ClippingPipeline.swift` as a UI-free `@MainActor` enum so the in-process harness tests can drive the full flow without pulling SwiftUICore into the test bundle. `Task.checkCancellation()` runs between every stage. On cancel, the image processor's scratch directory is removed and the extension context is cancelled cleanly.
 
 ---
 
@@ -305,6 +334,10 @@ Article body in clean Markdown with inline images...
 
 **OCR returns no text**
 - Vision works best on printed/rendered text. Photographs of objects and diagrams may not yield useful output.
+- Even when Vision recognizes text, results are dropped if the recognized text covers less than ~10% of the image area. This intentionally suppresses incidental text (signage, license plates, name placards) from filling the OCR appendix.
+
+**Settings shows "Last extension launch: Never"**
+- The share extension hasn't reached user code yet. If you've shared from Safari and this still says "Never", something is preventing the appex from starting (typically dynamic-link or signing). Check the unified system log filtered by subsystem `com.obsidian.clipper.extension`.
 
 **Content is garbled**
 - Charset detection tries Content-Type → `<meta charset>` → UTF-8 fallback.
@@ -323,6 +356,8 @@ Article body in clean Markdown with inline images...
 
 - [docs/PRD.md](docs/PRD.md) — Product requirements, user stories (BDD), success metrics, release history.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Pipeline, module responsibilities, concurrency model, memory strategy, security boundaries, key design decisions.
+- [eval/comparison.md](eval/comparison.md) — A/B/C extraction-spike comparison matrix, per-fixture timings, post-merge result.
+- [eval/recommendation.md](eval/recommendation.md) — Decision rationale for the B+C merge and the deferred Spike A.
 - [CLAUDE.md](CLAUDE.md) — Build/test commands and conventions for Claude Code when working in this repo.
 
 ---
