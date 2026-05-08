@@ -24,6 +24,11 @@ enum JSONLDExtractor {
         let excerpt: String?
         let siteName: String?
         let byline: String?
+        /// Image URLs declared by the publisher in the Schema.org `image`
+        /// field. Critical for plain-text `articleBody` cases (Wired, NYT)
+        /// where the body itself has no `<img>` markup — these are the
+        /// only structured signal of which images belong to the article.
+        let imageURLs: [URL]
     }
 
     /// JSON-LD `@type` values we accept as article-bearing.
@@ -91,8 +96,9 @@ enum JSONLDExtractor {
         case is [String: Any]:          imageShape = "object"
         default:                        imageShape = "other"
         }
-        NSLog("[Clipper.jsonld] tryFastPath() HIT; title_len=%d body_len=%d isHTML=%d image=%@",
-              title.count, trimmed.count, isHTML ? 1 : 0, imageShape as NSString)
+        let imageURLs = extractImageURLs(from: article["image"])
+        NSLog("[Clipper.jsonld] tryFastPath() HIT; title_len=%d body_len=%d isHTML=%d image=%@ imageURLs=%d",
+              title.count, trimmed.count, isHTML ? 1 : 0, imageShape as NSString, imageURLs.count)
 
         return Result(
             title: decodeEntities(title),
@@ -100,8 +106,41 @@ enum JSONLDExtractor {
             articleBodyIsHTML: isHTML,
             excerpt: excerpt.map(decodeEntities),
             siteName: siteName.map(decodeEntities),
-            byline: byline.map(decodeEntities)
+            byline: byline.map(decodeEntities),
+            imageURLs: imageURLs
         )
+    }
+
+    /// Pull URLs out of a Schema.org `image` field. The shape varies by
+    /// publisher: a bare URL string, an `ImageObject` dict with a `url`
+    /// key, or an array of either of the above. Unrecognized shapes
+    /// silently produce zero URLs.
+    private static func extractImageURLs(from value: Any?) -> [URL] {
+        guard let value else { return [] }
+        var urls: [URL] = []
+        urlsFromImageValue(value, into: &urls)
+        // De-dup while preserving order (publishers sometimes list the
+        // same hero image at multiple aspect ratios).
+        var seen = Set<String>()
+        return urls.filter { seen.insert($0.absoluteString).inserted }
+    }
+
+    private static func urlsFromImageValue(_ value: Any, into urls: inout [URL]) {
+        if let s = value as? String, let u = URL(string: s) {
+            urls.append(u)
+            return
+        }
+        if let dict = value as? [String: Any] {
+            if let urlStr = dict["url"] as? String, let u = URL(string: urlStr) {
+                urls.append(u)
+            } else if let urlStr = dict["contentUrl"] as? String, let u = URL(string: urlStr) {
+                urls.append(u)
+            }
+            return
+        }
+        if let arr = value as? [Any] {
+            for item in arr { urlsFromImageValue(item, into: &urls) }
+        }
     }
 
     // MARK: - Block extraction

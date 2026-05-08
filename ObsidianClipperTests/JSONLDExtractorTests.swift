@@ -112,6 +112,66 @@ final class JSONLDExtractorTests: XCTestCase {
         XCTAssertNil(JSONLDExtractor.tryFastPath(html: html))
     }
 
+    // MARK: - imageURLs extraction (Schema.org `image` field)
+
+    func testImageURLsAbsentYieldsEmptyArray() throws {
+        let body = String(repeating: "Plain prose without image. ", count: 30)
+        let html = """
+        <script type="application/ld+json">
+        {"@type": "Article", "headline": "NoImage", "articleBody": \(jsonString(body))}
+        </script>
+        """
+        let result = try XCTUnwrap(JSONLDExtractor.tryFastPath(html: html))
+        XCTAssertTrue(result.imageURLs.isEmpty)
+    }
+
+    func testImageURLsFromBareString() throws {
+        let body = String(repeating: "Lead image is a string. ", count: 30)
+        let html = """
+        <script type="application/ld+json">
+        {"@type": "Article", "headline": "StringImage",
+         "articleBody": \(jsonString(body)),
+         "image": "https://example.com/hero.jpg"}
+        </script>
+        """
+        let result = try XCTUnwrap(JSONLDExtractor.tryFastPath(html: html))
+        XCTAssertEqual(result.imageURLs.map(\.absoluteString), ["https://example.com/hero.jpg"])
+    }
+
+    func testImageURLsFromImageObject() throws {
+        let body = String(repeating: "Lead image is an ImageObject. ", count: 30)
+        let html = """
+        <script type="application/ld+json">
+        {"@type": "Article", "headline": "ObjectImage",
+         "articleBody": \(jsonString(body)),
+         "image": {"@type": "ImageObject", "url": "https://example.com/hero2.jpg"}}
+        </script>
+        """
+        let result = try XCTUnwrap(JSONLDExtractor.tryFastPath(html: html))
+        XCTAssertEqual(result.imageURLs.map(\.absoluteString), ["https://example.com/hero2.jpg"])
+    }
+
+    func testImageURLsFromArrayOfMixedShapes() throws {
+        let body = String(repeating: "Multiple image shapes. ", count: 30)
+        let html = """
+        <script type="application/ld+json">
+        {"@type": "Article", "headline": "ArrayImage",
+         "articleBody": \(jsonString(body)),
+         "image": [
+           "https://example.com/a.jpg",
+           {"@type": "ImageObject", "url": "https://example.com/b.jpg"},
+           "https://example.com/a.jpg"
+         ]}
+        </script>
+        """
+        let result = try XCTUnwrap(JSONLDExtractor.tryFastPath(html: html))
+        // Order preserved; duplicate dropped.
+        XCTAssertEqual(
+            result.imageURLs.map(\.absoluteString),
+            ["https://example.com/a.jpg", "https://example.com/b.jpg"]
+        )
+    }
+
     // MARK: - Array @type matches
 
     func testArrayTypeMatches() throws {

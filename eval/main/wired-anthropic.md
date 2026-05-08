@@ -1,3 +1,5 @@
+[[IMG:0]] 
+
 The fight over the bill, SB 3444, is drawing new battle lines between Anthropic and OpenAI over how AI technologies should be regulated. While AI policy experts say that the legislation has only a remote chance of becoming law, it has nonetheless exposed political divisions between two leading US AI labs that could become increasingly important as the rival companies ramp up their lobbying activity across the country.
 
 Behind the scenes, Anthropic has been lobbying state senator Bill Cunningham, SB 3444’s sponsor, and other Illinois lawmakers to either make major changes to the bill or kill it as it stands, according to people familiar with the matter. In an email to WIRED, an Anthropic spokesperson confirmed the company’s opposition to SB 3444 and said it has held promising conversations with Cunningham about using the bill as a starting point for future AI legislation.

@@ -1,3 +1,5 @@
+[[IMG:0]] 
+
 If so, Michael—a new film about the pop singer Michael Jackson that is on track to have the biggest-ever opening for a music biopic, with projected earnings of $70 million at the US box office, despite critics saying it sanitizes the reality of who Jackson actually was—intends to supplant the King of Pop as the apotheosis of artistic virtue.
 
 The film’s release has sparked a civil war online, between those eager to reclaim the music and myth of Jackson, and those who see any celebration of him as a failure of accountability.
