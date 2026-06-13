@@ -94,4 +94,15 @@ extension FakeExtensionContext {
         item.attachments = [provider]
         return FakeExtensionContext(inputItems: [item])
     }
+
+    /// Build a context carrying a single `public.plain-text` provider — the
+    /// shape used when an app shares plain text. If the text contains a URL,
+    /// `WebContentExtractor` will detect it and attempt a fetch, so any URL in
+    /// `text` should point somewhere local/unreachable when used in tests.
+    static func plainText(_ text: String) -> FakeExtensionContext {
+        let provider = NSItemProvider(item: text as NSString, typeIdentifier: "public.plain-text")
+        let item = NSExtensionItem()
+        item.attachments = [provider]
+        return FakeExtensionContext(inputItems: [item])
+    }
 }

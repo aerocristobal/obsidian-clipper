@@ -210,4 +210,28 @@ final class FileSaverTests: XCTestCase {
         settings.refreshBookmark(for: bogus)
         XCTAssertEqual(settings.vaultBookmark, before, "Failed refresh should not clear or corrupt existing bookmark")
     }
+
+    @MainActor
+    func testPersistVaultBookmarkRoundTrip() throws {
+        // The nonisolated persist path is what FileSaver uses to refresh a stale
+        // bookmark synchronously while scoped access is held.
+        let tmp = FileManager.default.temporaryDirectory
+            .appendingPathComponent("clipper-persist-test-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmp) }
+
+        let settings = ClipperSettings()
+        let before = settings.vaultBookmark
+        defer { settings.vaultBookmark = before }
+
+        let data = try tmp.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+        ClipperSettings.persistVaultBookmark(data)
+
+        let persisted = UserDefaults(suiteName: ClipperSettings.suiteName)?.data(forKey: "vault_bookmark")
+        XCTAssertEqual(persisted, data, "persistVaultBookmark should write the App Group defaults directly")
+
+        let resolved = ClipperSettings.resolveVaultBookmark(persisted)
+        XCTAssertNotNil(resolved, "Persisted bookmark should resolve")
+        XCTAssertFalse(resolved?.isStale ?? true, "Persisted bookmark should not be stale")
+    }
 }

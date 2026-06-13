@@ -409,9 +409,8 @@ enum HTMLToMarkdown {
         let nsHTML = html as NSString
         let fullRange = NSRange(location: 0, length: nsHTML.length)
 
-        let imgPattern = #"<img\s[^>]*/?>"#
-        guard let imgRegex = try? NSRegularExpression(pattern: imgPattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) else {
-            NSLog("[Clipper.markdown] replaceImgTagsWithMarkers() img regex compile FAILED; returning input")
+        guard let imgRegex = Self.imgTagRegex else {
+            NSLog("[Clipper.markdown] replaceImgTagsWithMarkers() img regex unavailable; returning input")
             return (html, markerMap)
         }
 
@@ -472,8 +471,7 @@ enum HTMLToMarkdown {
 
         // Second pass: <source> elements (typically inside <picture>). Only emit a
         // new marker when the URL isn't already covered by a sibling <img>.
-        let sourcePattern = #"<source\s[^>]*/?>"#
-        if let sourceRegex = try? NSRegularExpression(pattern: sourcePattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) {
+        if let sourceRegex = Self.sourceTagRegex {
             let sourceMatches = sourceRegex.matches(in: html, range: fullRange)
 
             for match in sourceMatches {
@@ -516,6 +514,8 @@ enum HTMLToMarkdown {
                 replacements.append((range: match.range, marker: "[[IMG:\(markerIndex)]]"))
                 markerIndex += 1
             }
+        } else {
+            NSLog("[Clipper.markdown] replaceImgTagsWithMarkers() source regex unavailable; skipping <source> pass")
         }
 
         // Apply replacements in reverse so offsets stay valid. Source matches may be
@@ -529,6 +529,16 @@ enum HTMLToMarkdown {
 
         return (result, markerMap)
     }
+
+    /// Precompiled tag-matching regexes, compiled once instead of per call.
+    /// A nil here is a programmer error in the pattern; call sites log loudly
+    /// and degrade gracefully instead of silently skipping image handling.
+    private static let imgTagRegex: NSRegularExpression? = {
+        try? NSRegularExpression(pattern: #"<img\s[^>]*>"#, options: [.caseInsensitive, .dotMatchesLineSeparators])
+    }()
+    private static let sourceTagRegex: NSRegularExpression? = {
+        try? NSRegularExpression(pattern: #"<source\s[^>]*>"#, options: [.caseInsensitive, .dotMatchesLineSeparators])
+    }()
 
     /// Cached regex for marker discovery — `[[IMG:N]]` where N is a non-negative integer.
     private static let markerRegex: NSRegularExpression? = {
@@ -618,8 +628,7 @@ enum HTMLToMarkdown {
         let fullRange = NSRange(location: 0, length: nsHTML.length)
 
         // 1. Extract from <img> tags: src, data-src, data-lazy-src, data-original, srcset
-        let imgPattern = #"<img\s[^>]*>"#
-        if let imgRegex = try? NSRegularExpression(pattern: imgPattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) {
+        if let imgRegex = Self.imgTagRegex {
             let imgMatches = imgRegex.matches(in: html, range: fullRange)
 
             for match in imgMatches {
@@ -647,8 +656,7 @@ enum HTMLToMarkdown {
         }
 
         // 2. Extract from <source> elements (inside <picture>)
-        let sourcePattern = #"<source\s[^>]*>"#
-        if let sourceRegex = try? NSRegularExpression(pattern: sourcePattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) {
+        if let sourceRegex = Self.sourceTagRegex {
             let sourceMatches = sourceRegex.matches(in: html, range: fullRange)
 
             for match in sourceMatches {

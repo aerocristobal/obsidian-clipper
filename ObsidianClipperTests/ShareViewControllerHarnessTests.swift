@@ -223,6 +223,67 @@ final class ShareViewControllerHarnessTests: XCTestCase {
         XCTAssertEqual(mdFiles.count, 1)
     }
 
+    /// An explicitly-shared URL whose fetch fails must surface a named
+    /// `ClipError.fetchFailed` and write nothing — never a stub note. Regression
+    /// guard for the bug where the pipeline only threw when the plain text was
+    /// byte-for-byte equal to the URL, letting a `public.url` share with
+    /// decorative plain text (e.g. a tweet) silently write an empty note.
+    /// `127.0.0.1:1` refuses connections immediately, so the fetch fails fast
+    /// and locally.
+    func testExplicitUrlFetchFailureThrowsAndWritesNothing() async throws {
+        try seedVaultDefaults(targetFolder: "Inbox", saveImages: false)
+
+        let context = FakeExtensionContext.urlOnly(url: "http://127.0.0.1:1/unreachable")
+        do {
+            _ = try await ClippingPipeline.run(extensionContext: context)
+            XCTFail("Expected ClipError.fetchFailed for an unreachable explicit URL")
+        } catch let error as ClipError {
+            guard case .fetchFailed = error else {
+                return XCTFail("Expected .fetchFailed, got \(error)")
+            }
+        }
+
+        let inbox = tempVault.appendingPathComponent("Inbox", isDirectory: true)
+        if FileManager.default.fileExists(atPath: inbox.path) {
+            let entries = try FileManager.default.contentsOfDirectory(
+                at: inbox, includingPropertiesForKeys: nil
+            )
+            XCTAssertTrue(
+                entries.isEmpty,
+                "A failed fetch must not write a stub note; found \(entries.map { $0.lastPathComponent })"
+            )
+        }
+    }
+
+    /// A URL *detected inside* a larger plain-text share is not the primary
+    /// payload — the text is. So even when that URL won't fetch, the pipeline
+    /// must still save the shared text rather than throwing. Counterpart to
+    /// `testExplicitUrlFetchFailureThrowsAndWritesNothing`.
+    func testPlainTextWithUnfetchableUrlStillSavesText() async throws {
+        try seedVaultDefaults(targetFolder: "Inbox", saveImages: false)
+
+        let context = FakeExtensionContext.plainText(
+            "Field notes about widgets — see http://127.0.0.1:1/unreachable for context."
+        )
+        _ = try await ClippingPipeline.run(extensionContext: context)
+
+        let inbox = tempVault.appendingPathComponent("Inbox", isDirectory: true)
+        let articleSubfolders = try FileManager.default.contentsOfDirectory(
+            at: inbox, includingPropertiesForKeys: nil
+        )
+        XCTAssertEqual(articleSubfolders.count, 1, "Expected the shared text to be saved as one note")
+
+        let mdFiles = try FileManager.default
+            .contentsOfDirectory(at: articleSubfolders[0], includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "md" }
+        XCTAssertEqual(mdFiles.count, 1)
+        let markdown = try String(contentsOf: mdFiles[0], encoding: .utf8)
+        XCTAssertTrue(
+            markdown.contains("Field notes about widgets"),
+            "Saved note should contain the shared text"
+        )
+    }
+
     /// Calls `performClipping` with `vault_bookmark` cleared and asserts a
     /// `FileSaver.SaveError.noVaultConfigured` is raised. This guards against
     /// regressions in the FileSaver early-return path that have masked

@@ -214,6 +214,36 @@ final class WebContentExtractorTests: XCTestCase {
         XCTAssertEqual(title, "Line One\nLine Two")
     }
 
+    // MARK: - Fetch retry classification
+
+    func testRetryableStatusCodes() {
+        XCTAssertTrue(WebContentExtractor.isRetryableStatus(500))
+        XCTAssertTrue(WebContentExtractor.isRetryableStatus(502))
+        XCTAssertTrue(WebContentExtractor.isRetryableStatus(503))
+        XCTAssertTrue(WebContentExtractor.isRetryableStatus(429))
+    }
+
+    func testNonRetryableStatusCodes() {
+        // 4xx (other than 429) are permanent for an unauthenticated fetcher —
+        // a paywall 403 or missing page 404 won't change on retry.
+        XCTAssertFalse(WebContentExtractor.isRetryableStatus(400))
+        XCTAssertFalse(WebContentExtractor.isRetryableStatus(401))
+        XCTAssertFalse(WebContentExtractor.isRetryableStatus(403))
+        XCTAssertFalse(WebContentExtractor.isRetryableStatus(404))
+        XCTAssertFalse(WebContentExtractor.isRetryableStatus(410))
+    }
+
+    func testFetchErrorDescriptions() {
+        XCTAssertEqual(
+            WebContentExtractor.FetchError.badStatus(403).errorDescription,
+            "The page returned HTTP 403."
+        )
+        XCTAssertTrue(
+            WebContentExtractor.FetchError.network("timed out").errorDescription?
+                .contains("timed out") ?? false
+        )
+    }
+
     // MARK: - Helpers
 
     private func makeResponse(contentType: String?) -> HTTPURLResponse {

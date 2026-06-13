@@ -83,6 +83,15 @@ final class ClipperSettings: ObservableObject {
         return ResolvedVault(url: url, isStale: isStale)
     }
 
+    /// Persist fresh bookmark data directly to the App Group defaults.
+    /// Nonisolated and thread-safe (UserDefaults is internally synchronized) so the
+    /// share extension can refresh a stale bookmark while still holding scoped
+    /// access, without hopping to the MainActor after the scope is released.
+    nonisolated static func persistVaultBookmark(_ data: Data) {
+        let defaults = UserDefaults(suiteName: suiteName) ?? .standard
+        defaults.set(data, forKey: Keys.vaultBookmark)
+    }
+
     /// Re-persist a bookmark for a URL the caller already holds scoped access to.
     func refreshBookmark(for url: URL) {
         if let fresh = try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil) {

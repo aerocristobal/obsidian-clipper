@@ -20,6 +20,41 @@ enum WebContentExtractor {
         let plainText: String?
         /// Images shared directly (e.g. from Photos, Screenshots). Not from HTML extraction.
         let sharedImages: [Data]
+        /// Human-readable reason the URL re-fetch failed, when one was attempted.
+        /// Lets the pipeline name the failure instead of a generic "no content".
+        let fetchErrorDescription: String?
+        /// True when `url` was discovered inside a larger plain-text share rather
+        /// than shared explicitly (`public.url` / Safari). In that case the text
+        /// itself is the payload, so a failed fetch should still save the text;
+        /// for an explicitly-shared URL a failed fetch has nothing worth saving.
+        let urlFromPlainText: Bool
+    }
+
+    /// Typed failure for the URL re-fetch path so the share UI can name the cause.
+    enum FetchError: LocalizedError {
+        case badStatus(Int)
+        case network(String)
+        case undecodable
+
+        var errorDescription: String? {
+            switch self {
+            case .badStatus(let code):
+                return "The page returned HTTP \(code)."
+            case .network(let detail):
+                return "The network request failed: \(detail)"
+            case .undecodable:
+                return "The page content could not be decoded as text."
+            }
+        }
+    }
+
+    /// Retries beyond the initial attempt for transient fetch failures.
+    private static let maxFetchRetries = 2
+
+    /// HTTP statuses worth retrying: server errors and rate limiting.
+    /// 4xx (other than 429) are permanent for an unauthenticated fetcher.
+    static func isRetryableStatus(_ code: Int) -> Bool {
+        code >= 500 || code == 429
     }
 
     /// Extract content from the NSExtensionContext input items.
@@ -95,16 +130,29 @@ enum WebContentExtractor {
             }
         }
 
-        // If plain text looks like a URL and we don't already have one, treat it as a URL
+        // If plain text looks like a URL and we don't already have one, treat it as a URL.
+        // Record this provenance: a URL merely detected inside text means the text is the
+        // primary payload, so a failed fetch should fall back to saving the text.
+        var urlFromPlainText = false
         if url == nil, let text = plainText {
             if let detected = detectURL(in: text) {
                 url = detected
+                urlFromPlainText = true
             }
         }
 
         // If we have a URL but no HTML, fetch the page content
+        var fetchErrorDescription: String?
         if html == nil, let pageURL = url {
-            html = await fetchHTML(from: pageURL)
+            do {
+                html = try await fetchHTML(from: pageURL)
+            } catch is CancellationError {
+                return nil
+            } catch {
+                fetchErrorDescription = error.localizedDescription
+                NSLog("[Clipper.extract] fetchHTML FAILED for %@: %@",
+                      pageURL.absoluteString as NSString, error.localizedDescription as NSString)
+            }
         }
 
         // Derive title from HTML <title> tag if not already set
@@ -130,7 +178,9 @@ enum WebContentExtractor {
             url: url,
             html: html,
             plainText: plainText,
-            sharedImages: sharedImages
+            sharedImages: sharedImages,
+            fetchErrorDescription: fetchErrorDescription,
+            urlFromPlainText: urlFromPlainText
         )
     }
 
@@ -176,9 +226,12 @@ enum WebContentExtractor {
 
     /// Fetch HTML from a URL, detecting character encoding from the Content-Type header or HTML meta tags.
     /// Rejects non-HTTP(S) schemes (file://, javascript:, ftp://, data:, etc.).
-    private static func fetchHTML(from url: URL) async -> String? {
+    /// Transient failures (timeout, connection reset, 5xx, 429) are retried up to
+    /// `maxFetchRetries` times with jittered exponential backoff; permanent
+    /// failures (other 4xx) throw immediately.
+    private static func fetchHTML(from url: URL) async throws -> String {
         guard isAllowedScheme(url) else {
-            return nil
+            throw FetchError.network("Unsupported URL scheme.")
         }
 
         var request = URLRequest(url: url, timeoutInterval: 15)
@@ -187,14 +240,51 @@ enum WebContentExtractor {
             forHTTPHeaderField: "User-Agent"
         )
 
-        guard let (data, response) = try? await session.data(for: request),
-              let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            return nil
+        var lastError: FetchError = .network("Unknown error.")
+
+        for attempt in 0...maxFetchRetries {
+            if attempt > 0 {
+                // Jittered exponential backoff: ~0.5s, then ~1s, +0–50% jitter.
+                let base = 0.5 * pow(2.0, Double(attempt - 1))
+                let delay = base * (1.0 + Double.random(in: 0...0.5))
+                try await Task.sleep(for: .seconds(delay))
+            }
+            try Task.checkCancellation()
+
+            let data: Data
+            let response: URLResponse
+            do {
+                (data, response) = try await session.data(for: request)
+            } catch {
+                if (error as? URLError)?.code == .cancelled {
+                    throw CancellationError()
+                }
+                lastError = .network(error.localizedDescription)
+                NSLog("[Clipper.fetch] attempt %d/%d failed: %@",
+                      attempt + 1, maxFetchRetries + 1, error.localizedDescription as NSString)
+                continue
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                lastError = .network("Invalid response from server.")
+                continue
+            }
+            guard (200...299).contains(httpResponse.statusCode) else {
+                lastError = .badStatus(httpResponse.statusCode)
+                NSLog("[Clipper.fetch] attempt %d/%d HTTP %d",
+                      attempt + 1, maxFetchRetries + 1, httpResponse.statusCode)
+                if isRetryableStatus(httpResponse.statusCode) { continue }
+                throw lastError
+            }
+
+            let encoding = Self.detectEncoding(response: httpResponse, body: data)
+            if let html = String(data: data, encoding: encoding) ?? String(data: data, encoding: .utf8) {
+                return html
+            }
+            throw FetchError.undecodable
         }
 
-        let encoding = Self.detectEncoding(response: httpResponse, body: data)
-        return String(data: data, encoding: encoding) ?? String(data: data, encoding: .utf8)
+        throw lastError
     }
 
     /// Returns true if the URL uses a scheme safe for network fetching (http/https only).
