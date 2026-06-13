@@ -9,12 +9,15 @@ import CryptoKit
 /// access that test bundles don't have).
 enum ClipError: LocalizedError {
     case noContent
+    case fetchFailed(String)
     case cancelled
 
     var errorDescription: String? {
         switch self {
         case .noContent:
             return "Could not extract content from the shared item. Try sharing a URL, text, or image."
+        case .fetchFailed(let detail):
+            return "Couldn't fetch the page — \(detail) Try opening it in Safari and sharing from there."
         case .cancelled:
             return "Clipping was cancelled."
         }
@@ -70,6 +73,21 @@ enum ClippingPipeline {
         }
 
         try Task.checkCancellation()
+
+        // When an explicitly-shared URL's fetch failed, the page is what the user
+        // wanted and we don't have it. Any accompanying plain text is share-sheet
+        // metadata (a title, a snippet, the URL itself) — not the article — so
+        // surface the named cause instead of silently writing a stub note.
+        //
+        // Two cases still proceed: shares that carry their own images, and URLs
+        // merely *detected* inside a larger plain-text share (urlFromPlainText) —
+        // there the text is the payload worth keeping even if the link won't fetch.
+        if rawContent.html == nil,
+           let fetchError = rawContent.fetchErrorDescription,
+           rawContent.sharedImages.isEmpty,
+           !rawContent.urlFromPlainText {
+            throw ClipError.fetchFailed(fetchError)
+        }
 
         let isImageOnly = rawContent.html == nil
             && rawContent.url == nil

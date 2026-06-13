@@ -67,12 +67,15 @@ enum FileSaver {
         }
         defer { vaultURL.stopAccessingSecurityScopedResource() }
 
-        // If the bookmark is stale, best-effort refresh while scoped access is held.
-        // Fire-and-forget on MainActor so `save`'s signature stays unchanged; if the
-        // refresh doesn't complete before save returns, the next save will try again.
+        // If the bookmark is stale, refresh it synchronously while scoped access is
+        // still held — `bookmarkData()` needs live access to the URL. A detached
+        // task here could run after the `defer` releases the scope and silently
+        // fail, leaving the stale bookmark to rot across clips.
         if resolved.isStale {
-            Task.detached { @MainActor in
-                ClipperSettings().refreshBookmark(for: vaultURL)
+            if let fresh = try? vaultURL.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil) {
+                ClipperSettings.persistVaultBookmark(fresh)
+            } else {
+                NSLog("[Clipper.save] stale bookmark refresh FAILED; will retry on next save")
             }
         }
 

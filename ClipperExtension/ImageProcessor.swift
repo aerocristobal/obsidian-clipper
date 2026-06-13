@@ -36,6 +36,10 @@ actor ImageProcessor {
     /// over-count, biasing the filter toward keeping borderline cases.
     private static let textCoverageThreshold: CGFloat = 0.10
 
+    /// Hard ceiling on a single Vision OCR request. Vision has no timeout of its
+    /// own; a hung request would otherwise hang the whole clip.
+    private static let ocrTimeoutSeconds: TimeInterval = 30
+
     /// Maximum cumulative bytes of image data downloaded per clip. Protects the
     /// extension's ~120MB memory budget from pathological pages with huge images.
     private static let maxCumulativeImageBytes = 50 * 1024 * 1024
@@ -385,34 +389,72 @@ actor ImageProcessor {
     /// so the OCR section in the output isn't polluted with snippets
     /// that aren't useful to the reader.
     private func recognizeText(in image: CGImage) async -> String? {
-        await withCheckedContinuation { continuation in
-            let request = VNRecognizeTextRequest { request, error in
-                guard error == nil,
-                      let observations = request.results as? [VNRecognizedTextObservation] else {
-                    continuation.resume(returning: nil)
-                    return
+        // Race the (synchronous, off-actor) Vision request against a hard
+        // timeout. The first-resume guard guarantees the continuation resumes
+        // exactly once; on timeout the orphaned Vision task is abandoned and
+        // its eventual result discarded rather than hanging the clip.
+        let resumed = ResumeOnce()
+        return await withCheckedContinuation { (continuation: CheckedContinuation<String?, Never>) in
+            Task.detached(priority: .userInitiated) {
+                let text = Self.performOCRSync(on: image)
+                if resumed.tryClaim() {
+                    continuation.resume(returning: text)
                 }
-
-                let coverage = observations.reduce(CGFloat(0)) { acc, obs in
-                    acc + (obs.boundingBox.width * obs.boundingBox.height)
-                }
-                let text = observations
-                    .compactMap { $0.topCandidates(1).first?.string }
-                    .joined(separator: "\n")
-
-                let kept = coverage >= Self.textCoverageThreshold && !text.isEmpty
-                NSLog("[Clipper.image] OCR coverage=%.3f chars=%d threshold=%.3f kept=%d",
-                      Double(coverage), text.count, Double(Self.textCoverageThreshold), kept ? 1 : 0)
-
-                continuation.resume(returning: kept ? text : nil)
             }
-
-            request.recognitionLevel = .accurate
-            request.usesLanguageCorrection = true
-
-            let handler = VNImageRequestHandler(cgImage: image, options: [:])
-            try? handler.perform([request])
+            Task.detached {
+                try? await Task.sleep(for: .seconds(Self.ocrTimeoutSeconds))
+                if resumed.tryClaim() {
+                    NSLog("[Clipper.image] OCR TIMEOUT after %.0fs; dropping OCR for this image",
+                          Self.ocrTimeoutSeconds)
+                    continuation.resume(returning: nil)
+                }
+            }
         }
+    }
+
+    /// Lock-guarded once flag so the OCR/timeout race resumes its continuation
+    /// exactly once.
+    private final class ResumeOnce: @unchecked Sendable {
+        private let lock = NSLock()
+        private var claimed = false
+        func tryClaim() -> Bool {
+            lock.lock()
+            defer { lock.unlock() }
+            if claimed { return false }
+            claimed = true
+            return true
+        }
+    }
+
+    /// Synchronous Vision OCR with the coverage filter. `handler.perform` blocks
+    /// the calling thread, so this must run off the actor (see `recognizeText`).
+    private static func performOCRSync(on image: CGImage) -> String? {
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.usesLanguageCorrection = true
+
+        let handler = VNImageRequestHandler(cgImage: image, options: [:])
+        do {
+            try handler.perform([request])
+        } catch {
+            NSLog("[Clipper.image] OCR perform FAILED: %@", error.localizedDescription as NSString)
+            return nil
+        }
+
+        guard let observations = request.results else { return nil }
+
+        let coverage = observations.reduce(CGFloat(0)) { acc, obs in
+            acc + (obs.boundingBox.width * obs.boundingBox.height)
+        }
+        let text = observations
+            .compactMap { $0.topCandidates(1).first?.string }
+            .joined(separator: "\n")
+
+        let kept = coverage >= textCoverageThreshold && !text.isEmpty
+        NSLog("[Clipper.image] OCR coverage=%.3f chars=%d threshold=%.3f kept=%d",
+              Double(coverage), text.count, Double(textCoverageThreshold), kept ? 1 : 0)
+
+        return kept ? text : nil
     }
 
     func fileExtension(for url: URL, mimeType: String?) -> String {
